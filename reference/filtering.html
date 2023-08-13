@@ -77,11 +77,11 @@ Not all criteria need to be filled in. Unfilled criteria are set by default so t
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data</dt>
-<dd><p>Raw data. See the "importation" function in the '2-import.R' file</p></dd>
+<dd><p>dat.frame. See the "importation" function in the '2-import.R' file</p></dd>
 
 
 <dt>sensor</dt>
-<dd><p>character. Name of desired sensor</p></dd>
+<dd><p>character. Id of desired sensor between quotations</p></dd>
 
 
 <dt>direction</dt>
@@ -93,19 +93,19 @@ Not all criteria need to be filled in. Unfilled criteria are set by default so t
 
 
 <dt>date_range</dt>
-<dd><p>character. Date or character. c("aaaa-mm-jj","aaaa-mm-jj")</p></dd>
+<dd><p>Date vector, c("aaaa-mm-jj","aaaa-mm-jj")</p></dd>
 
 
 <dt>vac</dt>
-<dd><p>character. With, without, or only with vacation: "Oui" or "Non" or "Seulement les vacances"</p></dd>
+<dd><p>character. With, without, or only with vacation: "YES" or "NO" or "ONLY"</p></dd>
 
 
 <dt>p_h</dt>
-<dd><p>character. With, without, or only with public holiday: "Oui" or "Non" or "Seulement les jours feries"</p></dd>
+<dd><p>character. With, without, or only with public holiday: "YES" or "NO" or "ONLY"</p></dd>
 
 
 <dt>wkd</dt>
-<dd><p>character. Selected days of the week: c("1","2","3","4","5","6","7") here all days are selected</p></dd>
+<dd><p>character vector. Selected days of the week: c("1","2","3","4","5","6","7") starting with one for Monday. Make sure to use options(lubridate.week.start = 1) for this function to perform correctly.</p></dd>
 
 
 <dt>vacations</dt>

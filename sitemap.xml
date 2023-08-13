@@ -61,9 +61,6 @@
     <loc>http://annuaire.agistaterre.org/telraamStats/reference/index.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/mutate_date_time.html</loc>
-  </url>
-  <url>
     <loc>http://annuaire.agistaterre.org/telraamStats/reference/na_prop.html</loc>
   </url>
   <url>
@@ -98,6 +95,9 @@
   </url>
   <url>
     <loc>http://annuaire.agistaterre.org/telraamStats/reference/set_global_vars.html</loc>
+  </url>
+  <url>
+    <loc>http://annuaire.agistaterre.org/telraamStats/reference/set_telraam_token.html</loc>
   </url>
   <url>
     <loc>http://annuaire.agistaterre.org/telraamStats/reference/simple_plot.html</loc>
