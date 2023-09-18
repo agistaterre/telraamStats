@@ -109,11 +109,13 @@ Not all criteria need to be filled in. Unfilled criteria are set by default so t
 
 
 <dt>vacations</dt>
-<dd><p>vacation periods, set by default on the french ones</p></dd>
+<dd><p>data.frame, containing 3 columns : desctiption, start_date and end_date</p><ul><li><p>the description column contains character vectors with the name of every vacations you are studying</p></li>
+<li><p>starting_date and ending_date are Date-Time vectors(POSIXct) in the format "year-month-day hour:minute:second", obtainable for example using ymd_hms from the lubridate package</p></li>
+</ul></dd>
 
 
 <dt>public_holidays</dt>
-<dd><p>public holidays period, set by default on the french ones</p></dd>
+<dd><p>date vector, containing the public holidays dates in a "Year-month-day" format.</p></dd>
 
 </dl></div>
     <div class="section level2">
