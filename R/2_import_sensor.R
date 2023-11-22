@@ -1,11 +1,11 @@
+source("R/global_utils.R")
+
 #' Imports data associated with a list of sensors
 #'
 #' Imports data associated with a given list of sensor names from .RData files contained in a data directory.
 #' The main purpose of this function is to load the data saved with write update data.
 #'
 #' @param list_sensor A character vector specifying the names of sensors to import data for.
-#' @param sensor_names A character vector containing the name of each sensor that is displayed to the user
-#' @param sensor_ids A numeric vector containing the identifier name for each vector
 #'
 #' @return A data.frame containing the imported data.
 #'
@@ -15,20 +15,12 @@
 #'
 #' @export
 #'
-import_sensor <- function(list_sensor,
-                        sensor_names = c("Burel-01","Leclerc-02","ParisMarche-03","rueVignes-04","ParisArcEnCiel-05","RteVitre-06",
-                                         "RueGdDomaine-07","StDidierNord-08","rueVallee-09","StDidierSud-10","RuePrieure-11",
-                                         "RueCottage-12","RueVeronniere-13","RueDesEcoles-14","RueManoirs-15","RueToursCarree-16",
-                                         "PlaceHotelDeVille-17","BoulevardLiberte-18"),
-                        sensor_ids = c(9000002156, 9000001906, 9000001618,9000003090,9000002453,9000001844,
-                                       9000001877,9000002666,9000002181,9000002707,9000003703,
-                                       9000003746,9000003775,9000003736,9000004971,9000004130,
-                                       9000004042,9000004697)
-                        ){
+import_sensor <- function(list_sensor){
 
   data <- data.frame()
-  name_sensor <- sensor_names[sensor_ids%in%list_sensor]
-  data <- map_dfr(name_sensor, ~ {
+  telraam_segments <- get_segments()
+  selected_segments <- telraam_segments[list_sensor]
+  data <- map_dfr(selected_segments, ~ {
     file <- paste0('data/', .x, '.RData')
     if (file.exists(file)) {
       # we select the data that we don't consider null (arbitrary choice)
