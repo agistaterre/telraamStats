@@ -14,7 +14,7 @@ api_state <- function(key = get_telraam_token()){
   key <- c(
     'X-Api-Key' = key
   )
-  VERB("GET", url = "https://telraam-api.net/v1", add_headers(key))$status_code == 200  # the request suceeded if equal to 200
+  VERB("GET", url = config::get(file = "inst/config.yml")$url, add_headers(key))$status_code == 200  # the request suceeded if equal to 200
 }
 
 

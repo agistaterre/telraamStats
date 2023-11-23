@@ -22,8 +22,10 @@ retrieve_sensor <- function(id_sensor,date1,date2, key = get_telraam_token()){
   dates <- seq_by_3_month(date1,date2) # for the iteration of the retrieving, because when we call the API, the period can not exceed 3 month for each call
 
   # calling of the API
+  traffic_url <- paste(config::get(file = "inst/config.yml")$url,
+                       '/reports/traffic', sep='')
   resTraffic_list <- pmap(list(dates$start, dates$end), ~ {
-    resTraffic <- POST("https://telraam-api.net/v1/reports/traffic",
+    resTraffic <- POST(traffic_url,
                        add_headers("X-Api-Key" = key),
                        body = paste0('{
                        "level": "segments",

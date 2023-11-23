@@ -1,4 +1,5 @@
 default:
+  url: https://telraam-api.net/v1
   segments:
     Burel-01:9000002156
     Leclerc-02:9000001906
