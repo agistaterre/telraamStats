@@ -27,10 +27,6 @@ write_update_data_comp(
 
 \item{date2}{Date. End date "aaaa-mm-jj"}
 
-\item{sensor_names}{list with the name of all the studied sensors}
-
-\item{sensor_ids}{list with the ids of all the studied sensors}
-
 \item{vacations}{vacation periods, set by default on the french ones}
 
 \item{public_holidays}{public holidays list, set by default on the french ones}
