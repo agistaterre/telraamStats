@@ -1,5 +1,3 @@
-source("R/global_utils.R")
-
 #' Imports data associated with a list of sensors
 #'
 #' Imports data associated with a given list of sensor names from .RData files contained in a data directory.

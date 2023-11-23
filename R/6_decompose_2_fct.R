@@ -1,5 +1,3 @@
-source("R/global_utils.R")
-
 # This function is heavily improvable, mostly by passing the arguments for filtering as lists of parameters, which would give more flexibility to the code(see plot_comparaison for this aproach).
 # You can probably go even further than that by using dinamic dots and a number for how many lists of parameters you want to pass, and put the operations the function du in a map().
 

@@ -1,5 +1,3 @@
-source("R/global_utils.R")
-
 #' gg_na_heatmap
 #' This function generates a heatmap representation of the proportion of missing values (NA) for different sensors over monthly periods during a selected time frame.
 #'
