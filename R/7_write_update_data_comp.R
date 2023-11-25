@@ -5,8 +5,6 @@
 #' @param id_sensor Numeric. ID of the sensor
 #' @param date1 Date. Start date "aaaa-mm-jj"
 #' @param date2 Date. End date "aaaa-mm-jj"
-#' @param sensor_names list with the name of all the studied sensors
-#' @param sensor_ids list with the ids of all the studied sensors
 #' @param vacations vacation periods, set by default on the french ones
 #' @param public_holidays public holidays list, set by default on the french ones
 #'
@@ -32,8 +30,9 @@ write_update_data_comp <- function(id_sensor, date1, date2,
   set_global_vars(vacations, public_holidays)
 
   # retrieve file name
-  sensor_name <- sensor_names[which(sensor_ids==id_sensor)]
-  comp_name <- paste(str_sub(sensor_name,1,-4), "_comp", str_sub(sensor_name,-3,-1), sep = "")
+  telraam_segments <- get_segments()
+  name_segment <- names(telraam_segments[telraam_segments==id_sensor])
+  comp_name <- paste(str_sub(name_segment,1,-4), "_comp", str_sub(name_segment,-3,-1), sep = "")
   file_name <- paste0("data/",comp_name,".RData")
 
   if (!file.exists(file_name)) {

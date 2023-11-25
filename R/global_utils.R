@@ -46,6 +46,23 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
   }
 }
 
+#' Get Telraam segments into a named vector
+#'
+#' @description
+#' Get Telraam segments info in yml file and transform them into a named vector
+#'
+#' @return Named vector with names and segment IDs
+#'
+#' @keywords internal
+#'
+get_segments <- function(){
+  raw_segments <- config::get(file = "inst/config.yml")$segments
+  # current format is "name:id name2:id2"
+  list_segments <- lapply(strsplit(raw_segments,' '), strsplit, split=':')
+  matrix_segments <- matrix(unlist(list_segments), ncol=2, byrow=TRUE)
+  segments <- setNames(as.numeric(matrix_segments[,2]),matrix_segments[,1])
+  return(segments)
+}
 
 #' Select data within a specified date range
 #'

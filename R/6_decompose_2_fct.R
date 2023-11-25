@@ -13,8 +13,6 @@
 #' @param norm A character indicating whether to normalize the results
 #' @param vacations vacations period for filtering function
 #' @param public_holidays public holidays period for filtering function
-#' @param sensor_names A character vector containing the name of each sensor that is displayed to the user
-#' @param sensor_ids A character vector containing the identifier name for each vector
 #'
 #'
 #' @importFrom dplyr %>%
@@ -27,14 +25,7 @@
 #'
 #' @export
 #'
-decompose_2_fct <- function(data, sensor1,sensor2, hour_x, direction1, direction2, mobility, norm, vacations=NULL, public_holidays=NULL,
-                            sensor_names = c("Burel-01","Leclerc-02","ParisMarche-03","rueVignes-04","ParisArcEnCiel-05","RteVitre-06",
-                                             "RueGdDomaine-07","StDidierNord-08","rueVallee-09","StDidierSud-10","RuePrieure-11",
-                                             "RueCottage-12","RueVeronniere-13","RueDesEcoles-14"),
-                            sensor_ids = c(9000002156, 9000001906, 9000001618,9000003090,9000002453,9000001844,
-                                           9000001877,9000002666,9000002181,9000002707,9000003703,
-                                           9000003746,9000003775,9000003736)
-                            ){
+decompose_2_fct <- function(data, sensor1,sensor2, hour_x, direction1, direction2, mobility, norm, vacations=NULL, public_holidays=NULL){
 
   data1 <- data %>% filtering(sensor = sensor1, mobility = mobility, direction = direction1, vacations=NULL, public_holidays=NULL) %>%
     filter(hour(date)==hour_x)
@@ -59,8 +50,9 @@ decompose_2_fct <- function(data, sensor1,sensor2, hour_x, direction1, direction
     result <- data.frame(apply(result,2,scale))
   }
 
-  lab_sensor1 <- paste(sensor_names[sensor_ids==sensor1],direction1)
-  lab_sensor2 <- paste(sensor_names[sensor_ids==sensor2],direction2)
+  telraam_segments <- get_segments()
+  lab_sensor1 <- paste(names(telraam_segments[telraam_segments==sensor1]),direction1)
+  lab_sensor2 <- paste(names(telraam_segments[telraam_segments==sensor2]),direction2)
 
   trend_random <- data.frame(
     base = c(result$data1.total,result$data2.total),

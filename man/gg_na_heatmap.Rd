@@ -12,15 +12,7 @@ gg_na_heatmap(
   hours = "ALL",
   list_weekday = "ALL",
   pub_holidays = "YES",
-  holidays = "YES",
-  sensor_ids = c(9000002156, 9000001906, 9000001618, 9000003090, 9000002453, 9000001844,
-    9000001877, 9000002666, 9000002181, 9000002707, 9000003703, 9000003746, 9000003775,
-    9000003736, 9000004971, 9000004130, 9000004042, 9000004697),
-  sensor_names = c("Burel-01", "Leclerc-02", "ParisMarche-03", "rueVignes-04",
-    "ParisArcEnCiel-05", "RteVitre-06", "RueGdDomaine-07", "StDidierNord-08",
-    "rueVallee-09", "StDidierSud-10", "RuePrieure-11", "RueCottage-12",
-    "RueVeronniere-13", "RueDesEcoles-14", "RueManoirs-15", "RueToursCarree-16",
-    "PlaceHotelDeVille-17", "BoulevardLiberte-18")
+  holidays = "YES"
 )
 }
 \arguments{
@@ -37,10 +29,6 @@ gg_na_heatmap(
 \item{pub_holidays}{Character. "YES" if you want to see results with public holidays included; "NO" if you want to exclude them from the representation; "ONLY" if you only want to see them in the result.}
 
 \item{holidays}{Character. "YES" if you want to see results including holidays; "NO" if you want to exclude them from the representation; "ONLY" if you only want to see them in the result.}
-
-\item{sensor_ids}{list with the ids of all the studied sensors}
-
-\item{sensor_names}{list with the name of all the studied sensors}
 }
 \value{
 A ggplot graph representing the heatmap of NA proportions for different sensors over monthly periods.
