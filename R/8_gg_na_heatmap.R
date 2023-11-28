@@ -101,7 +101,7 @@ gg_na_heatmap <- function(data,
   telraam_segments <- get_segments()
   result <- data.frame()
   for (sensor_id in list_sensor){
-    segment_name = names(telraam_segments[telraam_segments==id_sensor])
+    segment_name <- names(telraam_segments[telraam_segments==id_sensor])
     res <- data %>% filter(segment_id == sensor_id) %>%
       group_by(month) %>%
       summarize("prop_NA" = sum(is.na(.data$car))*100/n())
