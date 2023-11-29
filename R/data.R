@@ -1,0 +1,27 @@
+
+#' Traffic data of Telraam sensors in Chateaubourg (FR)
+#'
+#' Telraam sensors continously monitor a street form a citizen window.
+#' They count heavy vehicules, cars, twok-wheelers and pedestrians, every hour.
+#' Chateaubourg is one of the city in France with the highest density of sensors
+#' This dataframe is a subset of sensors data in Chateaubourg for 2022.
+#'
+#' @format ## `traffic`
+#' A data frame with 16,729 rows and 22 columns:
+#' \describe{
+#'   \item{instance_id}{sensor Telraam ID}
+#'   \item{segment_id}{road segment Telraam ID}
+#'   \item{date}{date and UTC time of the reporting interval (beginning of the interval)}
+#'   \item{interval}{can be "hourly" or "daily" for hourly or daily aggregate data}
+#'   \item{uptime}{between 0 and 1, represents the portion of the reporting interval that was actively spent counting the traffic}
+#'   \item{heavy, heavy_lft, heavy_rgt}{number of heavy vehicles, total and in both directions}
+#'   \item{car, car_lft, car_rgt}{number of cars, total and in both directions}
+#'   \item{bike, bike_lft, bike_rgt}{number of two-wheelers, total and in both directions}
+#'   \item{pedestrian, pedestrian_lft, pedestrian_rgt}{number of pedestrians, total and in both directions}
+#'   \item{direction}{1, internal consistency value for Telraam}
+#'   \item{car_speed_hist_0to70plus, car_speed_hist_0to120plus}{the estimated car speed distribution in 10 km/h bins from 0 to 70+ km/h or 120+ km/h (in percentage of the total 100%)}
+#'   \item{timezone}{name of the Time zone where the segment can be found}
+#'   \item{v85}{estimated car speed limit in km/h that 85% of all cars respect}
+#' }
+#' @source <https://telraam-api.net/>
+"traffic"
