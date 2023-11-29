@@ -5,14 +5,14 @@ if (!api_state()) {
 }
 
 # Select segments in Châteaubourg city with most complete data for 2022
-segments <- c(9000001844, 9000002453)
-period <- c('2022-01-01', '2022-12-31')
+segments <- c("RteVitre-06" = 9000001844, "ParisArcEnCiel-05" = 9000002453)
+period <- as.Date(c('2022-01-01', '2022-12-31'))
 
 # Get Data from API
 traffic <- data.frame()
 for (segment in segments) {
   traffic_tmp <-
-    retrieve_sensor(segment, as.Date(period[1]), as.Date(period[2]))
+    retrieve_sensor(segment, period[1], period[2])
   traffic <- rbind(traffic, traffic_tmp)
 }
 
