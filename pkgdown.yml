@@ -3,7 +3,7 @@ pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   my_vignette: my_vignette.html
-last_built: 2023-09-18T11:28Z
+last_built: 2023-11-30T14:38Z
 urls:
   reference: http://annuaire.agistaterre.org/telraamStats/reference
   article: http://annuaire.agistaterre.org/telraamStats/articles
