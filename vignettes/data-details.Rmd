@@ -1,0 +1,61 @@
+---
+title: "Telraam API Request"
+output: rmarkdown::html_vignette
+description:
+  Learn how to get traffic data from a Telraam camera.
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+devtools::load_all()
+```
+
+## Introduction
+
+This vignette describes traffic data from Telraam sensors and how to get access to specific data.
+
+Before we go on, we'll attach the packages we use.
+
+```{r setup}
+library(telraamStats)
+```
+
+### Telraam
+
+[Telraam](https://telraam.net/en/what-is-telraam) is a Belgian company that develops sensors for monitoring and collecting multi-modal traffic data. These sensors are equipped with cameras to count road users using various mode of transport, including pedestrian, cyclists, cars and heavy vehicule.
+
+A diverse range of stakeholders (individuals, community groups, local authoritieds, researchers...) can purchase and install a Telraam sensor on their buildings. A map of all sensors is available on [Telraam website](https://telraam.net/). Everyone can access the data through the web interface ([example](https://telraam.net/en/location/9000001844)) or the [API](https://telraam-api.net/).
+
+#### Available data
+
+The Telraam API provides informations on road segments and sensors locations, or parameters, but most importantly, it offers traffic data. Every hour, each sensor send information on traffic counts, for each transportation mode and road direction, along with a confidence metric. In addition to traffic counts, estimated car speed and a car speed histogram are also available. Further details on the data will be provided in this vignette.
+
+### Included dataset
+
+If you're only interested on discovering Telraam data and play with real traffic data, a dataset of two road segments in the city of Châteaubourg (FR) is included in the package.
+
+Châteaubourg is a municipality in Brittany, northwestern France. Its population was 7,064 inhabitants in 2017 and its area is 28.60km2. Its the city with the largest number of Telraam sensors and by far the highest density of sensors in France.
+
+The two road segments offers hourly data from January 1, 2022, to December 31, 2022. The data is directly extracted from the API and may contain missing or extreme values.
+
+#### Load included dataset
+
+Included dataset is lazily loaded with the telraamStats package. If you have already called `library(telraamStats)`, the dataset is already attached and you can call it directly :
+
+```{r}
+head(traffic)
+```
+
+Otherwise, if you don't want to load the entire package, you can also access this dataset by using `telraamStats::traffic`.
+
+### Retrieve data from a specific sensor or set of sensors
+
+
+### Data details
