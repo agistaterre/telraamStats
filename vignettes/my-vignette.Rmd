@@ -1,0 +1,23 @@
+---
+title: "Telraam API Request"
+output: rmarkdown::html_vignette
+description:
+  Learn how to get traffic data from a Telraam camera.
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+devtools::load_all()
+```
+
+```{r setup}
+library(telraamStats)
+```
+
