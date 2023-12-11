@@ -55,7 +55,45 @@ head(traffic)
 
 Otherwise, if you don't want to load the entire package, you can also access this dataset by using `telraamStats::traffic`.
 
-### Retrieve data from a specific sensor or set of sensors
+### Retrieve data from a specific road segment or set of segments
 
+#### 1. Obtain a Telraam token
+
+To work with data from one sensor - or more -, you must first create a [Telraam (free) account](https://telraam.net/en/register) to obtain an API token. The API token serves as a unique identifier for accessing the Telraam API service, which is used in this package. You can generate it in your personal dashboard on the Telraam website. For more information about the Telraam API, refer to the [Telraam Q&A website](https://talks.telraam.net/t/telraam-api-even-more-data-statistics/79).
+
+#### 2. Specify your token in configuration
+
+It is strongly recommended not to directly embed your token in the code, especially if the code is shared or versioned using a system like Git.
+
+You have two options to specify your own Telraam token :
+
+1.  Edit your `.Renviron` file. `.Renviron` is useful for defining sensitive informations or R environment variables : it contains list of environment variables to set. An easy way to edit this file and add your Telraam token is by using the `usethis` package. Run the following command (just once, or every time you change your API Token):
+
+```{r}
+install.packages("usethis") #if you haven't installed 'usethis' already
+usethis::edit_r_environ(TOKEN='YourTelraamAPIToken')
+```
+
+2.  If you are not comfortable with the previous step, you can use an built-in function of the `telraamStat` package. However, keep in mind that you will need to run this function every time you want to retrieve your data:
+
+```{r}
+set_telraam_token('YourTelraamAPIToken')
+```
+
+#### 3. Specify road segment IDs in configuration file
+
+Each road segment has a unique ID, which can be found in the Telraam location URL. For instance, here is the URL for one of Châteaubourg's segment [`https://telraam.net/home/location/9000005665`](https://telraam.net/home/location/9000005665), and its ID is located in the last part of the URL (`9000005665`). Once you have gathered the IDs for all your segments, you can specify them by editing the `inst\config.yml` file :
+
+```{yml}
+default:
+  url: https://telraam-api.net/v1
+  segments:
+    firstName:0000000000
+    secondName:000000000
+```
+
+You can specify as many segments as you want.
+
+#### 4. Get data for your road segments
 
 ### Data details
