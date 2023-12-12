@@ -4,7 +4,7 @@ Version: 1.0.0
 Authors@R: c(
     person("Lilou", "Augeray", email = "lilou.augeray@etudiant.univ-rennes.fr", role = "aut"),
     person("Ulysse", "Caromel", email = "caromelulysse@gmail.com", role = "aut", comment = c(ORCID = "YOUR-ORCID-ID")),
-    person("Ketsia", "Guichard", email = "ketsia.guichard@univ-rennes.fr", role = "cre", comment = c(ORCID = "0009-0002-2280-7465")),    
+    person("Ketsia", "Guichard", email = "ketsia.guichard@univ-rennes.fr", role = "aut", comment = c(ORCID = "0009-0002-2280-7465")),    
     person("Pascal", "Irz", email = "pascal.irz@gmail.com", role = "cre", comment = c(ORCID = "0000-0002-2066-8935")),    
     person("Mijin", "Park", email = "mijinpark@orange.fr", role = "aut"),
     person("Tanguy", "Richard", email = "tanguy.richard@etudiant.univ-rennes1.fr", role = "aut"),

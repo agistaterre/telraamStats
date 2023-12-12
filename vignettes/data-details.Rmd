@@ -1,10 +1,10 @@
 ---
-title: "Telraam API Request"
+title: "Gathering data"
 output: rmarkdown::html_vignette
 description:
   Learn how to get traffic data from a Telraam camera.
 vignette: >
-  %\VignetteIndexEntry{my-vignette}
+  %\VignetteIndexEntry{Gathering data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,6 +15,11 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 devtools::load_all()
+
+knitr::knit_engines$set(yml = function(options) {
+})
+
+knitr::opts_chunk$set(eval = FALSE)
 ```
 
 ## Introduction
@@ -23,7 +28,7 @@ This vignette describes traffic data from Telraam sensors and how to get access 
 
 Before we go on, we'll attach the packages we use.
 
-```{r setup}
+```{r setup, eval = TRUE}
 library(telraamStats)
 ```
 
@@ -49,7 +54,7 @@ The two road segments offers hourly data from January 1, 2022, to December 31, 2
 
 Included dataset is lazily loaded with the telraamStats package. If you have already called `library(telraamStats)`, the dataset is already attached and you can call it directly :
 
-```{r}
+```{r, eval = TRUE}
 head(traffic)
 ```
 
@@ -67,11 +72,11 @@ It is strongly recommended not to directly embed your token in the code, especia
 
 You have two options to specify your own Telraam token :
 
-1.  Edit your `.Renviron` file. `.Renviron` is useful for defining sensitive informations or R environment variables : it contains list of environment variables to set. An easy way to edit this file and add your Telraam token is by using the `usethis` package. Run the following command (just once, or every time you change your API Token):
+1.  Edit your `.Renviron` file. `.Renviron` is useful for defining sensitive informations or R environment variables : it contains list of environment variables to set. An easy way to edit this file and add your Telraam token is by using the `usethis` package. Run the following command (either once or every time you change your API Token) : `.Renviron` file will open in RStudio and you can add a new line in the form `token='YourTelraamAPIToken`.
 
 ```{r}
-install.packages("usethis") #if you haven't installed 'usethis' already
-usethis::edit_r_environ(TOKEN='YourTelraamAPIToken')
+if (!require("usethis")) install.packages("usethis") #if you haven't installed 'usethis' already
+usethis::edit_r_environ()
 ```
 
 2.  If you are not comfortable with the previous step, you can use an built-in function of the `telraamStat` package. However, keep in mind that you will need to run this function every time you want to retrieve your data:
