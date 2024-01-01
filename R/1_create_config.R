@@ -6,7 +6,7 @@
 #'
 #' @export
 #'
-#' @importFrom yaml
+#' @importFrom yaml write_yaml
 #'
 #'
 create_config <- function(){
