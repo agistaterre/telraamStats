@@ -46,7 +46,7 @@ The Telraam API provides informations on road segments and sensors locations, or
 
 If you're only interested on discovering Telraam data and play with real traffic data, a dataset of two road segments in the city of Châteaubourg (FR) is included in the package.
 
-Châteaubourg is a municipality in Brittany, northwestern France. Its population was 7,064 inhabitants in 2017 and its area is 28.60km2. Its the city with the largest number of Telraam sensors and by far the highest density of sensors in France.
+Châteaubourg is a municipality in Brittany, northwestern France. Its population is around 7,500 inhabitants and its area is less than 30km2. Its the city with the largest number of Telraam sensors in 2023 and by far the highest density of sensors in France.
 
 The two road segments offers hourly data from January 1, 2022, to December 31, 2022. The data is directly extracted from the API and may contain missing or extreme values.
 
@@ -109,10 +109,35 @@ You can specify as many segments as you want.
 
 #### 4. Get data for your road segments
 
-Once you have specified the names and IDs of your road segments, you can use \`\` to gather data from this segment from the Telraam API :
+Once you have specified the names and IDs of your road segments, you can use the `retrieve_sensor` function to gather data from this segment from the Telraam API. This function takes, as arguments, the name of the segment, the first and the last day of the period of interest. You must use the same names as specified in the configuration files and dates must be of the date type.
 
 ```{r}
-import_sensor(c('',''))
+retrieve_sensor("segment-01", as.Date('2023-09-01'), as.Date('2023-09-30'))
+```
+
+If you want to store the data, you can directly use `write_update_data`, which performs the same task but also writes or updates the sensor data in the `data/` directory in .Rdata format. The arguments are the same as those of the previous function :
+
+```{r}
+write_update_data("segment-01", as.Date('2023-09-01'), as.Date('2023-09-30'))
+write_update_data("segment-02", as.Date('2023-08-01'), as.Date('2023-09-30'))
+```
+
+To retrieve data you have already stored, you can use `import_sensor()`. This function imports data associated with a given list of sensor names from .RData files contained in the `data/` directory. Here, you should also use the same names as specified in the configuration files. All available periods will be imported.
+
+```{r}
+import_sensor(c("segment-01","segment-02"))
 ```
 
 ### Data details
+
+By importing data from your own road segments (following the previous steps) or using the included dataset, you should obtain Telraam data with the same columns. Among these columns, the most important ones are :
+
+-   *segment_id* : Telraam ID of the road segment ;
+-   *date* : date and UTC time of the reporting interval (beginning of the interval) ;
+-   *interval* : can be "hourly" or "daily" for hourly or daily aggregate data ;
+-   *uptime* : between 0 and 1, represents the portion of the reporting interval that was actively spent counting the traffic. For more information about the uptime parameter, you can refer to [this Telraam article](https://telraam.net/en/blog/precision-accuracy-and-validations-of-the-original-telraam-sensor) ;
+-   *heavy, heavy_lft, heavy_rgt* : number of heavy vehicles, total and in both directions. You have also the same columns for each transportation mode (*car, bike, pedestrian*) ;
+-   *car_speed_hist_0to70plus, car_speed_hist_0to120plus* : the estimated car speed distribution in 10 km/h bins from 0 to 70+ km/h or 120+ km/h (in percentage) ;
+-   *v85* : estimated car speed limit in km/h that 85% of all cars respect.
+
+Complete data description can be found in the data documentation of this package, or you can refer to the [Telraam API website](https://documenter.getpostman.com/view/8210376/TWDRqyaV#3bb3c6bd-ea23-4329-b885-0d142403ecbb) for further details.
