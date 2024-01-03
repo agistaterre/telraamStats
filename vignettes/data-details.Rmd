@@ -1,5 +1,5 @@
 ---
-title: "Gathering data"
+title: "Retrieving data"
 output: rmarkdown::html_vignette
 description:
   Learn how to get traffic data from a Telraam camera.
@@ -36,26 +36,27 @@ library(telraamStats)
 
 [Telraam](https://telraam.net/en/what-is-telraam) is a Belgian company that develops sensors for monitoring and collecting multi-modal traffic data. These sensors are equipped with cameras to count road users using various mode of transport, including pedestrian, cyclists, cars and heavy vehicule.
 
-A diverse range of stakeholders (individuals, community groups, local authoritieds, researchers...) can purchase and install a Telraam sensor on their buildings. A map of all sensors is available on [Telraam website](https://telraam.net/). Everyone can access the data through the web interface ([example](https://telraam.net/en/location/9000001844)) or the [API](https://telraam-api.net/).
+A diverse range of stakeholders (individuals, community groups, local authoritieds, researchers...) can purchase and install a Telraam sensor on their buildings. A map of all sensors is available on the [Telraam website](https://telraam.net/). Everyone can access the data through the web interface ([example](https://telraam.net/en/location/9000001844)) or the [API](https://telraam-api.net/).
 
 #### Available data
 
-The Telraam API provides informations on road segments and sensors locations, or parameters, but most importantly, it offers traffic data. Every hour, each sensor send information on traffic counts, for each transportation mode and road direction, along with a confidence metric. In addition to traffic counts, estimated car speed and a car speed histogram are also available. Further details on the data will be provided in this vignette.
+The Telraam API provides information on road segments and sensors locations, or parameters, but, most importantly, it offers traffic data. Every hour, each sensor sends traffic counts, for each transportation mode and road direction, along with a confidence metric. In addition to traffic counts, cars speed statistics and histogram are also available. Further details on the data will be provided in this vignette.
 
 ### Included dataset
 
-If you're only interested on discovering Telraam data and play with real traffic data, a dataset of two road segments in the city of Châteaubourg (FR) is included in the package.
+If you're only interested in discovering Telraam data and play with real traffic data, a dataset of two road segments in the city of Châteaubourg (FR) is included in the package.
 
-Châteaubourg is a municipality in Brittany, northwestern France. Its population is around 7,500 inhabitants and its area is less than 30km2. Its the city with the largest number of Telraam sensors in 2023 and by far the highest density of sensors in France.
+Châteaubourg is a municipality in Brittany, northwestern France. Its population is around 7,500 inhabitants and its area is less than 30km2. It is the city with the largest number of Telraam sensors in 2023 and by far the highest density of sensors in France.
 
-The two road segments offers hourly data from January 1, 2022, to December 31, 2022. The data is directly extracted from the API and may contain missing or extreme values.
+The two road segments offer hourly data from January 1, 2022, to December 31, 2022. The data is raw, i.e. it is directly extracted from the API and may contain missing or extreme values.
 
 #### Load included dataset
 
-Included dataset is lazily loaded with the telraamStats package. If you have already called `library(telraamStats)`, the dataset is already attached and you can call it directly :
+The dataset included is 'lazily' available with the telraamStats package. If you have already called `library(telraamStats)`, the dataset is already attached and you can call it directly:
 
 ```{r, eval = TRUE}
-head(traffic)
+head(traffic) %>% 
+  knitr::kable()
 ```
 
 Otherwise, if you don't want to load the entire package, you can also access this dataset by using `telraamStats::traffic`.
@@ -70,16 +71,16 @@ To work with data from one sensor - or more -, you must first create a [Telraam 
 
 It is strongly recommended not to directly embed your token in the code, especially if the code is shared or versioned using a system like Git.
 
-You have two options to specify your own Telraam token :
+You have two options to specify your own Telraam token:
 
-1.  Edit your `.Renviron` file. `.Renviron` is useful for defining sensitive informations or R environment variables : it contains list of environment variables to set. An easy way to edit this file and add your Telraam token is by using the `usethis` package. Run the following command (either once or every time you change your API Token) : `.Renviron` file will open in RStudio and you can add a new line in the form `token='YourTelraamAPIToken`.
+1.  Edit your `.Renviron` file. `.Renviron` is useful for defining sensitive informations or R environment variables: it contains list of environment variables to set. An easy way to edit this file and add your Telraam token is by using the `usethis` package. Run the following command (either once or every time you change your API Token): `.Renviron` file will open in RStudio and you can add a new line in the form `token='YourTelraamAPIToken'`.
 
 ```{r}
 if (!require("usethis")) install.packages("usethis") #if you haven't installed 'usethis' already
 usethis::edit_r_environ()
 ```
 
-2.  If you are not comfortable with the previous step, you can use an built-in function of the `telraamStat` package. However, keep in mind that you will need to run this function every time you want to retrieve your data:
+2.  If you are not comfortable with the previous step, you can use a built-in function of the `telraamStat` package. However, keep in mind that you will need to run this function every time you want to retrieve your data:
 
 ```{r}
 set_telraam_token('YourTelraamAPIToken')
@@ -95,9 +96,9 @@ This file can be created using the `create_config()` function. Once executed, yo
 create_config()
 ```
 
-The file already contains the following template, which you can modify (directly in the yml file) to add your own segments :
+The file already contains the following template, which you can modify (directly in the yml file) to add your own segments:
 
-```{yml}
+```{r, eval = FALSE, echo = TRUE}
 default:
   url: https://telraam-api.net/v1
   segments:
@@ -109,7 +110,7 @@ You can specify as many segments as you want.
 
 #### 4. Get data for your road segments
 
-Once you have specified the names and IDs of your road segments, you can use the `retrieve_sensor()` function to gather data from this segment from the Telraam API. This function takes, as arguments, the name of the segment, the first and the last day of the period of interest. You must use the same names as specified in the configuration files and dates must be of the date type.
+Once you have specified the names and IDs of your road segments, you can use the `retrieve_sensor()` function to gather data for these segments from the Telraam API. This function takes, as arguments, the IDs of the segments, the first and the last day of the period of interest. You must use the same names as specified in the configuration files and dates must be of the date type.
 
 ```{r}
 retrieve_sensor("segment-01", as.Date('2023-09-01'), as.Date('2023-09-30'))
@@ -130,14 +131,14 @@ import_sensor(c("segment-01","segment-02"))
 
 ### Data details
 
-By importing data from your own road segments (following the previous steps) or using the included dataset, you should obtain Telraam data with the same columns. Among these columns, the most important ones are :
+By importing data from your own road segments (following the previous steps) or using the included dataset, you should obtain Telraam data with the same columns. Among these columns, the most important ones are:
 
--   *segment_id* : Telraam ID of the road segment ;
--   *date* : date and UTC time of the reporting interval (beginning of the interval) ;
--   *interval* : can be "hourly" or "daily" for hourly or daily aggregate data ;
--   *uptime* : between 0 and 1, represents the portion of the reporting interval that was actively spent counting the traffic. For more information about the uptime parameter, you can refer to [this Telraam article](https://telraam.net/en/blog/precision-accuracy-and-validations-of-the-original-telraam-sensor) ;
--   *heavy, heavy_lft, heavy_rgt* : number of heavy vehicles, total and in both directions. You have also the same columns for each transportation mode (*car, bike, pedestrian*) ;
--   *car_speed_hist_0to70plus, car_speed_hist_0to120plus* : the estimated car speed distribution in 10 km/h bins from 0 to 70+ km/h or 120+ km/h (in percentage) ;
--   *v85* : estimated car speed limit in km/h that 85% of all cars respect.
+-   *segment_id*: Telraam ID of the road segment ;
+-   *date*: date and UTC time of the reporting interval (beginning of the interval) ;
+-   *interval*: can be "hourly" or "daily" for hourly or daily aggregate data ;
+-   *uptime*: between 0 and 1, represents the portion of the reporting interval that was actively spent counting the traffic. For more information about the uptime parameter, you can refer to [this Telraam article](https://telraam.net/en/blog/precision-accuracy-and-validations-of-the-original-telraam-sensor) ;
+-   *heavy, heavy_lft, heavy_rgt*: number of heavy vehicles, total and in both directions. You have also the same columns for each transportation mode (*car, bike, pedestrian*) ;
+-   *car_speed_hist_0to70plus, car_speed_hist_0to120plus*: the estimated car speed distribution in 10 km/h bins from 0 to 70+ km/h or 120+ km/h (in percentage) ;
+-   *v85*: estimated car speed limit in km/h that 85% of all cars respect.
 
 Complete data description can be found in the data documentation of this package, or you can refer to the [Telraam API website](https://documenter.getpostman.com/view/8210376/TWDRqyaV#3bb3c6bd-ea23-4329-b885-0d142403ecbb) for further details.
