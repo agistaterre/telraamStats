@@ -109,13 +109,13 @@ You can specify as many segments as you want.
 
 #### 4. Get data for your road segments
 
-Once you have specified the names and IDs of your road segments, you can use the `retrieve_sensor` function to gather data from this segment from the Telraam API. This function takes, as arguments, the name of the segment, the first and the last day of the period of interest. You must use the same names as specified in the configuration files and dates must be of the date type.
+Once you have specified the names and IDs of your road segments, you can use the `retrieve_sensor()` function to gather data from this segment from the Telraam API. This function takes, as arguments, the name of the segment, the first and the last day of the period of interest. You must use the same names as specified in the configuration files and dates must be of the date type.
 
 ```{r}
 retrieve_sensor("segment-01", as.Date('2023-09-01'), as.Date('2023-09-30'))
 ```
 
-If you want to store the data, you can directly use `write_update_data`, which performs the same task but also writes or updates the sensor data in the `data/` directory in .Rdata format. The arguments are the same as those of the previous function :
+If you want to store the data, you can directly use `write_update_data()`, which performs the same task but also writes or updates the sensor data in the `data/` directory in .Rdata format. The arguments are the same as those of the previous function:
 
 ```{r}
 write_update_data("segment-01", as.Date('2023-09-01'), as.Date('2023-09-30'))
