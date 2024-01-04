@@ -4,14 +4,14 @@
 \alias{seq_by_3_month}
 \title{Generate sequence of intervals with three-month periods}
 \usage{
-seq_by_3_month(date1, date2)
+seq_by_3_month(start_date, end_date)
 }
 \arguments{
-\item{date1}{Date. Start date in "yyyy-mm-dd" format.}
+\item{start_date}{Date. Start date in "yyyy-mm-dd" format.}
 
-\item{date2}{Date. End date in "yyyy-mm-dd" format.}
+\item{end_date}{Date. End date in "yyyy-mm-dd" format.}
 }
 \description{
-This function is used internally in the \code{retrieve_sensor} function to generate a sequence of intervals with three-month periods. It takes a start date (\code{date1}) and an end date (\code{date2}), and returns a data frame with two columns representing the start and end dates of each interval.
+This function is used internally in the \code{retrieve_sensor} function to generate a sequence of intervals with three-month periods. It takes a start date (\code{start_date}) and an end date (\code{end_date}), and returns a data frame with two columns representing the start and end dates of each interval.
 }
 \keyword{internal}

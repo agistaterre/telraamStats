@@ -1,10 +1,10 @@
 #' Write or update the sensor data in the data folder
 #'
-#' This function writes or updates the sensor data in the data folder. It retrieves the data for the specified sensor between \code{date1} and \code{date2} (inclusive) using the \code{retrieve_sensor} function, and then converts certain columns to character strings before writing the data to a CSV file in the data folder.
+#' This function writes or updates the sensor data in the data folder. It retrieves the data for the specified sensor between \code{start_date} and \code{end_date} (inclusive) using the \code{retrieve_sensor} function, and then converts certain columns to character strings before writing the data to a CSV file in the data folder.
 #'
 #' @param id_sensor Numeric. ID of the sensor
-#' @param date1 Date. Start date "aaaa-mm-jj"
-#' @param date2 Date. End date "aaaa-mm-jj"
+#' @param start_date Date. Start date "aaaa-mm-jj"
+#' @param end_date Date. End date "aaaa-mm-jj"
 #' @param vacations vacation periods, set by default on the french ones
 #' @param public_holidays public holidays list, set by default on the french ones
 #'
@@ -14,7 +14,7 @@
 #'
 #' @export
 #'
-write_update_data_comp <- function(id_sensor, date1, date2,
+write_update_data_comp <- function(id_sensor, start_date, end_date,
                                    vacations = NULL,
                                    public_holidays = NULL
                                   ){
@@ -29,7 +29,7 @@ write_update_data_comp <- function(id_sensor, date1, date2,
 
   if (!file.exists(file_name)) {
     # If the file doesn't exist, create a new one and save the data
-    data <- retrieve_sensor(id_sensor, date1, date2)
+    data <- retrieve_sensor(id_sensor, start_date, end_date)
     data_update <- data
     # conversion from a numeric vector to a character string of car_speed_hist_0to70plus and car_speed_hist_0to120plus
     data_update$car_speed_hist_0to70plus <- sapply(data_update$car_speed_hist_0to70plus, function(x) paste(x, collapse = ", "))
@@ -41,7 +41,7 @@ write_update_data_comp <- function(id_sensor, date1, date2,
 
     data_update <- data %>% slice((nrow(data)-805):nrow(data)) %>%
       select(-.data$imputation, -.data$period)
-    new_data <- retrieve_sensor(id_sensor,date1, date2) %>%
+    new_data <- retrieve_sensor(id_sensor,start_date, end_date) %>%
       filter(!is.na(date)) %>%
       mutate(date = as.character(date))
 

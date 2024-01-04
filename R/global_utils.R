@@ -78,14 +78,14 @@ get_segments <- function(){
 #'
 filter_date <- function(data, date_range){
   # if dates are exchanged
-  date1 <- ymd(date_range[1])
-  date2 <- ymd(date_range[2])
-  if (date1<date2){
-    start <- date1
-    end <- date2
+  start_date <- ymd(date_range[1])
+  end_date <- ymd(date_range[2])
+  if (start_date<end_date){
+    start <- start_date
+    end <- end_date
   } else {
-    start <- date2
-    end <- date1
+    start <- end_date
+    end <- start_date
   }
   # Filter according to dates
   matching_dates <- (data$date>=start & data$date<=end)
