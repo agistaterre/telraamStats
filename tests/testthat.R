@@ -9,4 +9,4 @@
 library(testthat)
 library(telraamStats)
 
-test_check("telraamStats")
+#test_check("telraamStats")

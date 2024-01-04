@@ -4,17 +4,18 @@
 \alias{retrieve_sensor}
 \title{Retrieves data associated with a sensor from the Telraam API}
 \usage{
-retrieve_sensor(id_sensor, date1, date2, key = get_telraam_token())
+retrieve_sensor(id_sensor, start_date, end_date, key = get_telraam_token())
 }
 \arguments{
 \item{id_sensor}{Numeric. ID of the sensor}
 
-\item{date1}{Date. Start date "aaaa-mm-jj", must be of the date type.}
+\item{start_date}{Date. Start date "aaaa-mm-jj", must be of the date type.}
 
-\item{date2}{Date. End date "aaaa-mm-jj", must be of the date type.}
+\item{end_date}{Date. End date "aaaa-mm-jj", must be of the date type.}
 
 \item{key}{the api key (set by the set_telraam_token function)}
 }
 \description{
-Retrieves data associated with a sensor from the Telraam API. The data is retrieved for a specified time period between \code{date1} and \code{date2} (inclusive).
+Retrieves data associated with a sensor from the Telraam API.
+The data is retrieved for a specified time period between \code{start_date} and \code{end_date} (inclusive).
 }

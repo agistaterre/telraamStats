@@ -7,7 +7,7 @@
 create_config()
 }
 \description{
-If the user need to specify the IDs of his own sensors,
+If the user needs to specify the IDs of his own sensors,
 this function create a local configuration template file
 in the 'inst' directory, to edit with specific informations.
 }

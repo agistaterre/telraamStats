@@ -4,15 +4,15 @@
 \alias{write_update_data}
 \title{Write or update the sensor data in the data folder}
 \usage{
-write_update_data(id_sensor, date1, date2)
+write_update_data(id_sensor, start_date, end_date)
 }
 \arguments{
 \item{id_sensor}{Numeric. ID of the sensor}
 
-\item{date1}{Date. Start date "aaaa-mm-jj"}
+\item{start_date}{Date. Start date "aaaa-mm-jj"}
 
-\item{date2}{Date. End date "aaaa-mm-jj"}
+\item{end_date}{Date. End date "aaaa-mm-jj"}
 }
 \description{
-Writes or updates the sensor data in the data folder. It retrieves the data for the specified sensor between \code{date1} and \code{date2} (inclusive) using the \code{retrieve_sensor} function, and then converts certain columns to character strings before writing the data to a RData file in the data folder.
+Writes or updates the sensor data in the data folder. It retrieves the data for the specified sensor between \code{start_date} and \code{end_date} (inclusive) using the \code{retrieve_sensor} function, and then converts certain columns to character strings before writing the data to a RData file in the data folder.
 }

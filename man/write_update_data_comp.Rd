@@ -6,16 +6,8 @@
 \usage{
 write_update_data_comp(
   id_sensor,
-  date1,
-  date2,
-  sensor_names = c("Burel-01", "Leclerc-02", "ParisMarche-03", "rueVignes-04",
-    "ParisArcEnCiel-05", "RteVitre-06", "RueGdDomaine-07", "StDidierNord-08",
-    "rueVallee-09", "StDidierSud-10", "RuePrieure-11", "RueCottage-12",
-    "RueVeronniere-13", "RueDesEcoles-14", "RueManoirs-15", "RueToursCarree-16",
-    "PlaceHotelDeVille-17", "BoulevardLiberte-18"),
-  sensor_ids = c(9000002156, 9000001906, 9000001618, 9000003090, 9000002453, 9000001844,
-    9000001877, 9000002666, 9000002181, 9000002707, 9000003703, 9000003746, 9000003775,
-    9000003736, 9000004971, 9000004130, 9000004042, 9000004697),
+  start_date,
+  end_date,
   vacations = NULL,
   public_holidays = NULL
 )
@@ -23,14 +15,14 @@ write_update_data_comp(
 \arguments{
 \item{id_sensor}{Numeric. ID of the sensor}
 
-\item{date1}{Date. Start date "aaaa-mm-jj"}
+\item{start_date}{Date. Start date "aaaa-mm-jj"}
 
-\item{date2}{Date. End date "aaaa-mm-jj"}
+\item{end_date}{Date. End date "aaaa-mm-jj"}
 
 \item{vacations}{vacation periods, set by default on the french ones}
 
 \item{public_holidays}{public holidays list, set by default on the french ones}
 }
 \description{
-This function writes or updates the sensor data in the data folder. It retrieves the data for the specified sensor between \code{date1} and \code{date2} (inclusive) using the \code{retrieve_sensor} function, and then converts certain columns to character strings before writing the data to a CSV file in the data folder.
+This function writes or updates the sensor data in the data folder. It retrieves the data for the specified sensor between \code{start_date} and \code{end_date} (inclusive) using the \code{retrieve_sensor} function, and then converts certain columns to character strings before writing the data to a CSV file in the data folder.
 }

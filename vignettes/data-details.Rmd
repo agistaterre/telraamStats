@@ -14,7 +14,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-devtools::load_all()
 
 knitr::knit_engines$set(yml = function(options) {
 })
@@ -82,7 +81,7 @@ usethis::edit_r_environ()
 2.  If you are not comfortable with the previous step, you can use an built-in function of the `telraamStat` package. However, keep in mind that you will need to run this function every time you want to retrieve your data:
 
 ```{r}
-set_telraam_token('YourTelraamAPIToken')
+set_telraam_token(token = 'YourTelraamAPIToken')
 ```
 
 #### 3. Specify road segment IDs in configuration file
@@ -112,20 +111,24 @@ You can specify as many segments as you want.
 Once you have specified the names and IDs of your road segments, you can use the `retrieve_sensor()` function to gather data from this segment from the Telraam API. This function takes, as arguments, the name of the segment, the first and the last day of the period of interest. You must use the same names as specified in the configuration files and dates must be of the date type.
 
 ```{r}
-retrieve_sensor("segment-01", as.Date('2023-09-01'), as.Date('2023-09-30'))
+retrieve_sensor(id_sensor = "segment-01", 
+                start_date = as.Date('2023-09-01'), 
+                end_date = as.Date('2023-09-30'))
 ```
 
 If you want to store the data, you can directly use `write_update_data()`, which performs the same task but also writes or updates the sensor data in the `data/` directory in .Rdata format. The arguments are the same as those of the previous function:
 
 ```{r}
-write_update_data("segment-01", as.Date('2023-09-01'), as.Date('2023-09-30'))
+write_update_data(id_sensor = "segment-01",
+                  start_date = as.Date('2023-09-01'),
+                  end_date = as.Date('2023-09-30'))
 write_update_data("segment-02", as.Date('2023-08-01'), as.Date('2023-09-30'))
 ```
 
 To retrieve data you have already stored, you can use `import_sensor()`. This function imports data associated with a given list of sensor names from .RData files contained in the `data/` directory. Here, you should also use the same names as specified in the configuration files. All available periods will be imported.
 
 ```{r}
-import_sensor(c("segment-01","segment-02"))
+import_sensor(list_sensor = c("segment-01","segment-02"))
 ```
 
 ### Data details

@@ -1,11 +1,11 @@
 #' Retrieves data associated with a sensor from the Telraam API
 #'
 #' Retrieves data associated with a sensor from the Telraam API.
-#' The data is retrieved for a specified time period between \code{date1} and \code{date2} (inclusive).
+#' The data is retrieved for a specified time period between \code{start_date} and \code{end_date} (inclusive).
 #'
 #' @param id_sensor Numeric. ID of the sensor
-#' @param date1 Date. Start date "aaaa-mm-jj", must be of the date type.
-#' @param date2 Date. End date "aaaa-mm-jj", must be of the date type.
+#' @param start_date Date. Start date "aaaa-mm-jj", must be of the date type.
+#' @param end_date Date. End date "aaaa-mm-jj", must be of the date type.
 #' @param key the api key (set by the set_telraam_token function)
 #'
 #'
@@ -16,11 +16,11 @@
 #' @export
 #'
 #'
-retrieve_sensor <- function(id_sensor,date1,date2, key = get_telraam_token()){
+retrieve_sensor <- function(id_sensor,start_date,end_date, key = get_telraam_token()){
 
   result <- data.frame()
-  date2 <- date2 + days(1) # so that date2 is included
-  dates <- seq_by_3_month(date1,date2) # for the iteration of the retrieving, because when we call the API, the period can not exceed 3 month for each call
+  end_date <- end_date + days(1) # so that end_date is included
+  dates <- seq_by_3_month(start_date,end_date) # for the iteration of the retrieving, because when we call the API, the period can not exceed 3 month for each call
 
   # calling of the API
   traffic_url <- paste(config::get(file = "inst/config.yml")$url,
@@ -55,22 +55,22 @@ retrieve_sensor <- function(id_sensor,date1,date2, key = get_telraam_token()){
 
 #' Generate sequence of intervals with three-month periods
 #'
-#' This function is used internally in the \code{retrieve_sensor} function to generate a sequence of intervals with three-month periods. It takes a start date (\code{date1}) and an end date (\code{date2}), and returns a data frame with two columns representing the start and end dates of each interval.
+#' This function is used internally in the \code{retrieve_sensor} function to generate a sequence of intervals with three-month periods. It takes a start date (\code{start_date}) and an end date (\code{end_date}), and returns a data frame with two columns representing the start and end dates of each interval.
 #'
-#' @param date1 Date. Start date in "yyyy-mm-dd" format.
-#' @param date2 Date. End date in "yyyy-mm-dd" format.
+#' @param start_date Date. Start date in "yyyy-mm-dd" format.
+#' @param end_date Date. End date in "yyyy-mm-dd" format.
 #'
 #' @importFrom lubridate ymd
 #'
 #' @keywords internal
 #'
-seq_by_3_month <- function(date1, date2){
-  if (date1==date2){
-    return(data.frame(start = date1, end = date1))
+seq_by_3_month <- function(start_date, end_date){
+  if (start_date==end_date){
+    return(data.frame(start = start_date, end = start_date))
   }else{
-    date <- seq(from = date1, to = date2, by = "3 month")
-    if (date[length(date)]!=date2){
-      date <- c(date,date2)
+    date <- seq(from = start_date, to = end_date, by = "3 month")
+    if (date[length(date)]!=end_date){
+      date <- c(date,end_date)
     }
     return(data.frame(start = date[1:(length(date)-1)],
                       end   = date[2:length(date)]))
