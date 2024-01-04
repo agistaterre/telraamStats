@@ -52,6 +52,7 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #' Get Telraam segments info in yml file and transform them into a named vector
 #'
 #' @return Named vector with names and segment IDs
+#' @importFrom stats setNames
 #'
 #' @keywords internal
 #'
