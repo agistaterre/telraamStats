@@ -16,5 +16,6 @@ retrieve_sensor(id_sensor, date1, date2, key = get_telraam_token())
 \item{key}{the api key (set by the set_telraam_token function)}
 }
 \description{
-Retrieves data associated with a sensor from the Telraam API. The data is retrieved for a specified time period between \code{date1} and \code{date2} (inclusive).
+Retrieves data associated with a sensor from the Telraam API.
+The data is retrieved for a specified time period between \code{date1} and \code{date2} (inclusive).
 }

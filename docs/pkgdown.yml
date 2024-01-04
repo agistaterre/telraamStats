@@ -2,8 +2,8 @@ pandoc: 3.1.1
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
-  my_vignette: my_vignette.html
-last_built: 2023-08-12T20:17Z
+  data-details: data-details.html
+last_built: 2023-12-12T14:21Z
 urls:
   reference: http://annuaire.agistaterre.org/telraamStats/reference
   article: http://annuaire.agistaterre.org/telraamStats/articles
