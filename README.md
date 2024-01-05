@@ -1,6 +1,6 @@
-  <!-- badges: start -->
-  [![R-CMD-check](https://github.com/agistaterre/telraamStats/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/agistaterre/telraamStats/actions/workflows/R-CMD-check.yaml)
-  <!-- badges: end -->
+<!-- badges: start -->
+
+[![R-CMD-check](https://github.com/agistaterre/telraamStats/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/agistaterre/telraamStats/actions/workflows/R-CMD-check.yaml) <!-- badges: end -->
 
 # telraamStats
 
@@ -18,27 +18,14 @@ This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 Inter
 
 # Dependencies
 
-To smoothly run this package, you will need to make the following installs :
-
-``` r
-install.packages(c("cowplot",
-    "CPAT",
-    "dplyr",
-    "ggplot2",
-    "httr",
-    "jsonlite",
-    "lubridate",
-    "mgcv",
-    "purrr",
-    "readr",
-    "rlang",
-    "synchrony",
-    "tibble",
-    "zoo"))
-```
-
 If you want to install this package, you can use :
 
 ``` r
-devtools::install_github("https://github.com/agistaterre/telraamStats")
+devtools::install_github("https://github.com/KetsiaGuichard/telraamStats", dependencies = TRUE, build_vignettes = TRUE)
+```
+
+Vignette (and the entire package) is currently in a development version. If you wish to review the vignette, the `build_vignettes` argument is mandatory. Once the package is installed, you can run the following command to view the first vignette :
+
+``` r
+vignette('data-details')
 ```
