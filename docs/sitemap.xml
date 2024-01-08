@@ -1,123 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/404.html</loc>
+    <loc>/404.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/articles/index.html</loc>
+    <loc>/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/articles/my_vignette.html</loc>
+    <loc>/articles/data-details.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/authors.html</loc>
+    <loc>/articles/index.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/index.html</loc>
+    <loc>/articles/my_vignette.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/LICENSE-text.html</loc>
+    <loc>/authors.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/api_state.html</loc>
+    <loc>/index.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/convert_string_to_list.html</loc>
+    <loc>/reference/api_state.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/decompose_2_fct.html</loc>
+    <loc>/reference/convert_string_to_list.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/filtering.html</loc>
+    <loc>/reference/create_config.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/filter_date.html</loc>
+    <loc>/reference/decompose_2_fct.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/filter_public_holidays.html</loc>
+    <loc>/reference/filter_date.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/filter_vacation.html</loc>
+    <loc>/reference/filter_public_holidays.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/gg_na_dist.html</loc>
+    <loc>/reference/filter_vacation.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/gg_na_heatmap.html</loc>
+    <loc>/reference/filtering.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/gg_working_sensor.html</loc>
+    <loc>/reference/get_segments.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/importation.html</loc>
+    <loc>/reference/gg_na_dist.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/import_sensor.html</loc>
+    <loc>/reference/gg_na_heatmap.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/import_sensor_comp.html</loc>
+    <loc>/reference/gg_working_sensor.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/imp_na.html</loc>
+    <loc>/reference/imp_na.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/index.html</loc>
+    <loc>/reference/import_sensor.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/mutate_born.html</loc>
+    <loc>/reference/import_sensor_comp.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/mutate_q.html</loc>
+    <loc>/reference/importation.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/na_prop.html</loc>
+    <loc>/reference/index.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/plot_comparaison.html</loc>
+    <loc>/reference/mutate_born.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/plot_deseas.html</loc>
+    <loc>/reference/mutate_q.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/plot_hour_threshold.html</loc>
+    <loc>/reference/na_prop.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/plot_speed.html</loc>
+    <loc>/reference/plot_comparaison.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/plot_threshold.html</loc>
+    <loc>/reference/plot_deseas.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/prep.html</loc>
+    <loc>/reference/plot_hour_threshold.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/prep_comp_data.html</loc>
+    <loc>/reference/plot_speed.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/prep_view_data.html</loc>
+    <loc>/reference/plot_threshold.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/retrieve_sensor.html</loc>
+    <loc>/reference/prep.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/seq_by_3_month.html</loc>
+    <loc>/reference/prep_comp_data.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/set_global_vars.html</loc>
+    <loc>/reference/prep_view_data.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/set_telraam_token.html</loc>
+    <loc>/reference/retrieve_sensor.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/simple_plot.html</loc>
+    <loc>/reference/seq_by_3_month.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/summarize_data.html</loc>
+    <loc>/reference/set_global_vars.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/write_update_data.html</loc>
+    <loc>/reference/set_telraam_token.html</loc>
   </url>
   <url>
-    <loc>http://annuaire.agistaterre.org/telraamStats/reference/write_update_data_comp.html</loc>
+    <loc>/reference/simple_plot.html</loc>
+  </url>
+  <url>
+    <loc>/reference/summarize_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/traffic.html</loc>
+  </url>
+  <url>
+    <loc>/reference/write_update_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/write_update_data_comp.html</loc>
   </url>
 </urlset>

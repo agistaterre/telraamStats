@@ -3,8 +3,5 @@ pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   data-details: data-details.html
-last_built: 2023-12-12T14:21Z
-urls:
-  reference: http://annuaire.agistaterre.org/telraamStats/reference
-  article: http://annuaire.agistaterre.org/telraamStats/articles
+last_built: 2024-01-08T09:02Z
 
