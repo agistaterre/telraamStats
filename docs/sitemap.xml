@@ -13,9 +13,6 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/articles/index.html</loc>
   </url>
   <url>
-    <loc>https://ketsiaguichard.github.io/telraamStats/articles/my_vignette.html</loc>
-  </url>
-  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/authors.html</loc>
   </url>
   <url>
@@ -67,16 +64,7 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/import_sensor_comp.html</loc>
   </url>
   <url>
-    <loc>https://ketsiaguichard.github.io/telraamStats/reference/importation.html</loc>
-  </url>
-  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ketsiaguichard.github.io/telraamStats/reference/mutate_born.html</loc>
-  </url>
-  <url>
-    <loc>https://ketsiaguichard.github.io/telraamStats/reference/mutate_q.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/na_prop.html</loc>
@@ -119,9 +107,6 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/simple_plot.html</loc>
-  </url>
-  <url>
-    <loc>https://ketsiaguichard.github.io/telraamStats/reference/summarize_data.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/traffic.html</loc>
