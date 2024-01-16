@@ -1,6 +1,6 @@
 Package: telraamStats
 Title: Analysis of Mobility Data from Telraam Sensors
-Version: 1.0.0
+Version: 1.0.0.9000
 Authors@R: c(
     person("Lilou", "Augeray", email = "lilou.augeray@etudiant.univ-rennes.fr", role = "aut"),
     person("Ulysse", "Caromel", email = "caromelulysse@gmail.com", role = "aut", comment = c(ORCID = "YOUR-ORCID-ID")),
