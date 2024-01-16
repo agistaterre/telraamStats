@@ -16,14 +16,17 @@ This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 Inter
 
 [![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-sa/4.0/)
 
-# Dependencies
+# Install Package
 
-If you want to install this package, you can use :
+If you want to install this package from Github, you can use the devtools package:
 
 ``` r
+if(!require(devtools)){
+    install.packages("devtools")
+}
 devtools::install_github("https://github.com/KetsiaGuichard/telraamStats",
-                         dependencies = TRUE, 
-                         build_vignettes = TRUE)
+                              dependencies = TRUE, 
+                              build_vignettes = TRUE)
 ```
 
 Vignette (and the entire package) is currently in a development version. If you wish to review the vignette, the `build_vignettes` argument is mandatory. Once the package is installed, you can run the following command to view the first vignette :

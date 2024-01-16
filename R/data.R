@@ -9,8 +9,8 @@
 #' @format ## `traffic`
 #' A data frame with 16,729 rows and 22 columns:
 #' \describe{
-#'   \item{instance_id}{sensor Telraam ID}
-#'   \item{segment_id}{road segment Telraam ID}
+#'   \item{instance_id}{Sensor number. Equals -1 if the API request was made for a road segment and not for a camera.}
+#'   \item{segment_id}{Road segment Telraam ID. Equals -1 if the API request was made for a camera and not for a road segment.}
 #'   \item{date}{date and UTC time of the reporting interval (beginning of the interval)}
 #'   \item{interval}{can be "hourly" or "daily" for hourly or daily aggregate data}
 #'   \item{uptime}{between 0 and 1, represents the portion of the reporting interval that was actively spent counting the traffic}
