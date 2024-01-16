@@ -37,6 +37,11 @@ set_telraam_token = function(token) {
   return(Sys.setenv(key = token))
 }
 
+#' Get the current authentication Token for the telraam API
+#'
+#' @return Token currently used
+#' @export
+#'
 get_telraam_token=function(){
   PAT=Sys.getenv('key')
   if(PAT==""){
