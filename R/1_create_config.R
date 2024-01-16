@@ -11,8 +11,8 @@
 #'
 create_config <- function(){
   file_path = "inst/config.yml"
-  template <- list("default"=list("url"="https://telraam-api.net/v1"),
-                   "segments"=list("segment-01"=9000000000,"segment-02"=9000000000))
+  template <- list("default"=list("url"="https://telraam-api.net/v1",
+                                  "segments"=list("segment-01"=9000000000,"segment-02"=9000000000)))
   if(!file.exists(file_path)){
     if(!dir.exists("inst/")){
       dir.create("inst/")
