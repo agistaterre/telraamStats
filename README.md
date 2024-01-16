@@ -29,7 +29,11 @@ devtools::install_github("https://github.com/KetsiaGuichard/telraamStats",
                               build_vignettes = TRUE)
 ```
 
-Vignette (and the entire package) is currently in a development version. If you wish to review the vignette, the `build_vignettes` argument is mandatory. Once the package is installed, you can run the following command to view the first vignette :
+Vignette (and the entire package) is currently in a development version. If you wish to review the vignette, the `build_vignettes` argument is mandatory. 
+
+# Vignettes
+
+Once the package is installed, you can run the following command to view the first vignette :
 
 ``` r
 vignette("data-details")
