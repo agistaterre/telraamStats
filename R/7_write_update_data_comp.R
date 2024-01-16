@@ -2,7 +2,7 @@
 #'
 #' This function writes or updates the sensor data in the data folder. It retrieves the data for the specified sensor between \code{start_date} and \code{end_date} (inclusive) using the \code{retrieve_sensor} function, and then converts certain columns to character strings before writing the data to a CSV file in the data folder.
 #'
-#' @param id_sensor Numeric. ID of the sensor
+#' @param segment_name Character. Name of the segment, as specified in config.
 #' @param start_date Date. Start date "aaaa-mm-jj"
 #' @param end_date Date. End date "aaaa-mm-jj"
 #' @param vacations vacation periods, set by default on the french ones
@@ -14,7 +14,7 @@
 #'
 #' @export
 #'
-write_update_data_comp <- function(id_sensor, start_date, end_date,
+write_update_data_comp <- function(segment_name, start_date, end_date,
                                    vacations = NULL,
                                    public_holidays = NULL
                                   ){
@@ -22,14 +22,12 @@ write_update_data_comp <- function(id_sensor, start_date, end_date,
   set_global_vars(vacations, public_holidays)
 
   # retrieve file name
-  telraam_segments <- get_segments()
-  name_segment <- names(telraam_segments[telraam_segments==id_sensor])
-  comp_name <- paste(str_sub(name_segment,1,-4), "_comp", str_sub(name_segment,-3,-1), sep = "")
+  comp_name <- paste(str_sub(segment_name,1,-4), "_comp", str_sub(segment_name,-3,-1), sep = "")
   file_name <- paste0("data/",comp_name,".RData")
 
   if (!file.exists(file_name)) {
     # If the file doesn't exist, create a new one and save the data
-    data <- retrieve_sensor(id_sensor, start_date, end_date)
+    data <- retrieve_sensor(segment_name, start_date, end_date)
     data_update <- data
     # conversion from a numeric vector to a character string of car_speed_hist_0to70plus and car_speed_hist_0to120plus
     data_update$car_speed_hist_0to70plus <- sapply(data_update$car_speed_hist_0to70plus, function(x) paste(x, collapse = ", "))
@@ -41,7 +39,7 @@ write_update_data_comp <- function(id_sensor, start_date, end_date,
 
     data_update <- data %>% slice((nrow(data)-805):nrow(data)) %>%
       select(-.data$imputation, -.data$period)
-    new_data <- retrieve_sensor(id_sensor,start_date, end_date) %>%
+    new_data <- retrieve_sensor(segment_name,start_date, end_date) %>%
       filter(!is.na(date)) %>%
       mutate(date = as.character(date))
 

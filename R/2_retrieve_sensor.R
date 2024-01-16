@@ -3,7 +3,7 @@
 #' Retrieves data associated with a sensor from the Telraam API.
 #' The data is retrieved for a specified time period between \code{start_date} and \code{end_date} (inclusive).
 #'
-#' @param id_sensor Numeric. ID of the sensor
+#' @param segment_name Character. Name of the segment, as specified in config.
 #' @param start_date Date. Start date "aaaa-mm-jj", must be of the date type.
 #' @param end_date Date. End date "aaaa-mm-jj", must be of the date type.
 #' @param key the api key (set by the set_telraam_token function)
@@ -16,11 +16,22 @@
 #' @export
 #'
 #'
-retrieve_sensor <- function(id_sensor,start_date,end_date, key = get_telraam_token()){
+retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_token()){
 
   result <- data.frame()
   end_date <- end_date + days(1) # so that end_date is included
   dates <- seq_by_3_month(start_date,end_date) # for the iteration of the retrieving, because when we call the API, the period can not exceed 3 month for each call
+
+  # Get Segment_id
+  if(!is.numeric(segment_name)){
+    segment_id <- get_segments()[segment_name]
+    if(is.na(segment_id)){
+      stop("Segment name unknown")
+    }
+  }
+  else{
+    segment_id <- segment_name
+  }
 
   # calling of the API
   traffic_url <- paste(config::get(file = "inst/config.yml")$url,
@@ -31,7 +42,7 @@ retrieve_sensor <- function(id_sensor,start_date,end_date, key = get_telraam_tok
                        body = paste0('{
                        "level": "segments",
                        "format": "per-hour",
-                       "id": "', id_sensor, '",
+                       "id": "', segment_id, '",
                        "time_start": "', ..1, '",
                        "time_end": "', ..2, '"
                      }'))

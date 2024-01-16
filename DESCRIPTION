@@ -1,6 +1,6 @@
 Package: telraamStats
 Title: Analysis of Mobility Data from Telraam Sensors
-Version: 1.0.0
+Version: 1.0.0.9000
 Authors@R: c(
     person("Lilou", "Augeray", email = "lilou.augeray@etudiant.univ-rennes.fr", role = "aut"),
     person("Ulysse", "Caromel", email = "caromelulysse@gmail.com", role = "aut", comment = c(ORCID = "YOUR-ORCID-ID")),
@@ -11,7 +11,7 @@ Authors@R: c(
     person("Agis-ta-terre", email = "agistaterre35@gmail.com", role = c("cph", "fnd"))
     )
 Description: Tools to download, analyse and visualise mobility data from Telraam sensors <https://telraam.net/en/what-is-telraam>.
-    Powers a shiny app for the use case of Chateaubourg city (France): <https://agistaterre.shinyapps.io/mov-around/>.
+    Powers a shiny app for the use case of Châteaubourg city (France): <https://agistaterre.shinyapps.io/mov-around/>.
 License: file LICENSE
 BugReports: https://github.com/agistaterre/telraamStats/issues
 Imports:

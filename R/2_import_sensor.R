@@ -16,9 +16,14 @@
 import_sensor <- function(list_sensor){
 
   data <- data.frame()
-  telraam_segments <- get_segments()
-  selected_segments <- telraam_segments[list_sensor]
-  data <- map_dfr(selected_segments, ~ {
+
+  for(sensor in list_sensor){
+    if(is.na(get_segments()[sensor])){
+      stop(paste(sensor, "doesn't exist in your configuration file"))
+    }
+  }
+
+  data <- map_dfr(list_sensor, ~ {
     file <- paste0('data/', .x, '.RData')
     if (file.exists(file)) {
       # we select the data that we don't consider null (arbitrary choice)
@@ -34,7 +39,7 @@ import_sensor <- function(list_sensor){
 
       import
     } else {
-      NULL
+      message(paste('No data stored for', .x))
     }
   })
   data
