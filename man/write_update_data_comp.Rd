@@ -5,7 +5,7 @@
 \title{Write or update the sensor data in the data folder}
 \usage{
 write_update_data_comp(
-  id_sensor,
+  segment_name,
   start_date,
   end_date,
   vacations = NULL,
@@ -13,7 +13,7 @@ write_update_data_comp(
 )
 }
 \arguments{
-\item{id_sensor}{Numeric. ID of the sensor}
+\item{segment_name}{Character. Name of the segment, as specified in config.}
 
 \item{start_date}{Date. Start date "aaaa-mm-jj"}
 

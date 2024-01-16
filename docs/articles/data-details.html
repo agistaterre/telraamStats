@@ -258,7 +258,7 @@ the name of the segment, the first and the last day of the period of
 interest. You must use the same names as specified in the configuration
 files and dates must be of the date type.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/retrieve_sensor.html">retrieve_sensor</a></span><span class="op">(</span>id_sensor <span class="op">=</span> <span class="st">"segment-01"</span>, </span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/retrieve_sensor.html">retrieve_sensor</a></span><span class="op">(</span>segment_name <span class="op">=</span> <span class="st">"segment-01"</span>, </span>
 <span>                start_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-01'</span><span class="op">)</span>, </span>
 <span>                end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>If you want to store the data, you can directly use
@@ -267,7 +267,7 @@ writes or updates the sensor data in the <code>data/</code> directory in
 .Rdata format. The arguments are the same as those of the previous
 function:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/write_update_data.html">write_update_data</a></span><span class="op">(</span>id_sensor <span class="op">=</span> <span class="st">"segment-01"</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/write_update_data.html">write_update_data</a></span><span class="op">(</span>segment_name <span class="op">=</span> <span class="st">"segment-01"</span>,</span>
 <span>                  start_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-01'</span><span class="op">)</span>,</span>
 <span>                  end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_update_data.html">write_update_data</a></span><span class="op">(</span><span class="st">"segment-02"</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-08-01'</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>

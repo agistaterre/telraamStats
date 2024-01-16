@@ -4,10 +4,10 @@
 \alias{retrieve_sensor}
 \title{Retrieves data associated with a sensor from the Telraam API}
 \usage{
-retrieve_sensor(id_sensor, start_date, end_date, key = get_telraam_token())
+retrieve_sensor(segment_name, start_date, end_date, key = get_telraam_token())
 }
 \arguments{
-\item{id_sensor}{Numeric. ID of the sensor}
+\item{segment_name}{Character. Name of the segment, as specified in config.}
 
 \item{start_date}{Date. Start date "aaaa-mm-jj", must be of the date type.}
 

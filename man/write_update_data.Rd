@@ -4,10 +4,10 @@
 \alias{write_update_data}
 \title{Write or update the sensor data in the data folder}
 \usage{
-write_update_data(id_sensor, start_date, end_date)
+write_update_data(segment_name, start_date, end_date)
 }
 \arguments{
-\item{id_sensor}{Numeric. ID of the sensor}
+\item{segment_name}{Character. Name of the segment, as specified in config.}
 
 \item{start_date}{Date. Start date "aaaa-mm-jj"}
 
