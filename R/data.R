@@ -1,10 +1,10 @@
 
-#' Traffic data of Telraam sensors in Chateaubourg (FR)
+#' Traffic data of Telraam sensors in Châteaubourg (FR)
 #'
 #' Telraam sensors continously monitor a street form a citizen window.
 #' They count heavy vehicules, cars, twok-wheelers and pedestrians, every hour.
-#' Chateaubourg is one of the city in France with the highest density of sensors
-#' This dataframe is a subset of sensors data in Chateaubourg for 2022.
+#' Châteaubourg is one of the city in France with the highest density of sensors
+#' This dataframe is a subset of sensors data in Châteaubourg for 2022.
 #'
 #' @format ## `traffic`
 #' A data frame with 16,729 rows and 22 columns:

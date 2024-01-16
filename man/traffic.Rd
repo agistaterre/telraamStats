@@ -3,7 +3,7 @@
 \docType{data}
 \name{traffic}
 \alias{traffic}
-\title{Traffic data of Telraam sensors in Chateaubourg (FR)}
+\title{Traffic data of Telraam sensors in Châteaubourg (FR)}
 \format{
 \subsection{\code{traffic}}{
 
@@ -34,7 +34,7 @@ traffic
 \description{
 Telraam sensors continously monitor a street form a citizen window.
 They count heavy vehicules, cars, twok-wheelers and pedestrians, every hour.
-Chateaubourg is one of the city in France with the highest density of sensors
-This dataframe is a subset of sensors data in Chateaubourg for 2022.
+Châteaubourg is one of the city in France with the highest density of sensors
+This dataframe is a subset of sensors data in Châteaubourg for 2022.
 }
 \keyword{datasets}
