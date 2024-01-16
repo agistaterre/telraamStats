@@ -84,6 +84,12 @@ usethis::edit_r_environ()
 set_telraam_token(token = 'YourTelraamAPIToken')
 ```
 
+If you want to verify that your token is correctly set, you can use the following command :
+
+```{r}
+get_telraam_token()
+```
+
 #### 3. Specify road segment IDs in configuration file
 
 Each road segment has a unique ID, which can be found in the Telraam location URL. For instance, here is the URL for one of Châteaubourg's segments [`https://telraam.net/home/location/9000005665`](https://telraam.net/home/location/9000005665), and its ID is located in the last part of the URL (`9000005665`). Once you have gathered the IDs for all your segments, you can specify them by editing the `inst\config.yml` file.
@@ -94,17 +100,26 @@ This file can be created using the `create_config()` function. Once executed, yo
 create_config()
 ```
 
-The file already contains the following template, which you can modify (directly in the yml file) to add your own segments :
+The file already contains the following template, which you can modify (directly in the yml file) to add your own segments (in a numeric format, without quotes)
 
-```{yml}
+```         
 default:
   url: https://telraam-api.net/v1
   segments:
-    segment-01:0000000000
-    segment-02:0000000000
+    segment-01:9000000000
+    segment-02:9000000000
 ```
 
-You can specify as many segments as you want.
+You can specify as many segments as you want and personalize the segment's names.
+
+```         
+default:
+  url: https://telraam-api.net/v1
+  segments:
+    MyFirstSegment:9000000000
+    My-second-segment:9000000000
+    My_3rd_segment:9000000000
+```
 
 #### 4. Get data for your road segments
 

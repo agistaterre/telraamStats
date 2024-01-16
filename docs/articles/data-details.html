@@ -92,7 +92,7 @@ get access to specific data.</p>
 Belgian company that develops sensors for monitoring and collecting
 multi-modal traffic data. These sensors are equipped with cameras to
 count road users using various mode of transport, including pedestrian,
-cyclists, cars and heavy vehicule.</p>
+cyclists, cars and heavy vehicles.</p>
 <p>A diverse range of stakeholders (individuals, community groups, local
 authoritieds, researchers…) can purchase and install a Telraam sensor on
 their buildings. A map of all sensors is available on <a href="https://telraam.net/" class="external-link">Telraam website</a>. Everyone can access the
@@ -100,9 +100,9 @@ data through the web interface (<a href="https://telraam.net/en/location/9000001
 <div class="section level4">
 <h4 id="available-data">Available data<a class="anchor" aria-label="anchor" href="#available-data"></a>
 </h4>
-<p>The Telraam API provides informations on road segments and sensors
+<p>The Telraam API provides information on road segments and sensors
 locations, or parameters, but most importantly, it offers traffic data.
-Every hour, each sensor send information on traffic counts, for each
+Every hour, each sensor sends information on traffic counts, for each
 transportation mode and road direction, along with a confidence metric.
 In addition to traffic counts, estimated car speed and a car speed
 histogram are also available. Further details on the data will be
@@ -112,13 +112,13 @@ provided in this vignette.</p>
 <div class="section level3">
 <h3 id="included-dataset">Included dataset<a class="anchor" aria-label="anchor" href="#included-dataset"></a>
 </h3>
-<p>If you’re only interested on discovering Telraam data and play with
-real traffic data, a dataset of two road segments in the city of
+<p>If you’re only interested on discovering Telraam data and playing
+with real traffic data, a dataset of two road segments in the city of
 Châteaubourg (FR) is included in the package.</p>
 <p>Châteaubourg is a municipality in Brittany, northwestern France. Its
 population is around 7,500 inhabitants and its area is less than 30km2.
-Its the city with the largest number of Telraam sensors in 2023 and by
-far the highest density of sensors in France.</p>
+In France, it is the city with the largest number of Telraam sensors in
+2023 and by far the highest density of sensors.</p>
 <p>The two road segments offers hourly data from January 1, 2022, to
 December 31, 2022. The data is directly extracted from the API and may
 contain missing or extreme values.</p>
@@ -192,44 +192,61 @@ Git.</p>
 <p>You have two options to specify your own Telraam token :</p>
 <ol style="list-style-type: decimal">
 <li>Edit your <code>.Renviron</code> file. <code>.Renviron</code> is
-useful for defining sensitive informations or R environment variables :
-it contains list of environment variables to set. An easy way to edit
+useful for defining sensitive information or R environment variables :
+it contains a list of environment variables to set. An easy way to edit
 this file and add your Telraam token is by using the
 <code>usethis</code> package. Run the following command (either once or
 every time you change your API Token) : <code>.Renviron</code> file will
 open in RStudio and you can add a new line in the form
-<code>token='YourTelraamAPIToken</code>.</li>
+<code>token='YourTelraamAPIToken'</code>.</li>
 </ol>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://usethis.r-lib.org" class="external-link">"usethis"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"usethis"</span><span class="op">)</span> <span class="co">#if you haven't installed 'usethis' already</span></span>
 <span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/edit.html" class="external-link">edit_r_environ</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>If you are not comfortable with the previous step, you can use an
-built-in function of the <code>telraamStat</code> package. However, keep
-in mind that you will need to run this function every time you want to
-retrieve your data:</li>
+built-in function of the <code>telraamStats</code> package. However,
+keep in mind that you will need to run this function every time you want
+to retrieve your data:</li>
 </ol>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/set_telraam_token.html">set_telraam_token</a></span><span class="op">(</span>token <span class="op">=</span> <span class="st">'YourTelraamAPIToken'</span><span class="op">)</span></span></code></pre></div>
+<p>If you want to verify that your token is correctly set, you can use
+the following command :</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">get_telraam_token</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="specify-road-segment-ids-in-configuration-file">3. Specify road segment IDs in configuration file<a class="anchor" aria-label="anchor" href="#specify-road-segment-ids-in-configuration-file"></a>
 </h4>
 <p>Each road segment has a unique ID, which can be found in the Telraam
 location URL. For instance, here is the URL for one of Châteaubourg’s
-segment <a href="https://telraam.net/home/location/9000005665" class="external-link"><code>https://telraam.net/home/location/9000005665</code></a>,
+segments <a href="https://telraam.net/home/location/9000005665" class="external-link"><code>https://telraam.net/home/location/9000005665</code></a>,
 and its ID is located in the last part of the URL
 (<code>9000005665</code>). Once you have gathered the IDs for all your
 segments, you can specify them by editing the
 <code>inst\config.yml</code> file.</p>
 <p>This file can be created using the <code><a href="../reference/create_config.html">create_config()</a></code>
-function. Once executed, you locate find a <code>config.yml</code> file
-in the <code>inst\</code> folder of your work directory.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+function. Once executed, you find a <code>config.yml</code> file in the
+<code>inst\</code> folder of your work directory.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/create_config.html">create_config</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The file already contains the following template, which you can
-modify (directly in the yml file) to add your own segments :</p>
-<p>You can specify as many segments as you want.</p>
+modify (directly in the yml file) to add your own segments (in a numeric
+format, without quotes)</p>
+<pre><code>default:
+  url: https://telraam-api.net/v1
+  segments:
+    segment-01:9000000000
+    segment-02:9000000000</code></pre>
+<p>You can specify as many segments as you want and personalize the
+segment’s names.</p>
+<pre><code>default:
+  url: https://telraam-api.net/v1
+  segments:
+    MyFirstSegment:9000000000
+    My-second-segment:9000000000
+    My_3rd_segment:9000000000</code></pre>
 </div>
 <div class="section level4">
 <h4 id="get-data-for-your-road-segments">4. Get data for your road segments<a class="anchor" aria-label="anchor" href="#get-data-for-your-road-segments"></a>
@@ -240,7 +257,7 @@ this segment from the Telraam API. This function takes, as arguments,
 the name of the segment, the first and the last day of the period of
 interest. You must use the same names as specified in the configuration
 files and dates must be of the date type.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/retrieve_sensor.html">retrieve_sensor</a></span><span class="op">(</span>id_sensor <span class="op">=</span> <span class="st">"segment-01"</span>, </span>
 <span>                start_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-01'</span><span class="op">)</span>, </span>
 <span>                end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -249,7 +266,7 @@ files and dates must be of the date type.</p>
 writes or updates the sensor data in the <code>data/</code> directory in
 .Rdata format. The arguments are the same as those of the previous
 function:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/write_update_data.html">write_update_data</a></span><span class="op">(</span>id_sensor <span class="op">=</span> <span class="st">"segment-01"</span>,</span>
 <span>                  start_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-01'</span><span class="op">)</span>,</span>
 <span>                  end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span>
@@ -260,7 +277,7 @@ a given list of sensor names from .RData files contained in the
 <code>data/</code> directory. Here, you should also use the same names
 as specified in the configuration files. All available periods will be
 imported.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/import_sensor.html">import_sensor</a></span><span class="op">(</span>list_sensor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"segment-01"</span>,<span class="st">"segment-02"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
