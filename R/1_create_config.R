@@ -4,16 +4,18 @@
 #'  this function create a local configuration template file
 #'  in the 'inst' directory, to edit with specific informations.
 #'
+#' @param overwrite If the file exist, should it be overwriten ?
+#'
 #' @export
 #'
 #' @importFrom yaml write_yaml
 #'
 #'
-create_config <- function(){
+create_config <- function(overwrite=FALSE){
   file_path = "inst/config.yml"
   template <- list("default"=list("url"="https://telraam-api.net/v1",
-                                  "segments"=list("segment-01"=9000000000,"segment-02"=9000000000)))
-  if(!file.exists(file_path)){
+                                  "segments"=list("segment-01"="9000000000","segment-02"="9000000000")))
+  if(!file.exists(file_path) | overwrite){
     if(!dir.exists("inst/")){
       dir.create("inst/")
     }
