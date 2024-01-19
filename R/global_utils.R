@@ -57,11 +57,7 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #' @keywords internal
 #'
 get_segments <- function(){
-  raw_segments <- config::get(file = "inst/config.yml")$segments
-  # current format is "name:id name2:id2"
-  list_segments <- lapply(strsplit(raw_segments,' '), strsplit, split=':')
-  matrix_segments <- matrix(unlist(list_segments), ncol=2, byrow=TRUE)
-  segments <- setNames(as.numeric(matrix_segments[,2]),matrix_segments[,1])
+  segments <- config::get(file = "inst/config.yml")$segments
   return(segments)
 }
 
