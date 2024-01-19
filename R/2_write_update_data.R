@@ -27,6 +27,9 @@ write_update_data <- function(segment_name, start_date, end_date){
   file_name <- paste0("data/",segment_name,".RData")
 
   if (!is.null(data)){
+    if(!dir.exists("data/")){
+      dir.create("data/")
+    }
     if (file.exists(file_name)){
       cleaning <- get(load(file_name))
       data <- rbind(cleaning,data)
