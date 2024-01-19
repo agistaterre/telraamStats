@@ -4,7 +4,10 @@
 \alias{create_config}
 \title{Create config file if needed.}
 \usage{
-create_config()
+create_config(overwrite = FALSE)
+}
+\arguments{
+\item{overwrite}{If the file exist, should it be overwriten ?}
 }
 \description{
 If the user needs to specify the IDs of his own sensors,
