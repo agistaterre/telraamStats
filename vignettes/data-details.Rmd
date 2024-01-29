@@ -19,6 +19,7 @@ knitr::knit_engines$set(yml = function(options) {
 })
 
 knitr::opts_chunk$set(eval = FALSE)
+
 ```
 
 ## Introduction
@@ -45,7 +46,7 @@ The Telraam API provides information on road segments and sensors locations, or 
 
 If you're only interested on discovering Telraam data and playing with real traffic data, a dataset of two road segments in the city of Châteaubourg (FR) is included in the package.
 
-Châteaubourg is a municipality in Brittany, northwestern France. Its population is around 7,500 inhabitants and its area is less than 30km2. In France, it is the city with the largest number of Telraam sensors in 2023 and by far the highest density of sensors.
+Châteaubourg is a municipality in Brittany, northwestern France. Its population is around 7,500 inhabitants and its area is less than 30km$^2$. In France, it is the city with the largest number of Telraam sensors in 2023 and by far the highest density of sensors.
 
 The two road segments offers hourly data from January 1, 2022, to December 31, 2022. The data is directly extracted from the API and may contain missing or extreme values.
 
@@ -53,8 +54,12 @@ The two road segments offers hourly data from January 1, 2022, to December 31, 2
 
 Included dataset is lazily loaded with the telraamStats package. If you have already called `library(telraamStats)`, the dataset is already attached and you can call it directly :
 
-```{r, eval = TRUE}
+```{r, eval=FALSE, results='asis'}
 head(traffic)
+```
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(head(traffic))
 ```
 
 Otherwise, if you don't want to load the entire package, you can also access this dataset by using `telraamStats::traffic`.
