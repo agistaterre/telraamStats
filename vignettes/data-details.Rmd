@@ -19,6 +19,7 @@ knitr::knit_engines$set(yml = function(options) {
 })
 
 knitr::opts_chunk$set(eval = FALSE)
+
 ```
 
 ## Introduction
@@ -53,8 +54,12 @@ The two road segments offers hourly data from January 1, 2022, to December 31, 2
 
 Included dataset is lazily loaded with the telraamStats package. If you have already called `library(telraamStats)`, the dataset is already attached and you can call it directly :
 
-```{r, eval = TRUE}
+```{r, eval=FALSE, results='asis'}
 head(traffic)
+```
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(head(traffic))
 ```
 
 Otherwise, if you don't want to load the entire package, you can also access this dataset by using `telraamStats::traffic`.
