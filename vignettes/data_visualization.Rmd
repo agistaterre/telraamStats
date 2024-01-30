@@ -1,0 +1,23 @@
+---
+title: "Visualize and analyse traffic"
+output: rmarkdown::html_vignette
+description:
+  Learn how to visualize and analyse traffic data from Telraam cameras.
+vignette: >
+  %\VignetteIndexEntry{Visualize and analyse traffic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+knitr::knit_engines$set(yml = function(options) {
+})
+
+knitr::opts_chunk$set(eval = FALSE)
+
+```
