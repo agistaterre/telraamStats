@@ -34,6 +34,18 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/decompose_2_fct.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_dates.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_name.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_traffic.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_uptime.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/filter_date.html</loc>
   </url>
   <url>
@@ -44,6 +56,9 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/filtering.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_segment_name.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_segments.html</loc>

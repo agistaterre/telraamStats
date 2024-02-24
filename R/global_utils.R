@@ -46,6 +46,7 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
   }
 }
 
+
 #' Get Telraam segments into a named vector
 #'
 #' @description
@@ -60,6 +61,26 @@ get_segments <- function(){
   segments <- config::get(file = "inst/config.yml")$segments
   return(segments)
 }
+
+
+#' Get the name of a segment giving its id
+#'
+#' @param segment_id ID of segment, should be present in inst/config.yml
+#'
+#'
+#' @return Name of the segment, as specified in the configuration file
+#' @export
+#'
+#' @keywords internal
+#'
+get_segment_name <- function(segment_id){
+  segments <- get_segments()
+  if(!segment_id %in% segments){
+    stop('This ID is unknown. Please update configuration file.')
+  }
+  return(names(segments)[segments==segment_id])
+}
+
 
 #' Select data within a specified date range
 #'
@@ -87,6 +108,7 @@ filter_date <- function(data, date_range){
   matching_dates <- (data$date>=start & data$date<=end)
   return(data[matching_dates,])
 }
+
 
 #' Select data based on vacation criteria
 #'
@@ -205,6 +227,26 @@ filtering <- function(data = NULL, sensor    = NULL, direction = ' ', mobility  
   return(filtre)
 }
 
+
+#' Enrich traffic data with date features, names and uptime filters.
+#' This function add day, weekday, hour, segment_name and full_name and uptime quality boolean.
+#'
+#' @param data Raw data frame from the Telraam API, imported through the package.
+#'
+#'
+#' @return Same dataframe with additionnal informations.
+#' @export
+#'
+#' @keywords internal
+#'
+enrich_traffic <- function(data){
+  enriched_data <- enrich_dates(data)
+  enriched_data <- enrich_name(enriched_data)
+  enriched_data <- enrich_uptime(enriched_data)
+  return(enriched_data)
+}
+
+
 #' Enrich traffic data with date informations
 #'
 #' @param data Data frame containing the date column
@@ -225,3 +267,39 @@ enrich_dates <- function(data){
   return(enriched_data)
 }
 
+
+#' Enrich traffic data with segment name
+#' Segment fullname is also added : it's the combination of segment's id and name.
+#'
+#' @param data Data frame containing a segment_id column
+#'
+#'
+#' @return Same dataframe with two additionnal columns : segment name and full name
+#' @export
+#'
+#' @keywords internal
+#'
+enrich_name <- function(data){
+  enriched_data <- data %>%
+    mutate(segment_name = lapply(segment_id, get_segment_name)) %>%
+    unite(segment_fullname, segment_id, segment_name, sep = ' - ', remove = FALSE)
+  return(enriched_data)
+}
+
+
+#' Enrich traffic data with uptime quality indication
+#' If the uptime is lower than 0.5, uptime_quality will be FALSE, else TRUE
+#'
+#' @param data Data frame containing a uptime column
+#'
+#'
+#' @return Same dataframe with an additionnal column indicating if the uptime is greater or lower than 0.5.
+#' @export
+#'
+#' @keywords internal
+#'
+enrich_uptime <- function(data){
+  enriched_data <- data %>%
+    mutate(uptime_quality = (uptime >= 0.5))
+  return(enriched_data)
+}
