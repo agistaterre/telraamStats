@@ -260,9 +260,9 @@ enrich_traffic <- function(data){
 enrich_dates <- function(data){
   enriched_data <- data %>%
     mutate(
-      day = as.Date(date),
-      hour = hour(date),
-      weekday = strftime(day,'%A')
+      day = as.Date(.data$date),
+      hour = hour(.data$date),
+      weekday = strftime(.data$day,'%A')
     )
   return(enriched_data)
 }
@@ -281,8 +281,8 @@ enrich_dates <- function(data){
 #'
 enrich_name <- function(data){
   enriched_data <- data %>%
-    mutate(segment_name = lapply(segment_id, get_segment_name)) %>%
-    unite(segment_fullname, segment_id, segment_name, sep = ' - ', remove = FALSE)
+    mutate(segment_name = lapply(.data$segment_id, get_segment_name)) %>%
+    tidyr::unite("segment_fullname", .data$segment_id, .data$segment_name, sep = ' - ', remove = FALSE)
   return(enriched_data)
 }
 
@@ -300,6 +300,6 @@ enrich_name <- function(data){
 #'
 enrich_uptime <- function(data){
   enriched_data <- data %>%
-    mutate(uptime_quality = (uptime >= 0.5))
+    mutate(uptime_quality = (.data$uptime >= 0.5))
   return(enriched_data)
 }
