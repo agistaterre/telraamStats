@@ -17,7 +17,7 @@ write_update_data <- function(segment_name, start_date, end_date){
 
   # Handle the case where there is no data
   if(nrow(data) == 0){
-    error("No data for this period")
+    stop("No data for this period")
   }
 
   # conversion from a numeric vector to a character string of car_speed_hist_0to70plus and car_speed_hist_0to120plus

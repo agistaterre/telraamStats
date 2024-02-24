@@ -1,0 +1,51 @@
+---
+title: "Visualize and analyse traffic"
+output: rmarkdown::html_vignette
+description:
+  Learn how to visualize and analyse traffic data from Telraam cameras.
+vignette: >
+  %\VignetteIndexEntry{Visualize and analyse traffic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+knitr::knit_engines$set(yml = function(options) {
+})
+
+knitr::opts_chunk$set(eval = FALSE)
+
+```
+
+## Introduction
+
+This vignette illustrates the potential visualizations (and the ensuing analysis) of traffic data from Telraam sensors provided by the package.
+
+Before we go on, we'll attach the packages we use.
+
+```{r setup, eval = TRUE}
+library(telraamStats)
+```
+
+We will also load the data: here, we will use the dataset attached to the package, but you can certainly replicate these visualizations and analyses using data from your own sensors. For more information on data retrieval, you can refer to the dedicated vignette (`vignette("data-details")`).
+
+Included dataset is lazily loaded with the telraamStats package. If you have already called `library(telraamStats)`, the dataset is already attached and you can call it directly :
+
+```{r, eval=FALSE, results='asis'}
+head(traffic)
+```
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(head(traffic))
+```
+
+## Visualizing traffic for a single road segment
+
+```{r}
+
+```
