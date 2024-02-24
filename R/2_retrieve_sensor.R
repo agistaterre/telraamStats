@@ -51,14 +51,14 @@ retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_
       rawToChar() %>%
       fromJSON()
     df <- content$report
-    df$date <- ymd_hms(df$date, tz = df$timezone[1])
+    df$date <- format(ymd_hms(df$date, tz = df$timezone[1]), "%Y-%m-%d %H:%M:%S %Z")
     df
   })
 
   result <- bind_rows(resTraffic_list)
 
   if (length(result$date)!=0){ # in case the download is empty
-    result$date <- ymd_hms(result$date, tz = result$timezone[1]) # We change the class of date with a time difference of 2
+    result$date <- format(ymd_hms(result$date, tz = result$timezone[1]),"%Y-%m-%d %H:%M:%S %Z") # We change the class of date with a time difference of 2
   }
   return(result)
 }
