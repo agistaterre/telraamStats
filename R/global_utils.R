@@ -205,3 +205,23 @@ filtering <- function(data = NULL, sensor    = NULL, direction = ' ', mobility  
   return(filtre)
 }
 
+#' Enrich traffic data with date informations
+#'
+#' @param data Data frame containing the date column
+#'
+#'
+#' @return Same dataframe with 3 additionnal columns : day, weekday and hour
+#' @export
+#'
+#' @keywords internal
+#'
+enrich_dates <- function(data){
+  enriched_data <- data %>%
+    mutate(
+      day = as.Date(date),
+      hour = hour(date),
+      weekday = strftime(day,'%A')
+    )
+  return(enriched_data)
+}
+
