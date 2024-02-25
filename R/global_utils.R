@@ -228,78 +228,29 @@ filtering <- function(data = NULL, sensor    = NULL, direction = ' ', mobility  
 }
 
 
-#' Enrich traffic data with date features, names and uptime filters.
-#' This function add day, weekday, hour, segment_name and full_name and uptime quality boolean.
+#' Indicates if a date is in vacation period and if true, which vacation.
+#' If the date is not in a vacation period, "No vacation" is returned.
 #'
-#' @param data Raw data frame from the Telraam API, imported through the package.
+#' @param date Date (character format)
+#' @param vacation Dataframe of vacations, same format as set_globals_vars output.
+#' TODO : this function could be more efficient.
 #'
-#'
-#' @return Same dataframe with additionnal informations.
+#' @return Vacation description if the day is between two dates, "No vacation" otherwise.
 #' @export
 #'
-#' @keywords internal
+#'@keywords internal
 #'
-enrich_traffic <- function(data){
-  enriched_data <- enrich_dates(data)
-  enriched_data <- enrich_name(enriched_data)
-  enriched_data <- enrich_uptime(enriched_data)
-  return(enriched_data)
-}
-
-
-#' Enrich traffic data with date informations
-#'
-#' @param data Data frame containing the date column
-#'
-#'
-#' @return Same dataframe with 3 additionnal columns : day, weekday and hour
-#' @export
-#'
-#' @keywords internal
-#'
-enrich_dates <- function(data){
-  enriched_data <- data %>%
-    mutate(
-      day = as.Date(.data$date),
-      hour = hour(.data$date),
-      weekday = strftime(.data$day,'%A')
-    )
-  return(enriched_data)
-}
-
-
-#' Enrich traffic data with segment name
-#' Segment fullname is also added : it's the combination of segment's id and name.
-#'
-#' @param data Data frame containing a segment_id column
-#'
-#'
-#' @return Same dataframe with two additionnal columns : segment name and full name
-#' @export
-#'
-#' @keywords internal
-#'
-enrich_name <- function(data){
-  enriched_data <- data %>%
-    mutate(segment_name = lapply(.data$segment_id, get_segment_name)) %>%
-    tidyr::unite("segment_fullname", .data$segment_id, .data$segment_name, sep = ' - ', remove = FALSE)
-  return(enriched_data)
-}
-
-
-#' Enrich traffic data with uptime quality indication
-#' If the uptime is lower than 0.5, uptime_quality will be FALSE, else TRUE
-#'
-#' @param data Data frame containing a uptime column
-#'
-#'
-#' @return Same dataframe with an additionnal column indicating if the uptime is greater or lower than 0.5.
-#' @export
-#'
-#' @keywords internal
-#'
-enrich_uptime <- function(data){
-  enriched_data <- data %>%
-    mutate(uptime_quality = (.data$uptime >= 0.5))
-  return(enriched_data)
+which_vacations <- function(date, vacation){
+  date <- as.POSIXct(date)
+  vacation_test <- vacation %>%
+    mutate(date = date,
+           in_period = between(date, start_date, end_date)) %>%
+    filter(in_period)
+  if(nrow(vacation_test) > 0){
+    vacation <- vacation_test$description
+  }
+  else {
+    vacation <- "No vacation"
+  }
+  return(vacation)
 }
