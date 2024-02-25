@@ -175,6 +175,7 @@ filter_public_holidays <- function(data, JF){
 
 
 #' Filter by selected criteria.
+#'
 #' Not all criteria need to be filled in. Unfilled criteria are set by default so that no filtering is performed.
 #'
 #' @param data dat.frame. See the "importation" function in the '2-import.R' file

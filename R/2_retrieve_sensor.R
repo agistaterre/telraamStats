@@ -52,6 +52,7 @@ retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_
       fromJSON()
     df <- content$report
     df$date <- format(ymd_hms(df$date, tz = df$timezone[1]), "%Y-%m-%d %H:%M:%S %Z")
+    df <- enrich_traffic(df)
     df
   })
 

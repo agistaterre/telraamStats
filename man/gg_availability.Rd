@@ -2,9 +2,7 @@
 % Please edit documentation in R/3_static_plot_quality.R
 \name{gg_availability}
 \alias{gg_availability}
-\title{Availability and quality of sensors during a period through a heatmap.
-Higher is the uptime average, higher is the quality of data.
-A null uptime means that the sensor wasn't available during this period.}
+\title{Availability and quality of sensors during a period through a heatmap.}
 \usage{
 gg_availability(enriched_data, date_range = NULL)
 }
@@ -17,7 +15,6 @@ gg_availability(enriched_data, date_range = NULL)
 graph showing availability and quality of sensors over the selected date range.
 }
 \description{
-Availability and quality of sensors during a period through a heatmap.
 Higher is the uptime average, higher is the quality of data.
 A null uptime means that the sensor wasn't available during this period.
 }

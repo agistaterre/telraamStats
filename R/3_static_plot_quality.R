@@ -1,6 +1,7 @@
 theme_set(theme_bw())
 
 #'Availability and quality of sensors during a period through a heatmap.
+#'
 #'Higher is the uptime average, higher is the quality of data.
 #'A null uptime means that the sensor wasn't available during this period.
 #'
@@ -24,20 +25,20 @@ gg_availability <- function(enriched_data, date_range = NULL){
   # Compute uptime daily average, removing nighttime and uptime low values
   heatmap_data <- enriched_data %>%
     filter(dplyr::between(.data$hour,5,20)) %>%
-    group_by(.data$segment_id, .data$day) %>%
+    group_by(.data$segment_fullname, .data$day) %>%
     summarise(uptime_avg = mean(.data$uptime_quality))
 
   # Create a sequence of hours for the period to complete missing days
   period <- seq(min(enriched_data$day), max(enriched_data$day), by="days")
   period_df <- data.frame(
     'day' = rep(period, each=2),
-    'segment_id' = rep(unique(enriched_data$segment_id), length(period))
+    'segment_fullname' = rep(unique(enriched_data$segment_fullname), length(period))
   )
 
   # Complete with missing days/hours with an uptime equal to 0
-  heatmap_data_full <- left_join(period_df, heatmap_data, by = c('segment_id','day')) %>%
+  heatmap_data_full <- left_join(period_df, heatmap_data, by = c('segment_fullname','day')) %>%
     replace_na(list(uptime_avg = 0)) %>%
-    mutate(segment_id = as.character(.data$segment_id))
+    mutate(segment_id = as.character(.data$segment_fullname))
 
   # Heatmap
   graph <- ggplot(heatmap_data_full,

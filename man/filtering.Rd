@@ -2,8 +2,7 @@
 % Please edit documentation in R/global_utils.R
 \name{filtering}
 \alias{filtering}
-\title{Filter by selected criteria.
-Not all criteria need to be filled in. Unfilled criteria are set by default so that no filtering is performed.}
+\title{Filter by selected criteria.}
 \usage{
 filtering(
   data = NULL,
@@ -47,6 +46,5 @@ filtering(
 the filtered data
 }
 \description{
-Filter by selected criteria.
 Not all criteria need to be filled in. Unfilled criteria are set by default so that no filtering is performed.
 }
