@@ -19,7 +19,6 @@ knitr::knit_engines$set(yml = function(options) {
 })
 
 knitr::opts_chunk$set(eval = FALSE)
-
 ```
 
 ## Introduction
@@ -44,8 +43,18 @@ head(traffic)
 knitr::kable(head(traffic))
 ```
 
-## Visualizing traffic for a single road segment
+## Period Availability for Your Segments
 
-```{r}
+Road segment-specific sensors do not operate continuously; they are limited by daylight duration and may also face other external issues (being unplugged, falling, software problems, etc.). The data collected during a period may not be continuous and could have interruptions ranging from an hour to several days.
 
+To visualize traffic, it is important to be aware of the operating periods of the sensors being analyzed, as well as the quality of their data. The data reliability is provided through the uptime indicator. Uptime, ranging from 0 to 1, corresponds to the percentage of time during which the camera is actively counting passages. Following Telraam's recommendations, here an uptime lower than 0.5 is considered associated with poor-quality data.
+
+The graphical representation below, obtained using the `gg_availability()` function, provides an overview of data availability and quality for different sensors over the entire period. It illustrates the daily average uptime evolution: the higher this value, the better the data quality for that sensor on the respective day. Its purpose is to assist you in selecting study periods.
+
+```{r, eval=TRUE}
+plot(
+  gg_availability(traffic)
+)
 ```
+
+On this graph, for example, we can observe through black time slots that the camera on the segment 'ParisArcEnCiel-05' did not report any data at the end of June 2022 and at the end of the year 2022. We can also notice that the average uptime is higher during the summer period. This illustrates the fact that the duration of daylight, and therefore the possible filming period, is longer in summer.

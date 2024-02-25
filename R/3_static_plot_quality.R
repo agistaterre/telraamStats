@@ -1,5 +1,3 @@
-theme_set(theme_bw())
-
 #'Availability and quality of sensors during a period through a heatmap.
 #'
 #'Higher is the uptime average, higher is the quality of data.
