@@ -238,14 +238,16 @@ filtering <- function(data = NULL, sensor    = NULL, direction = ' ', mobility  
 #' @return Vacation description if the day is between two dates, "No vacation" otherwise.
 #' @export
 #'
-#'@keywords internal
+#' @importFrom dplyr between
+#'
+#' @keywords internal
 #'
 which_vacations <- function(date, vacation){
   date <- as.POSIXct(date)
   vacation_test <- vacation %>%
     mutate(date = date,
-           in_period = between(date, start_date, end_date)) %>%
-    filter(in_period)
+           in_period = between(.data$date, .data$start_date, .data$end_date)) %>%
+    filter(.data$in_period)
   if(nrow(vacation_test) > 0){
     vacation <- vacation_test$description
   }

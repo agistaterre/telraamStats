@@ -48,12 +48,14 @@ enrich_dates <- function(data){
 #' @return Same dataframe with two additionnal columns : segment name and full name
 #' @export
 #'
+#' @importFrom tidyr unite
+#'
 #' @keywords internal
 #'
 enrich_name <- function(data){
   enriched_data <- data %>%
     mutate(segment_name = lapply(.data$segment_id, get_segment_name)) %>%
-    tidyr::unite("segment_fullname", .data$segment_id, .data$segment_name, sep = ' - ', remove = FALSE)
+    unite("segment_fullname", .data$segment_id, .data$segment_name, sep = ' - ', remove = FALSE)
   return(enriched_data)
 }
 
