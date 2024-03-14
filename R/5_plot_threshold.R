@@ -24,7 +24,7 @@ plot_threshold <- function(plot_speed, selected_speed, state_threshold, threshol
   }
 
   # to place the threshold text
-  mean_ord <- (100+min(plot_speed$data_plot$speed))/2
+  mean_ord <- (100+min(plot_speed$data_plot$percentage))/2
 
   if (state_threshold == "auto") {
     plot_speed$chart + geom_vline(xintercept = mean, color = "red", size = 1.5)+
