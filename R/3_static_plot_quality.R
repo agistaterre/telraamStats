@@ -47,7 +47,8 @@ gg_availability <- function(enriched_data,
     geom_tile() +
     scale_fill_viridis(option="inferno", name = legend_name) +
     labs(x = "Date", y = "Segment", title = graph_title) +
-    theme(legend.position="bottom")
+    theme(legend.position="bottom") +
+    theme_bw()
 
   return(graph)
 }
