@@ -14,7 +14,10 @@
 #' @importFrom tidyr replace_na
 #' @importFrom viridis scale_fill_viridis
 #'
-gg_availability <- function(enriched_data, date_range = NULL){
+gg_availability <- function(enriched_data,
+                            date_range = NULL,
+                            legend_name = "Proportion of hours with an uptime greater than 0.5",
+                            graph_title = "Data Availability by date and segment"){
   if(length(date_range) > 1){
     enriched_data <- enriched_data %>%
       filter(dplyr::between(.data$day, date_range[1], date_range[2]))
@@ -42,8 +45,8 @@ gg_availability <- function(enriched_data, date_range = NULL){
   graph <- ggplot(heatmap_data_full,
                   aes(x=.data$day, y=.data$segment_fullname, fill=.data$uptime_avg)) +
     geom_tile() +
-    scale_fill_viridis(option="inferno", name = "Proportion of hours with an uptime greater than 0.5") +
-    labs(x = "Date", y = "Segment", title = "Data Availability by date and segment") +
+    scale_fill_viridis(option="inferno", name = legend_name) +
+    labs(x = "Date", y = "Segment", title = graph_title) +
     theme(legend.position="bottom")
 
   return(graph)
