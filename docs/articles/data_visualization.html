@@ -397,6 +397,42 @@ also notice that the average uptime is higher during the summer period.
 This illustrates the fact that the duration of daylight, and therefore
 the possible filming period, is longer in summer.</p>
 </div>
+<div class="section level2">
+<h2 id="traffic-evolution">Traffic evolution<a class="anchor" aria-label="anchor" href="#traffic-evolution"></a>
+</h2>
+<p>Once you have identified the specific period you want to analyze, you
+may want to observe the evolution of traffic trends over time.
+<code><a href="../reference/gg_traffic_evolution.html">gg_traffic_evolution()</a></code> enables the representation of
+traffic for a particular period, aggregated for all or some segments,
+for a specific direction, or aggregated for both, and aggregated for all
+transportation modes or for selected ones.</p>
+<p>Without specifying any options, you can view the traffic evolution of
+cars and heavy vehicles for all segments over the entire period. By
+default, a smoothing curve (based on a GAM model with cubic spline) is
+used to represent the trend.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/gg_traffic_evolution.html">gg_traffic_evolution</a></span><span class="op">(</span><span class="va">traffic</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="data_visualization_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p>You can specify a date range, one or more segments, different
+transportation modes or directions and choose whether you want a
+smoothing curve or not. By default, the aggregation is done by day, but
+you can obtain more precise information by setting the
+<code>agg_day</code> parameter to <code>FALSE</code> to aggregate by
+hour.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/gg_traffic_evolution.html">gg_traffic_evolution</a></span><span class="op">(</span><span class="va">traffic</span>,</span>
+<span>                       date_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'2022-01-01'</span>,<span class="st">'2022-03-01'</span><span class="op">)</span>,</span>
+<span>                       segment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9000001844</span><span class="op">)</span>,</span>
+<span>                       mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'car'</span>,<span class="st">'pedestrian'</span><span class="op">)</span>,</span>
+<span>                       direction <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'lft'</span><span class="op">)</span>,</span>
+<span>                       smoothed <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                       agg_day <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="data_visualization_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+</div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
 </div>

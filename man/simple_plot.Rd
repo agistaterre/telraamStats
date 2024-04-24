@@ -4,7 +4,15 @@
 \alias{simple_plot}
 \title{Number of cars and Heavies as a function of time}
 \usage{
-simple_plot(data, sensor, date_range)
+simple_plot(
+  data,
+  sensor,
+  date_range,
+  line_color = "black",
+  smooth_color = "#B1D62E",
+  graph_title = "Number of vehicules over time",
+  y_axis_title = "Number of cars and heavy vehicules"
+)
 }
 \arguments{
 \item{data}{data.frame containing all the data for all your sensors}
@@ -12,6 +20,14 @@ simple_plot(data, sensor, date_range)
 \item{sensor}{numeric, Id of the chosen sensor}
 
 \item{date_range}{Date vector. example: c('2021-01-01','2022-01-01')}
+
+\item{line_color}{character. color of main line. Default black}
+
+\item{smooth_color}{character. color of smoothing line. Default to light green}
+
+\item{graph_title}{character. Title of graph}
+
+\item{y_lab_title}{character. Y Axis name.}
 }
 \value{
 graph showing the evolution of the number of cars and heavies over the selected date range for the chosen sensor.
