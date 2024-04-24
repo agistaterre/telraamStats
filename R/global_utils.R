@@ -228,6 +228,61 @@ filtering <- function(data = NULL, sensor    = NULL, direction = ' ', mobility  
   return(filtre)
 }
 
+#' Filter by selected criteria and aggregating traffics.
+#'
+#' Not all criteria need to be filled in. Unfilled criteria are set by default so that no filtering is performed.
+#'
+#' @param data Traffic Data Frame
+#' @param date_range Date vector, c("aaaa-mm-jj","aaaa-mm-jj")
+#' @param segment Vector of character. Ids of desired segments.
+#' @param direction Vector of character. Direction of the street (lft, right, both).
+#' @param modes Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")#'
+#'
+#' @return the filtered data with a new column "traffic" with aggregated data for specified direction/modes
+#'
+#' @export
+#'
+#' @importFrom dplyr filter %>%
+#'
+#' @keywords internal
+#'
+filtering_agg <- function(data,
+                          date_range = NULL,
+                          segments = NULL,
+                          direction = NULL,
+                          modes  = NULL){
+
+  data$date <- as.POSIXct(data$date,
+                                   format = "%Y-%m-%d %H:%M:%S",
+                                   tz = "CET")
+
+  # Parameters check
+  transportation_options = c('pedestrian','car','heavy','bike')
+  mode = check_options_graph(modes, transportation_options, c('heavy','car'))
+  directions_options = c('both','lft','rgt')
+  direction = check_options_graph(direction, directions_options, c('both'))
+
+  # Filter on parameters
+  if(length(date_range) > 1){
+    data <- data %>%
+      filter(dplyr::between(.data$day, as.Date(date_range[1]), as.Date(date_range[2])))
+  }
+  if(length(segments) > 1){
+    data <- data %>%
+      filter(.data$segment_id %in% segments)
+  }
+  mode_direction <- case_when(
+    direction == "both" ~ mode,
+    ((direction != "both") & (!is.null(direction))) ~ paste(mode, direction, sep = "_")
+  )
+  data <- data %>% mutate(traffic = rowSums(across(mode_direction)))
+
+  result <- list('data' = data,
+                 'mode' = mode,
+                 'direction' = direction)
+  return(result)
+}
+
 
 #' Indicates if a date is in vacation period and if true, which vacation.
 #' If the date is not in a vacation period, "No vacation" is returned.
@@ -271,15 +326,18 @@ which_vacations <- function(date, vacation){
 #'
 check_options_graph <- function(options_selected, options_available, default){
   unknown = setdiff(options_selected, options_available)
-  if(length(unknown) > 0){
-    if(length(unknown) == length(options_selected)){
-      options = default # replace by default values
-    } else {
-      options = intersect(options_selected, options_available) # keep only available options
-    }
-    message(paste('Invalid options selected. The options retained are:', paste(options, collapse = ", ")))
+  if(is.null(options_selected)){
+    options = default
   } else {
-    options = options_selected
+    if(length(unknown) > 0){
+      if(length(unknown) == length(options_selected)){
+        options = default # replace by default values
+      } else {
+        options = intersect(options_selected, options_available) # keep only available options
+      }
+    } else {
+      options = options_selected
+    }
   }
   return(options)
 }

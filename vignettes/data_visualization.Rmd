@@ -86,3 +86,26 @@ plot(
                        agg_day = FALSE)
 )
 ```
+
+
+## Average traffic
+
+### Average traffic per weekday
+
+The traffic varies according to the days of the week, which can serve as an analytical window to understand territorial mobility. The gg_traffic_avg function allows to examine the average behavior per day of the week. It can be used globally or more specifically (over a specific period, on a segment or set of segments, for a specific direction, for a particular transportation mode).
+
+```{r, eval=TRUE}
+plot(
+  gg_traffic_avg(traffic)
+)
+```
+
+```{r, eval=TRUE}
+plot(
+  gg_traffic_avg(traffic,
+                       date_range = c('2022-01-01','2022-03-01'),
+                       segment = c(9000001844),
+                       mode = c('car'),
+                       direction = c('lft'))
+)
+```
