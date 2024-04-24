@@ -257,3 +257,29 @@ which_vacations <- function(date, vacation){
   }
   return(vacation)
 }
+
+#' Check if options are available in the options list, replace by a default otherwise.
+#'
+#'@param options_selected List of characters. Selected options.
+#'@param options_available List of characters. Valid options.
+#'@param default List of characters. Default options.
+#'
+#'@return Options consistent with the possibilities
+#'@export
+#'
+#'@keywords internal
+#'
+check_options_graph <- function(options_selected, options_available, default){
+  unknown = setdiff(options_selected, options_available)
+  if(length(unknown) > 0){
+    if(length(unknown) == length(options_selected)){
+      options = default # replace by default values
+    } else {
+      options = intersect(options_selected, options_available) # keep only available options
+    }
+    message(paste('Invalid options selected. The options retained are:', paste(options, collapse = ", ")))
+  } else {
+    options = options_selected
+  }
+  return(options)
+}
