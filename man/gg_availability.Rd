@@ -4,12 +4,7 @@
 \alias{gg_availability}
 \title{Availability and quality of sensors during a period through a heatmap.}
 \usage{
-gg_availability(
-  enriched_data,
-  date_range = NULL,
-  legend_name = "Proportion of hours with an uptime greater than 0.5",
-  graph_title = "Data Availability by date and segment"
-)
+gg_availability(enriched_data, date_range = NULL)
 }
 \arguments{
 \item{enriched_data}{enriched data.frame containing all the data for all your sensors}

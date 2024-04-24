@@ -39,7 +39,7 @@ gg_traffic_evolution <- function(enriched_data,
   }
   if(length(segments) > 1){
     enriched_data <- enriched_data %>%
-      filter(segment_id %in% segment)
+      filter(.data$segment_id %in% segments)
   }
   if(direction != "both"){
     mode = paste(mode, direction, sep = "_")

@@ -9,9 +9,7 @@ simple_plot(
   sensor,
   date_range,
   line_color = "black",
-  smooth_color = "#B1D62E",
-  graph_title = "Number of vehicules over time",
-  y_axis_title = "Number of cars and heavy vehicules"
+  smooth_color = "#B1D62E"
 )
 }
 \arguments{
@@ -24,10 +22,6 @@ simple_plot(
 \item{line_color}{character. color of main line. Default black}
 
 \item{smooth_color}{character. color of smoothing line. Default to light green}
-
-\item{graph_title}{character. Title of graph}
-
-\item{y_lab_title}{character. Y Axis name.}
 }
 \value{
 graph showing the evolution of the number of cars and heavies over the selected date range for the chosen sensor.
