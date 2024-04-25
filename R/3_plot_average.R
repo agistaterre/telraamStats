@@ -60,7 +60,8 @@ gg_traffic_avg <- function(enriched_data,
     geom_line() +
     labs(title = paste("Average traffic per", aggregated_by),
          subtitle = paste(
-           paste("Direction:",result$direction),
+           paste("Mode:",paste(result$mode, collapse = ", ")),
+           paste("\nDirection:",result$direction),
            paste("\nWeekdays:",paste(result$weekday, collapse = ", ")),
            paste("\nSegments:",paste(result$segment, collapse = ", ")),
            sep = ", ")) +
