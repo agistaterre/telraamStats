@@ -109,6 +109,7 @@ plot(
                        direction = c('rgt'))
 )
 ```
+
 ### Average traffic per segment
 
 The same function can be used to calculate the average traffic per segment and compare segments with each other.
@@ -129,4 +130,5 @@ plot(
                  direction = c('rgt'))
 )
 ```
+
 ### Detail average traffic
