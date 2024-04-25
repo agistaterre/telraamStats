@@ -285,7 +285,7 @@ filtering_agg <- function(data,
     direction == "both" ~ mode,
     ((direction != "both") & (!is.null(direction))) ~ paste(mode, direction, sep = "_")
   )
-  data <- data %>% mutate(traffic = rowSums(across(mode_direction)))
+  data <- data %>% mutate('traffic_sum' = rowSums(across(mode_direction)))
 
   result <- list('data' = data,
                  'segment' = segments,

@@ -33,7 +33,7 @@ gg_traffic_evolution <- function(enriched_data,
   agg_level = if_else(agg_day, "date", "day")
   traffic <- result$data %>%
     group_by_at(agg_level) %>%
-    summarise(traffic_sum = sum(traffic))
+    summarise('traffic_sum' = sum(.data$traffic_sum))
 
   # Graph
   graph <- ggplot(traffic, aes_string(x = agg_level, y = "traffic_sum")) +

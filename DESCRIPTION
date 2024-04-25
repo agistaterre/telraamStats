@@ -26,6 +26,7 @@ Imports:
     lubridate,
     mgcv,
     purrr,
+    reshape2,
     rlang,
     stringr,
     synchrony,

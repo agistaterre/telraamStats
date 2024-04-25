@@ -28,7 +28,7 @@ gg_traffic_avg(
 
 \item{weekday}{Character vector. Weekday choosen. Default to the all week.}
 
-\item{aggregated_by}{Character. Options are : 'segment_name', 'weekday'. Default : 'weekday'.}
+\item{aggregated_by}{Character. Options are : 'segment_name', 'weekday', 'direction', 'mode'. Default : 'weekday'.}
 }
 \value{
 graph showing weekly average evolution of traffic (for specified parameters) during the specified period.

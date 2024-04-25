@@ -119,6 +119,7 @@ plot(
   gg_traffic_avg(traffic, aggregated_by = "segment_name")
 )
 ```
+
 Similarly to before, it is possible to specify a period, a direction of travel, a mode of transportation, or here a day of the week.
 
 ```{r, eval=TRUE}
@@ -131,4 +132,18 @@ plot(
 )
 ```
 
-### Detail average traffic
+### Average traffic per direction
+
+```{r, eval=TRUE}
+plot(
+  gg_traffic_avg(traffic, aggregated_by = "direction")
+)
+```
+
+### Average traffic per mode
+
+```{r, eval=TRUE}
+plot(
+  gg_traffic_avg(traffic, aggregated_by = "mode")
+)
+```
