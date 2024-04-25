@@ -22,10 +22,10 @@ gg_traffic_avg <- function(enriched_data,
                            agg_day = TRUE){
 
   result <- filtering_agg(enriched_data,
-                          date_range,
-                          segments,
-                          modes,
-                          direction)
+                          date_range = date_range,
+                          segments = segments,
+                          modes = modes,
+                          direction = direction)
 
   # Aggregation by weekday
   traffic <- result$data %>%
