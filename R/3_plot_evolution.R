@@ -3,7 +3,7 @@
 #'
 #' @param enriched_data enriched data.frame containing all the data for all your sensors
 #' @param date_range Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).
-#' @param segments Character vector. Selected road segment, all if NULL (default).
+#' @param segments Character vector. Selected road segment by its name, all if NULL (default).
 #' @param modes Character vector. Different modes of transportation aggregated (heavy, car, bike, pedestrian) . Default: heavy & car
 #' @param direction Character. Direction of the traffic (lft, rgt, both). Default to both.
 #' @param smoothed Boolean. Should the smoothed traffic be plotted ? Default: True
@@ -24,10 +24,11 @@ gg_traffic_evolution <- function(enriched_data,
                                  agg_day = TRUE){
 
   result <- filtering_agg(enriched_data,
-                          date_range,
-                          segments,
-                          modes,
-                          direction)
+                          date_range = date_range,
+                          segments = segments,
+                          modes = modes,
+                          direction = direction)
+
   # Aggregation by day or by date
   agg_level = if_else(agg_day, "date", "day")
   traffic <- result$data %>%

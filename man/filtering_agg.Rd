@@ -9,7 +9,8 @@ filtering_agg(
   date_range = NULL,
   segments = NULL,
   direction = NULL,
-  modes = NULL
+  modes = NULL,
+  weekdays = NULL
 )
 }
 \arguments{
@@ -19,9 +20,11 @@ filtering_agg(
 
 \item{direction}{Vector of character. Direction of the street (lft, right, both).}
 
-\item{modes}{Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")#'}
+\item{modes}{Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")}
 
 \item{segment}{Vector of character. Ids of desired segments.}
+
+\item{weekday}{Vector of character. Weekday(s) choosen.}
 }
 \value{
 the filtered data with a new column "traffic" with aggregated data for specified direction/modes

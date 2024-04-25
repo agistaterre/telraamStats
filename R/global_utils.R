@@ -236,7 +236,8 @@ filtering <- function(data = NULL, sensor    = NULL, direction = ' ', mobility  
 #' @param date_range Date vector, c("aaaa-mm-jj","aaaa-mm-jj")
 #' @param segment Vector of character. Ids of desired segments.
 #' @param direction Vector of character. Direction of the street (lft, right, both).
-#' @param modes Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")#'
+#' @param modes Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")
+#' @param weekday Vector of character. Weekday(s) choosen.
 #'
 #' @return the filtered data with a new column "traffic" with aggregated data for specified direction/modes
 #'
@@ -250,7 +251,8 @@ filtering_agg <- function(data,
                           date_range = NULL,
                           segments = NULL,
                           direction = NULL,
-                          modes  = NULL){
+                          modes  = NULL,
+                          weekdays = NULL){
 
   data$date <- as.POSIXct(data$date,
                                    format = "%Y-%m-%d %H:%M:%S",
@@ -261,6 +263,10 @@ filtering_agg <- function(data,
   mode = check_options_graph(modes, transportation_options, c('heavy','car'))
   directions_options = c('both','lft','rgt')
   direction = check_options_graph(direction, directions_options, c('both'))
+  weekdays_options = c('lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche')
+  weekdays = check_options_graph(weekdays, weekdays_options, weekdays_options)
+  segments_options = unlist(unique(data$segment_name))
+  segments = check_options_graph(segments, segments_options, segments_options)
 
   # Filter on parameters
   if(length(date_range) > 1){
@@ -269,7 +275,11 @@ filtering_agg <- function(data,
   }
   if(length(segments) > 1){
     data <- data %>%
-      filter(.data$segment_id %in% segments)
+      filter(.data$segment_name %in% segments)
+  }
+  if(length(weekdays) < 7){
+    data <- data %>%
+      filter(.data$weekday %in% weekdays)
   }
   mode_direction <- case_when(
     direction == "both" ~ mode,
@@ -278,8 +288,10 @@ filtering_agg <- function(data,
   data <- data %>% mutate(traffic = rowSums(across(mode_direction)))
 
   result <- list('data' = data,
+                 'segment' = segments,
                  'mode' = mode,
-                 'direction' = direction)
+                 'direction' = direction,
+                 'weekday' = weekdays)
   return(result)
 }
 

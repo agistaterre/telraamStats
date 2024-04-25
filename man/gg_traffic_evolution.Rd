@@ -20,7 +20,7 @@ gg_traffic_evolution(
 
 \item{date_range}{Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).}
 
-\item{segments}{Character vector. Selected road segment, all if NULL (default).}
+\item{segments}{Character vector. Selected road segment by its name, all if NULL (default).}
 
 \item{modes}{Character vector. Different modes of transportation aggregated (heavy, car, bike, pedestrian) . Default: heavy & car}
 

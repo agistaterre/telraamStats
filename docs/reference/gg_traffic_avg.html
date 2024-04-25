@@ -67,7 +67,8 @@ for a transportation mode or more, for a direction or both.</p>
 <span>  segments <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  modes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"heavy"</span>, <span class="st">"car"</span><span class="op">)</span>,</span>
 <span>  direction <span class="op">=</span> <span class="st">"both"</span>,</span>
-<span>  agg_day <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  weekday <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  aggregated_by <span class="op">=</span> <span class="st">"weekday"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -93,8 +94,12 @@ for a transportation mode or more, for a direction or both.</p>
 <dd><p>Character. Direction of the traffic (lft, rgt, both). Default to both.</p></dd>
 
 
-<dt>agg_day</dt>
-<dd><p>Boolean. Should the data be aggregated per day ? Default : True</p></dd>
+<dt>weekday</dt>
+<dd><p>Character vector. Weekday choosen. Default to the all week.</p></dd>
+
+
+<dt>aggregated_by</dt>
+<dd><p>Character. Options are : 'segment_name', 'weekday'. Default : 'weekday'.</p></dd>
 
 </dl></div>
     <div class="section level2">

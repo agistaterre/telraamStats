@@ -43,7 +43,7 @@ head(traffic)
 knitr::kable(head(traffic))
 ```
 
-## Period Availability for Your Segments
+## Period availability for your segments
 
 Road segment-specific sensors do not operate continuously; they are limited by daylight duration and may also face other external issues (being unplugged, falling, software problems, etc.). The data collected during a period may not be continuous and could have interruptions ranging from an hour to several days.
 
@@ -104,8 +104,29 @@ plot(
 plot(
   gg_traffic_avg(traffic,
                        date_range = c('2022-01-01','2022-03-01'),
-                       segment = c(9000001844),
+                       segment = c("RteVitre-06"),
                        mode = c('car'),
-                       direction = c('lft'))
+                       direction = c('rgt'))
 )
 ```
+### Average traffic per segment
+
+The same function can be used to calculate the average traffic per segment and compare segments with each other.
+
+```{r, eval=TRUE}
+plot(
+  gg_traffic_avg(traffic, aggregated_by = "segment_name")
+)
+```
+Similarly to before, it is possible to specify a period, a direction of travel, a mode of transportation, or here a day of the week.
+
+```{r, eval=TRUE}
+plot(
+  gg_traffic_avg(traffic, 
+                 aggregated_by = "segment_name",
+                 weekday = c('dimanche'),
+                 mode = c('car'),
+                 direction = c('rgt'))
+)
+```
+### Detail average traffic

@@ -11,7 +11,8 @@ gg_traffic_avg(
   segments = NULL,
   modes = c("heavy", "car"),
   direction = "both",
-  agg_day = TRUE
+  weekday = NULL,
+  aggregated_by = "weekday"
 )
 }
 \arguments{
@@ -25,7 +26,9 @@ gg_traffic_avg(
 
 \item{direction}{Character. Direction of the traffic (lft, rgt, both). Default to both.}
 
-\item{agg_day}{Boolean. Should the data be aggregated per day ? Default : True}
+\item{weekday}{Character vector. Weekday choosen. Default to the all week.}
+
+\item{aggregated_by}{Character. Options are : 'segment_name', 'weekday'. Default : 'weekday'.}
 }
 \value{
 graph showing weekly average evolution of traffic (for specified parameters) during the specified period.
