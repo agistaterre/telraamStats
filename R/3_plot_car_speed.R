@@ -20,6 +20,11 @@ gg_car_speed_histogram <- function(enriched_data,
                                    segments = NULL,
                                    weekday = NULL,
                                    aggregated_by = NULL){
+
+  aggregated_by <- check_options_graph(aggregated_by,
+                                       c('segment_name','weekday'),
+                                       NULL)
+
   # filtering data
   result <- filtering_agg(enriched_data,
                           date_range = date_range,

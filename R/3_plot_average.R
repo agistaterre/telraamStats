@@ -65,7 +65,8 @@ gg_traffic_avg <- function(enriched_data,
     ylab(paste("Number of", paste(result$mode, collapse = " and "))) +
     theme_bw() +
     theme(legend.position = "bottom") +
-    scale_color_discrete(name = aggregated_by)
+    scale_color_discrete(name = aggregated_by) +
+    ylim(0, NA)
 
 
   return(graph)

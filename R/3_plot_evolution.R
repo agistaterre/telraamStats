@@ -41,7 +41,8 @@ gg_traffic_evolution <- function(enriched_data,
     labs(title = "Traffic over time") +
     xlab("Date") +
     ylab(paste("Number of", paste(result$mode, collapse = " and "))) +
-    theme_bw()
+    theme_bw() +
+    ylim(0, NA)
   if(smoothed){ # (smooth option)
     graph <- graph +
       geom_smooth(method='gam', formula=y ~ s(x, bs = "cs"),color="#B1D62E", linewidth=2)

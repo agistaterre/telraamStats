@@ -108,9 +108,11 @@ plot(
                        date_range = c('2022-01-01','2022-03-01'),
                        segment = c("RteVitre-06"),
                        mode = c('car'),
-                       direction = c('rgt'))
+                       direction = c('rgt'),
+                       weekday = c('monday','friday'))
 )
 ```
+
 
 #### Average traffic per segment
 
@@ -180,7 +182,7 @@ plot(
 ```{r, eval=TRUE}
 plot(
   gg_car_speed_histogram(traffic, 
-                         weekday = c("lundi","dimanche"),
+                         weekday = c("monday","sunday"),
                          aggregated_by = "weekday")
 )
 ```

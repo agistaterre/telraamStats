@@ -263,7 +263,7 @@ filtering_agg <- function(data,
   mode = check_options_graph(modes, transportation_options, c('heavy','car'))
   directions_options = c('both','lft','rgt')
   direction = check_options_graph(direction, directions_options, c('both'))
-  weekdays_options = c('lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche')
+  weekdays_options = c('monday','tuesday','wednesday','thursday','friday','saturday','sunday')
   weekdays = check_options_graph(weekdays, weekdays_options, weekdays_options)
   segments_options = unlist(unique(data$segment_name))
   segments = check_options_graph(segments, segments_options, segments_options)
@@ -287,8 +287,9 @@ filtering_agg <- function(data,
   )
   data <- data %>% mutate('traffic_sum' = rowSums(across(mode_direction)))
   data <- data %>% unnest(cols = .data$segment_name)
-  data$weekday <- ordered(data$weekday, levels = c("lundi","mardi","mercredi","jeudi",
-                                                                 "vendredi","samedi","dimanche"))
+  data$weekday <- ordered(data$weekday,
+                          levels = c('monday','tuesday','wednesday',
+                                     'thursday','friday','saturday','sunday'))
 
   result <- list('data' = data,
                  'segment' = segments,

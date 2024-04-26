@@ -132,7 +132,8 @@ imp_na <- function(data, period = "open days"){
       # we use a linear interpolation and don't impute if we have more than four successive NA
       # first we impute in line and next in column
       final_df <- data.frame()
-      for (day in c("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")){
+      for (day in c('monday','tuesday','wednesday',
+                    'thursday','friday','saturday','sunday')){
         df <- donnee %>% filter(weekdays(ymd(days)) == day)
         df_complete <- df
 

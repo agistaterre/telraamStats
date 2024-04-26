@@ -29,12 +29,19 @@ enrich_traffic <- function(data){
 #' @keywords internal
 #'
 enrich_dates <- function(data){
+
+  # weekday labels
+  weekday_labels <- c('monday','tuesday','wednesday',
+                      'thursday','friday','saturday','sunday')
+  names(weekday_labels) <- seq(1,7)
+
   enriched_data <- data %>%
     mutate(
       day = as.Date(.data$date),
       hour = hour(.data$date),
-      weekday = strftime(.data$day,'%A')
-    )
+      weekday = strftime(.data$day,'%u')
+    ) %>%
+    mutate('weekday' = weekday_labels[.data$weekday])
   return(enriched_data)
 }
 
