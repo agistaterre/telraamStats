@@ -31,9 +31,6 @@ gg_traffic_avg <- function(enriched_data,
                           modes = modes,
                           direction = direction,
                           weekdays = weekday)
-  result$data <- result$data %>% unnest(cols = .data$segment_name)
-  result$data$weekday <- ordered(result$data$weekday, levels = c("lundi","mardi","mercredi","jeudi",
-                                                         "vendredi","samedi","dimanche"))
 
   # Aggregation
   if(length(aggregated_by)!=1){

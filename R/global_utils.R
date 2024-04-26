@@ -286,6 +286,9 @@ filtering_agg <- function(data,
     ((direction != "both") & (!is.null(direction))) ~ paste(mode, direction, sep = "_")
   )
   data <- data %>% mutate('traffic_sum' = rowSums(across(mode_direction)))
+  data <- data %>% unnest(cols = .data$segment_name)
+  data$weekday <- ordered(data$weekday, levels = c("lundi","mardi","mercredi","jeudi",
+                                                                 "vendredi","samedi","dimanche"))
 
   result <- list('data' = data,
                  'segment' = segments,

@@ -59,7 +59,9 @@ plot(
 
 On this graph, for example, we can observe through black time slots that the camera on the segment 'ParisArcEnCiel-05' did not report any data at the end of June 2022 and at the end of the year 2022. We can also notice that the average uptime is higher during the summer period. This illustrates the fact that the duration of daylight, and therefore the possible filming period, is longer in summer.
 
-## Traffic evolution
+## Traffic
+
+### Traffic evolution
 
 Once you have identified the specific period you want to analyze, you may want to observe the evolution of traffic trends over time. `gg_traffic_evolution()` enables the representation of traffic for a particular period, aggregated for all or some segments, for a specific direction, or aggregated for both, and aggregated for all transportation modes or for selected ones.
 
@@ -88,9 +90,9 @@ plot(
 ```
 
 
-## Average traffic
+### Average traffic
 
-### Average traffic per weekday
+#### Average traffic per weekday
 
 The traffic varies according to the days of the week, which can serve as an analytical window to understand territorial mobility. The gg_traffic_avg function allows to examine the average behavior per day of the week. It can be used globally or more specifically (over a specific period, on a segment or set of segments, for a specific direction, for a particular transportation mode).
 
@@ -110,7 +112,7 @@ plot(
 )
 ```
 
-### Average traffic per segment
+#### Average traffic per segment
 
 The same function can be used to calculate the average traffic per segment and compare segments with each other.
 
@@ -132,7 +134,7 @@ plot(
 )
 ```
 
-### Average traffic per direction
+#### Average traffic per direction
 
 ```{r, eval=TRUE}
 plot(
@@ -140,10 +142,55 @@ plot(
 )
 ```
 
-### Average traffic per mode
+#### Average traffic per mode
 
 ```{r, eval=TRUE}
 plot(
   gg_traffic_avg(traffic, aggregated_by = "mode")
 )
 ```
+
+## Car speed
+
+Telraam sensors offer speed estimation for cars on two levels : 
+
+- the estimated car speed distribution (ranging from 0 to 120+ km/h), in 10 or 5 km/h bins ;
+- **v85**, the estimated car speed limit in km/h that 85% of all cars respect. 15% of drivers drive faster than this **v85** indicator.
+
+Telraam specifies that all these speed-related measurements have biases: their accuracy is likely not better than +/- 10%. Moreover, these measurements pertain exclusively to cars and do not include other modes of transportation.
+
+#### Car speed distribution
+
+The car's speed distribution can be plotted globally or with filters (specific period, weekdays or segments). Refer to documentation for more information.
+
+```{r, eval=TRUE}
+plot(
+  gg_car_speed_histogram(traffic)
+)
+```
+
+This function enables you to compare speed histograms for different segments or weekdays. 
+
+```{r, eval=TRUE}
+plot(
+  gg_car_speed_histogram(traffic, aggregated_by = "segment_name")
+)
+```
+
+```{r, eval=TRUE}
+plot(
+  gg_car_speed_histogram(traffic, 
+                         weekday = c("lundi","dimanche"),
+                         aggregated_by = "weekday")
+)
+```
+
+
+#### v85
+
+**v85** is the estimated car speed limit in km/h that 85% of all cars respect. 15% of drivers drive faster than **v85**.
+
+
+
+
+

@@ -398,8 +398,11 @@ This illustrates the fact that the duration of daylight, and therefore
 the possible filming period, is longer in summer.</p>
 </div>
 <div class="section level2">
-<h2 id="traffic-evolution">Traffic evolution<a class="anchor" aria-label="anchor" href="#traffic-evolution"></a>
+<h2 id="traffic">Traffic<a class="anchor" aria-label="anchor" href="#traffic"></a>
 </h2>
+<div class="section level3">
+<h3 id="traffic-evolution">Traffic evolution<a class="anchor" aria-label="anchor" href="#traffic-evolution"></a>
+</h3>
 <p>Once you have identified the specific period you want to analyze, you
 may want to observe the evolution of traffic trends over time.
 <code><a href="../reference/gg_traffic_evolution.html">gg_traffic_evolution()</a></code> enables the representation of
@@ -433,12 +436,12 @@ hour.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_visualization_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 </div>
-<div class="section level2">
-<h2 id="average-traffic">Average traffic<a class="anchor" aria-label="anchor" href="#average-traffic"></a>
-</h2>
 <div class="section level3">
-<h3 id="average-traffic-per-weekday">Average traffic per weekday<a class="anchor" aria-label="anchor" href="#average-traffic-per-weekday"></a>
+<h3 id="average-traffic">Average traffic<a class="anchor" aria-label="anchor" href="#average-traffic"></a>
 </h3>
+<div class="section level4">
+<h4 id="average-traffic-per-weekday">Average traffic per weekday<a class="anchor" aria-label="anchor" href="#average-traffic-per-weekday"></a>
+</h4>
 <p>The traffic varies according to the days of the week, which can serve
 as an analytical window to understand territorial mobility. The
 gg_traffic_avg function allows to examine the average behavior per day
@@ -460,9 +463,9 @@ direction, for a particular transportation mode).</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_visualization_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 </div>
-<div class="section level3">
-<h3 id="average-traffic-per-segment">Average traffic per segment<a class="anchor" aria-label="anchor" href="#average-traffic-per-segment"></a>
-</h3>
+<div class="section level4">
+<h4 id="average-traffic-per-segment">Average traffic per segment<a class="anchor" aria-label="anchor" href="#average-traffic-per-segment"></a>
+</h4>
 <p>The same function can be used to calculate the average traffic per
 segment and compare segments with each other.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -482,23 +485,74 @@ of travel, a mode of transportation, or here a day of the week.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_visualization_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
-<div class="section level3">
-<h3 id="average-traffic-per-direction">Average traffic per direction<a class="anchor" aria-label="anchor" href="#average-traffic-per-direction"></a>
-</h3>
+<div class="section level4">
+<h4 id="average-traffic-per-direction">Average traffic per direction<a class="anchor" aria-label="anchor" href="#average-traffic-per-direction"></a>
+</h4>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/gg_traffic_avg.html">gg_traffic_avg</a></span><span class="op">(</span><span class="va">traffic</span>, aggregated_by <span class="op">=</span> <span class="st">"direction"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_visualization_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 </div>
-<div class="section level3">
-<h3 id="average-traffic-per-mode">Average traffic per mode<a class="anchor" aria-label="anchor" href="#average-traffic-per-mode"></a>
-</h3>
+<div class="section level4">
+<h4 id="average-traffic-per-mode">Average traffic per mode<a class="anchor" aria-label="anchor" href="#average-traffic-per-mode"></a>
+</h4>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/gg_traffic_avg.html">gg_traffic_avg</a></span><span class="op">(</span><span class="va">traffic</span>, aggregated_by <span class="op">=</span> <span class="st">"mode"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_visualization_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+</div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="car-speed">Car speed<a class="anchor" aria-label="anchor" href="#car-speed"></a>
+</h2>
+<p>Telraam sensors offer speed estimation for cars on two levels :</p>
+<ul>
+<li>the estimated car speed distribution (ranging from 0 to 120+ km/h),
+in 10 or 5 km/h bins ;</li>
+<li>
+<strong>v85</strong>, the estimated car speed limit in km/h that 85%
+of all cars respect. 15% of drivers drive faster than this
+<strong>v85</strong> indicator.</li>
+</ul>
+<p>Telraam specifies that all these speed-related measurements have
+biases: their accuracy is likely not better than +/- 10%. Moreover,
+these measurements pertain exclusively to cars and do not include other
+modes of transportation.</p>
+<div class="section level4">
+<h4 id="car-speed-distribution">Car speed distribution<a class="anchor" aria-label="anchor" href="#car-speed-distribution"></a>
+</h4>
+<p>The car’s speed distribution can be plotted globally or with filters
+(specific period, weekdays or segments). Refer to documentation for more
+information.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/gg_car_speed_histogram.html">gg_car_speed_histogram</a></span><span class="op">(</span><span class="va">traffic</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="data_visualization_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p>This function enables you to compare speed histograms for different
+segments or weekdays.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/gg_car_speed_histogram.html">gg_car_speed_histogram</a></span><span class="op">(</span><span class="va">traffic</span>, aggregated_by <span class="op">=</span> <span class="st">"segment_name"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="data_visualization_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/gg_car_speed_histogram.html">gg_car_speed_histogram</a></span><span class="op">(</span><span class="va">traffic</span>, </span>
+<span>                         weekday <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lundi"</span>,<span class="st">"dimanche"</span><span class="op">)</span>,</span>
+<span>                         aggregated_by <span class="op">=</span> <span class="st">"weekday"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="data_visualization_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+</div>
+<div class="section level4">
+<h4 id="v85">v85<a class="anchor" aria-label="anchor" href="#v85"></a>
+</h4>
+<p><strong>v85</strong> is the estimated car speed limit in km/h that
+85% of all cars respect. 15% of drivers drive faster than
+<strong>v85</strong>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

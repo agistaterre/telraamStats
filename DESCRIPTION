@@ -28,6 +28,7 @@ Imports:
     purrr,
     reshape2,
     rlang,
+    scales,
     stringr,
     synchrony,
     tibble,
