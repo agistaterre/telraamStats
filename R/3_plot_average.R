@@ -53,12 +53,10 @@ gg_traffic_avg <- function(enriched_data,
                                color = as.factor(.data[[aggregated_by]]))) +
     geom_line() +
     labs(title = paste("Average traffic per", aggregated_by),
-         subtitle = paste(
-           paste("Mode:",paste(result$mode, collapse = ", ")),
-           paste("\nDirection:",paste(result$direction, collapse = ", ")),
-           paste("\nWeekdays:",paste(result$weekday, collapse = ", ")),
-           paste("\nSegments:",paste(result$segment, collapse = ", ")),
-           sep = ", ")) +
+         subtitle = graph_subtitles(weekdays= result$weekday,
+                                    segments= result$segment,
+                                    directions= result$direction,
+                                    modes= result$mode)) +
     xlab("Hour") +
     ylab(paste("Number of", paste(result$mode, collapse = " and "))) +
     theme_bw() +

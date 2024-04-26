@@ -38,7 +38,11 @@ gg_traffic_evolution <- function(enriched_data,
   # Graph
   graph <- ggplot(traffic, aes_string(x = agg_level, y = "traffic_sum")) +
     geom_line() +
-    labs(title = "Traffic over time") +
+    labs(title = "Traffic over time",
+         subtitle = graph_subtitles(weekdays= result$weekday,
+                                    segments= result$segment,
+                                    directions= result$direction,
+                                    modes= result$mode)) +
     xlab("Date") +
     ylab(paste("Number of", paste(result$mode, collapse = " and "))) +
     theme_bw() +

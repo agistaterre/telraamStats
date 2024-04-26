@@ -78,10 +78,9 @@ gg_car_speed_histogram <- function(enriched_data,
           legend.position = 'bottom') +
     scale_y_continuous(labels = percent) +
     labs(title = "Speed Histogram",
-         subtitle = paste(
-           paste("Weekdays:",paste(result$weekday, collapse = ", ")),
-           paste("\nSegments:",paste(result$segment, collapse = ", ")),
-           sep = ", ")) +
+         subtitle = graph_subtitles(weekdays= result$weekday,
+                                    segments= result$segment)
+         ) +
     xlab('') + ylab("Proportion of cars")
 
   return(graph)

@@ -363,16 +363,16 @@ check_options_graph <- function(options_selected, options_available, default){
 #' Melt dataframe to obtain one row per hour/segment/transportation mode/direction
 #' This format makes graphs with ggplot and filtering easier.
 #'
-#'@param data Traffic Data Frame
+#' @param data Traffic Data Frame
 #'
-#'@return DataFrame with one row per hour/segment/transportation mode/direction
-#'@export
+#' @return DataFrame with one row per hour/segment/transportation mode/direction
+#' @export
 #'
 #' @import dplyr
 #' @import reshape2
 #' @importFrom tidyr unnest
 #'
-#'@keywords internal
+#' @keywords internal
 #'
 melt_direction_mode <- function(data){
 
@@ -392,7 +392,50 @@ melt_direction_mode <- function(data){
          measures.vars = modes,
          value.name = "traffic_sum") %>%
     separate(.data$variable, c('mode','direction'), fill = "right") %>%
-    mutate(direction = replace_na(direction, "both"))
+    mutate(direction = replace_na(.data$direction, "both"))
 
   return(result)
+}
+
+#' Melt dataframe to obtain one row per hour/segment/transportation mode/direction
+#' This format makes graphs with ggplot and filtering easier.
+#'
+#' @param segments Character vector. Selected road segment, all if NULL (default).
+#' @param modes Character vector. Different modes of transportation aggregated (heavy, car, bike, pedestrian) . Default: heavy & car
+#' @param directions Character vector. Direction of the traffic (lft, rgt, both). Default to both.
+#' @param weekdays Character vector. Weekday choosen. Default to the all week.
+#'
+#' @return DataFrame with one row per hour/segment/transportation mode/direction
+#' @export
+#'
+#' @import dplyr
+#' @import reshape2
+#' @importFrom tidyr unnest
+#'
+#' @keywords internal
+#'
+graph_subtitles <- function(segments = NULL,
+                            modes = NULL,
+                            directions = NULL,
+                            weekdays = NULL
+                            ){
+  subtitle_list = c()
+  if(!is.null(modes)){
+    subtitle_list <- c(subtitle_list,
+                       paste("Modes:",paste(modes, collapse = ", ")))
+  }
+  if(!is.null(modes)){
+    subtitle_list <- c(subtitle_list,
+                       paste("Directions:",paste(directions, collapse = ", ")))
+  }
+  if(!is.null(weekdays)){
+    subtitle_list <- c(subtitle_list,
+                       paste("Weekdays:",paste(weekdays, collapse = ", ")))
+  }
+  if(!is.null(segments)){
+    subtitle_list <- c(subtitle_list,
+                       paste("Segments:",paste(segments, collapse = ", ")))
+  }
+
+  return(paste(subtitle_list, collapse = "\n"))
 }
