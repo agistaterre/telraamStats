@@ -258,11 +258,16 @@ filtering_agg <- function(data,
                                    format = "%Y-%m-%d %H:%M:%S",
                                    tz = "CET")
 
+  data <- data %>% unnest(cols = .data$segment_name)
+  data$weekday <- ordered(data$weekday,
+                          levels = c('monday','tuesday','wednesday',
+                                     'thursday','friday','saturday','sunday'))
+
   # Parameters check
   transportation_options = c('pedestrian','car','heavy','bike')
-  mode = check_options_graph(modes, transportation_options, c('heavy','car'))
+  modes = check_options_graph(modes, transportation_options, c('heavy','car'))
   directions_options = c('both','lft','rgt')
-  direction = check_options_graph(direction, directions_options, c('both'))
+  directions = check_options_graph(direction, directions_options, c('both'))
   weekdays_options = c('monday','tuesday','wednesday','thursday','friday','saturday','sunday')
   weekdays = check_options_graph(weekdays, weekdays_options, weekdays_options)
   segments_options = unlist(unique(data$segment_name))
@@ -281,20 +286,17 @@ filtering_agg <- function(data,
     data <- data %>%
       filter(.data$weekday %in% weekdays)
   }
-  mode_direction <- case_when(
-    direction == "both" ~ mode,
-    ((direction != "both") & (!is.null(direction))) ~ paste(mode, direction, sep = "_")
-  )
-  data <- data %>% mutate('traffic_sum' = rowSums(across(mode_direction)))
-  data <- data %>% unnest(cols = .data$segment_name)
-  data$weekday <- ordered(data$weekday,
-                          levels = c('monday','tuesday','wednesday',
-                                     'thursday','friday','saturday','sunday'))
+
+  # Melt dataframe (one row per transportation mode + direction + ids)
+  data <- melt_direction_mode(data)
+  data <- data %>%
+      filter(.data$mode %in% modes,
+             .data$direction %in% directions)
 
   result <- list('data' = data,
                  'segment' = segments,
-                 'mode' = mode,
-                 'direction' = direction,
+                 'mode' = modes,
+                 'direction' = directions,
                  'weekday' = weekdays)
   return(result)
 }
@@ -356,4 +358,41 @@ check_options_graph <- function(options_selected, options_available, default){
     }
   }
   return(options)
+}
+
+#' Melt dataframe to obtain one row per hour/segment/transportation mode/direction
+#' This format makes graphs with ggplot and filtering easier.
+#'
+#'@param data Traffic Data Frame
+#'
+#'@return DataFrame with one row per hour/segment/transportation mode/direction
+#'@export
+#'
+#' @import dplyr
+#' @import reshape2
+#' @importFrom tidyr unnest
+#'
+#'@keywords internal
+#'
+melt_direction_mode <- function(data){
+
+  id_cols <- c('date','day','hour','weekday','holiday','vacation','segment_name')
+  speed_cols <- c('v85','car_speed_hist_0to70plus','car_speed_hist_0to120plus')
+  uptime_cols <- c('uptime','uptime_quality')
+
+  # generate modes names with directions
+  modes <- c('pedestrian','bike','heavy','car')
+  modes <- c(modes,
+             apply(expand.grid(modes, c('lft','rgt')), 1, paste, collapse="_"))
+
+  # melt dataframe and create two new columns : direction and mode
+  result <- data %>%
+    select(all_of(c(id_cols, speed_cols, uptime_cols, modes))) %>%
+    melt(id.vars = c(id_cols, speed_cols, uptime_cols),
+         measures.vars = modes,
+         value.name = "traffic_sum") %>%
+    separate(.data$variable, c('mode','direction'), fill = "right") %>%
+    mutate(direction = replace_na(direction, "both"))
+
+  return(result)
 }

@@ -25,6 +25,10 @@ gg_traffic_avg <- function(enriched_data,
                            weekday = NULL,
                            aggregated_by = "weekday"){
 
+  if(aggregated_by == 'direction'){
+    direction = c('lft','rgt')
+  }
+
   result <- filtering_agg(enriched_data,
                           date_range = date_range,
                           segments = segments,
@@ -39,15 +43,9 @@ gg_traffic_avg <- function(enriched_data,
   }
   agg_level = check_options_graph(aggregated_by, c('segment_name','weekday','direction','mode'),'weekday')
 
-  if(agg_level == 'direction'){
-    result$data <- melt_direction_mode(result$data, modes = result$mode, direction = TRUE, agg_mode = TRUE)
-  } else if (agg_level == 'mode') {
-    result$data <- melt_direction_mode(result$data, modes = result$mode, direction = FALSE, agg_mode = FALSE)
-  }
-
   traffic <- result$data %>%
     group_by_at(c(aggregated_by, 'hour')) %>%
-    summarise(traffic_sum = sum(.data$traffic_sum))
+    summarise(traffic_sum = mean(.data$traffic_sum))
 
   # Graph
   graph <- ggplot(traffic, aes(x = hour,
@@ -57,7 +55,7 @@ gg_traffic_avg <- function(enriched_data,
     labs(title = paste("Average traffic per", aggregated_by),
          subtitle = paste(
            paste("Mode:",paste(result$mode, collapse = ", ")),
-           paste("\nDirection:",result$direction),
+           paste("\nDirection:",paste(result$direction, collapse = ", ")),
            paste("\nWeekdays:",paste(result$weekday, collapse = ", ")),
            paste("\nSegments:",paste(result$segment, collapse = ", ")),
            sep = ", ")) +
@@ -68,54 +66,5 @@ gg_traffic_avg <- function(enriched_data,
     scale_color_discrete(name = aggregated_by) +
     ylim(0, NA)
 
-
   return(graph)
-}
-
-#'Melt traffic dataframe to create mode and transportation columns to help graphic representation
-#'
-#'
-#' @param data enriched data.frame containing all the data for all your sensors
-#' @param modes Character vector. Different modes of transportation aggregated (heavy, car, bike, pedestrian) . Default: heavy & car
-#' @param direction Boolean. Default to TRUE : direction is mandatory for all modes.
-#' @param agg_mode Boolean. Should all modes be aggregated ? Default to FALSE.
-#'
-#' @return Molten DataFrame with one or two new columns : mode + transportation if required.
-#' @export
-#'
-#' @import dplyr
-#' @import reshape2
-#' @importFrom tidyr unnest
-#'
-#' @keywords internal
-#'
-melt_direction_mode <- function(data, modes, direction = TRUE, agg_mode = FALSE){
-
-  id_cols <- c('date','day','hour','weekday','segment_name')
-
-  if(direction){
-    modes <- apply(expand.grid(modes, c('lft','rgt')), 1, paste, collapse="_")
-  }
-
-  result <- data %>%
-    unnest(cols = .data$segment_name) %>%
-    select(all_of(c(id_cols, modes))) %>%
-    melt(id.vars = id_cols,
-         measures.vars = modes,
-         value.name = "traffic_sum")
-
-  if(direction){
-    result <- result %>%
-      separate(.data$variable, c('mode','direction'))
-  } else {
-    result <- result %>%
-      rename(mode = .data$variable)
-  }
-  if(agg_mode){
-    result <- result %>%
-      group_by_at(c(id_cols ,'direction')) %>%
-      summarise('traffic_sum' = sum(.data$traffic_sum))
-  }
-
-  return(result)
 }

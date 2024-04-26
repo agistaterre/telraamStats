@@ -30,13 +30,15 @@ gg_car_speed_histogram <- function(enriched_data,
                           date_range = date_range,
                           segments = segments,
                           weekdays = weekday)
+  result$data <- result$data %>% filter(.data$mode == 'car',
+                                        .data$direction == 'both')
 
   # generate labels
   speed_labels <- paste(seq(0,120,5), '-', c(seq(5,120,5),'120+'), 'km/h')
   names(speed_labels) <- paste('car_speed_hist_0to120plus',1:25, sep = "_")
 
   # aggregate speed histogramm
-  id.vars = c('segment_name','weekday','car')
+  id.vars = c('segment_name','weekday','traffic_sum')
   speed_hist <- result$data %>%
     select(all_of(c(id.vars, 'car_speed_hist_0to120plus'))) %>%
     unnest_wider(.data$car_speed_hist_0to120plus, names_sep = "_") %>%
@@ -52,7 +54,7 @@ gg_car_speed_histogram <- function(enriched_data,
     speed_hist <- speed_hist %>% group_by(.data$speed_class)
   }
   speed_hist <- speed_hist %>%
-    summarise('speed_sum' = sum(.data$speed_prop*.data$car)) %>%
+    summarise('speed_sum' = sum(.data$speed_prop*.data$traffic_sum)) %>%
     mutate('speed_prop' = .data$speed_sum/sum(.data$speed_sum))
 
   # Order labels
