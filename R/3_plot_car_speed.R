@@ -5,6 +5,7 @@
 #' @param date_range Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).
 #' @param segments Character vector. Selected road segment, all if NULL (default).
 #' @param weekday Character vector. Weekday choosen. Default to the all week.
+#' @param hours Integer vector. Hours choosen, default to the all day.
 #' @param aggregated_by Character. Enables comparison with other segments or weekdays. Options are : 'segment_name', 'weekday', NULL (no comparison, default).
 #'
 #' @return graph showing histogram of car speed over a period.
@@ -19,6 +20,7 @@ gg_car_speed_histogram <- function(enriched_data,
                                    date_range = NULL,
                                    segments = NULL,
                                    weekday = NULL,
+                                   hours = NULL,
                                    aggregated_by = NULL){
 
   aggregated_by <- check_options_graph(aggregated_by,
@@ -29,7 +31,8 @@ gg_car_speed_histogram <- function(enriched_data,
   result <- filtering_agg(enriched_data,
                           date_range = date_range,
                           segments = segments,
-                          weekdays = weekday)
+                          weekdays = weekday,
+                          hours = hours)
   result$data <- result$data %>% filter(.data$mode == 'car',
                                         .data$direction == 'both')
 
@@ -79,7 +82,8 @@ gg_car_speed_histogram <- function(enriched_data,
     scale_y_continuous(labels = percent) +
     labs(title = "Speed Histogram",
          subtitle = graph_subtitles(weekdays= result$weekday,
-                                    segments= result$segment)
+                                    segments= result$segment,
+                                    hours= result$hour)
          ) +
     xlab('') + ylab("Proportion of cars")
 

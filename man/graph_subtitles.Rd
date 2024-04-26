@@ -9,7 +9,8 @@ graph_subtitles(
   segments = NULL,
   modes = NULL,
   directions = NULL,
-  weekdays = NULL
+  weekdays = NULL,
+  hours = NULL
 )
 }
 \arguments{

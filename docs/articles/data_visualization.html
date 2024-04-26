@@ -456,11 +456,12 @@ direction, for a particular transportation mode).</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/gg_traffic_avg.html">gg_traffic_avg</a></span><span class="op">(</span><span class="va">traffic</span>,</span>
-<span>                       date_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'2022-01-01'</span>,<span class="st">'2022-03-01'</span><span class="op">)</span>,</span>
-<span>                       segment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"RteVitre-06"</span><span class="op">)</span>,</span>
-<span>                       mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'car'</span><span class="op">)</span>,</span>
-<span>                       direction <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'rgt'</span><span class="op">)</span>,</span>
-<span>                       weekday <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'monday'</span>,<span class="st">'friday'</span><span class="op">)</span><span class="op">)</span></span>
+<span>                 date_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'2022-01-01'</span>,<span class="st">'2022-03-01'</span><span class="op">)</span>,</span>
+<span>                 segment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"RteVitre-06"</span><span class="op">)</span>,</span>
+<span>                 mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'car'</span><span class="op">)</span>,</span>
+<span>                 direction <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'rgt'</span><span class="op">)</span>,</span>
+<span>                 weekday <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'monday'</span>,<span class="st">'friday'</span><span class="op">)</span></span>
+<span>                 <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_visualization_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 </div>
@@ -540,10 +541,13 @@ segments or weekdays.</p>
 <span>  <span class="fu"><a href="../reference/gg_car_speed_histogram.html">gg_car_speed_histogram</a></span><span class="op">(</span><span class="va">traffic</span>, aggregated_by <span class="op">=</span> <span class="st">"segment_name"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_visualization_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<p>Here is an example by weekday with all the available filters.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/gg_car_speed_histogram.html">gg_car_speed_histogram</a></span><span class="op">(</span><span class="va">traffic</span>, </span>
 <span>                         weekday <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monday"</span>,<span class="st">"sunday"</span><span class="op">)</span>,</span>
+<span>                         segments <span class="op">=</span> <span class="st">'RteVitre-06'</span>,</span>
+<span>                         hours <span class="op">=</span> <span class="fl">12</span><span class="op">:</span><span class="fl">14</span>,</span>
 <span>                         aggregated_by <span class="op">=</span> <span class="st">"weekday"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_visualization_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>

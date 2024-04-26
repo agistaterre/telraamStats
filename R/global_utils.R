@@ -238,6 +238,7 @@ filtering <- function(data = NULL, sensor    = NULL, direction = ' ', mobility  
 #' @param direction Vector of character. Direction of the street (lft, right, both).
 #' @param modes Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")
 #' @param weekday Vector of character. Weekday(s) choosen.
+#' @param hours Integer vector. Hours choosen, default to the all day.
 #'
 #' @return the filtered data with a new column "traffic" with aggregated data for specified direction/modes
 #'
@@ -252,7 +253,8 @@ filtering_agg <- function(data,
                           segments = NULL,
                           direction = NULL,
                           modes  = NULL,
-                          weekdays = NULL){
+                          weekdays = NULL,
+                          hours = NULL){
 
   data$date <- as.POSIXct(data$date,
                                    format = "%Y-%m-%d %H:%M:%S",
@@ -272,32 +274,28 @@ filtering_agg <- function(data,
   weekdays = check_options_graph(weekdays, weekdays_options, weekdays_options)
   segments_options = unlist(unique(data$segment_name))
   segments = check_options_graph(segments, segments_options, segments_options)
+  hours = check_options_graph(hours, 0:23, 0:23)
 
   # Filter on parameters
   if(length(date_range) > 1){
     data <- data %>%
       filter(dplyr::between(.data$day, as.Date(date_range[1]), as.Date(date_range[2])))
   }
-  if(length(segments) > 1){
-    data <- data %>%
-      filter(.data$segment_name %in% segments)
-  }
-  if(length(weekdays) < 7){
-    data <- data %>%
-      filter(.data$weekday %in% weekdays)
-  }
-
-  # Melt dataframe (one row per transportation mode + direction + ids)
-  data <- melt_direction_mode(data)
+  data <- melt_direction_mode(data) #Melt dataframe (one row per transportation mode + direction + ids)
   data <- data %>%
       filter(.data$mode %in% modes,
-             .data$direction %in% directions)
+             .data$direction %in% directions,
+             .data$segment_name %in% segments,
+             .data$weekday %in% weekdays,
+             .data$hour %in% hours
+             )
 
   result <- list('data' = data,
                  'segment' = segments,
                  'mode' = modes,
                  'direction' = directions,
-                 'weekday' = weekdays)
+                 'weekday' = weekdays,
+                 'hour' = hours)
   return(result)
 }
 
@@ -417,7 +415,8 @@ melt_direction_mode <- function(data){
 graph_subtitles <- function(segments = NULL,
                             modes = NULL,
                             directions = NULL,
-                            weekdays = NULL
+                            weekdays = NULL,
+                            hours = NULL
                             ){
   subtitle_list = c()
   if(!is.null(modes)){
@@ -435,6 +434,10 @@ graph_subtitles <- function(segments = NULL,
   if(!is.null(segments)){
     subtitle_list <- c(subtitle_list,
                        paste("Segments:",paste(segments, collapse = ", ")))
+  }
+  if(!is.null(hours)){
+    subtitle_list <- c(subtitle_list,
+                       paste("Hours:",paste(as.character(hours), collapse = ", ")))
   }
 
   return(paste(subtitle_list, collapse = "\n"))

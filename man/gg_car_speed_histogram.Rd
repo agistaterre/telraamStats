@@ -9,6 +9,7 @@ gg_car_speed_histogram(
   date_range = NULL,
   segments = NULL,
   weekday = NULL,
+  hours = NULL,
   aggregated_by = NULL
 )
 }
@@ -20,6 +21,8 @@ gg_car_speed_histogram(
 \item{segments}{Character vector. Selected road segment, all if NULL (default).}
 
 \item{weekday}{Character vector. Weekday choosen. Default to the all week.}
+
+\item{hours}{Integer vector. Hours choosen, default to the all day.}
 
 \item{aggregated_by}{Character. Enables comparison with other segments or weekdays. Options are : 'segment_name', 'weekday', NULL (no comparison, default).}
 }

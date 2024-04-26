@@ -105,11 +105,12 @@ plot(
 ```{r, eval=TRUE}
 plot(
   gg_traffic_avg(traffic,
-                       date_range = c('2022-01-01','2022-03-01'),
-                       segment = c("RteVitre-06"),
-                       mode = c('car'),
-                       direction = c('rgt'),
-                       weekday = c('monday','friday'))
+                 date_range = c('2022-01-01','2022-03-01'),
+                 segment = c("RteVitre-06"),
+                 mode = c('car'),
+                 direction = c('rgt'),
+                 weekday = c('monday','friday')
+                 )
 )
 ```
 
@@ -179,10 +180,14 @@ plot(
 )
 ```
 
+Here is an example by weekday with all the available filters.
+
 ```{r, eval=TRUE}
 plot(
   gg_car_speed_histogram(traffic, 
                          weekday = c("monday","sunday"),
+                         segments = 'RteVitre-06',
+                         hours = 12:14,
                          aggregated_by = "weekday")
 )
 ```
