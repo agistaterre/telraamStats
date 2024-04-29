@@ -42,7 +42,8 @@ gg_traffic_evolution <- function(enriched_data,
          subtitle = graph_subtitles(weekdays= result$weekday,
                                     segments= result$segment,
                                     directions= result$direction,
-                                    modes= result$mode)) +
+                                    modes= result$mode,
+                                    hours = result$hour)) +
     xlab("Date") +
     ylab(paste("Number of", paste(result$mode, collapse = " and "))) +
     theme_bw() +
