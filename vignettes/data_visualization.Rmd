@@ -114,7 +114,7 @@ As before, it's possible to select a specific period, a specific segment, a mode
 ```{r, eval=TRUE}
 plot(
   gg_traffic_avg(traffic,
-                 date_range = c('2022-01-01','2022-03-01'),
+                 date_range = c('2022-07-01','2022-09-01'),
                  segment = c("RteVitre-06"),
                  mode = c('car'),
                  direction = c('rgt'),

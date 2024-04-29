@@ -254,7 +254,8 @@ filtering_agg <- function(data,
                           direction = NULL,
                           modes  = NULL,
                           weekdays = NULL,
-                          hours = NULL){
+                          hours = NULL,
+                          uptime_quality = TRUE){
 
   data$date <- as.POSIXct(data$date,
                                    format = "%Y-%m-%d %H:%M:%S",
@@ -289,6 +290,9 @@ filtering_agg <- function(data,
              .data$weekday %in% weekdays,
              .data$hour %in% hours
              )
+  if(uptime_quality){
+    data <- data %>% filter(.data$uptime_quality)
+  }
 
   result <- list('data' = data,
                  'segment' = segments,
