@@ -197,7 +197,11 @@ plot(
 
 **v85** is the estimated car speed limit in km/h that 85% of all cars respect. 15% of drivers drive faster than **v85**.
 
-
+```{r, eval=TRUE}
+plot(
+  gg_car_speed_v85(traffic)
+)
+```
 
 
 

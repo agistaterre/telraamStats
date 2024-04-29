@@ -25,6 +25,9 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/api_state.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/car_speed_preprocessing.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/check_options_graph.html</loc>
   </url>
   <url>
@@ -80,6 +83,9 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_car_speed_histogram.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_car_speed_v85.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_na_dist.html</loc>
