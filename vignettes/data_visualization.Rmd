@@ -59,6 +59,8 @@ plot(
 
 On this graph, for example, we can observe through black time slots that the camera on the segment 'ParisArcEnCiel-05' did not report any data at the end of June 2022 and at the end of the year 2022. We can also notice that the average uptime is higher during the summer period. This illustrates the fact that the duration of daylight, and therefore the possible filming period, is longer in summer.
 
+__All the graphs generated from the functions presented below are based on data filtered according to this `uptime` parameter: only hours with an `uptime > 0.5` are retained.__
+
 ## Traffic
 
 ### Traffic evolution
