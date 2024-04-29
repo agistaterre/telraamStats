@@ -11,7 +11,8 @@ filtering_agg(
   direction = NULL,
   modes = NULL,
   weekdays = NULL,
-  hours = NULL
+  hours = NULL,
+  uptime_quality = TRUE
 )
 }
 \arguments{
