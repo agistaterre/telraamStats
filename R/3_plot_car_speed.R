@@ -56,11 +56,13 @@ gg_car_speed_histogram <- function(enriched_data,
 
   # Graph
   if(!is.null(aggregated_by)){
+    seg <- unique(result$data$segment_name)
     graph <- ggplot(speed_hist, aes(x = .data$speed_class,
                                     y = .data$speed_prop,
                                     fill = as.factor(.data[[aggregated_by]]))) +
       geom_bar(stat = 'identity', position = position_dodge()) +
-      scale_fill_discrete(name = aggregated_by)
+      scale_fill_manual(name = aggregated_by,
+                         values = custom_colors_palette(seg)[[aggregated_by]])
   } else {
     graph <- ggplot(speed_hist, aes(x = .data$speed_class,
                                     y = .data$speed_prop)) +
@@ -99,6 +101,7 @@ gg_car_speed_histogram <- function(enriched_data,
 #' @import ggplot2
 #' @importFrom tidyr unnest_wider drop_na
 #' @importFrom scales percent
+#' @importFrom stats weighted.mean
 #'
 gg_car_speed_v85 <- function(enriched_data,
                              date_range = NULL,
@@ -127,11 +130,15 @@ gg_car_speed_v85 <- function(enriched_data,
     summarise(v85_avg = weighted.mean(.data$v85, .data$traffic_sum)) %>%
     drop_na()
 
+
   # Graph
   if(!is.null(aggregated_by)){
+    seg <- unique(result$data$segment_name)
     graph <- ggplot(traffic, aes(x = .data$hour,
-                                    y = .data$v85_avg,
-                                    color = as.factor(.data[[aggregated_by]])))
+                                 y = .data$v85_avg,
+                                 color = as.factor(.data[[aggregated_by]]))) +
+      scale_color_manual(name = aggregated_by,
+                         values = custom_colors_palette(seg)[[aggregated_by]])
   } else {
     graph <- ggplot(traffic, aes(x = .data$hour,
                                     y = .data$v85_avg))
@@ -147,7 +154,6 @@ gg_car_speed_v85 <- function(enriched_data,
     ylab("Average v85 for this period") +
     theme_bw() +
     theme(legend.position = "bottom") +
-    scale_color_discrete(name = aggregated_by) +
     ylim(0, NA)
 
   return(graph)

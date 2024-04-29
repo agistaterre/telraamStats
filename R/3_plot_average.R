@@ -48,6 +48,7 @@ gg_traffic_avg <- function(enriched_data,
     summarise(traffic_sum = mean(.data$traffic_sum))
 
   # Graph
+  seg <- unique(result$data$segment_name)
   graph <- ggplot(traffic, aes(x = hour,
                                y = .data$traffic_sum,
                                color = as.factor(.data[[aggregated_by]]))) +
@@ -62,7 +63,8 @@ gg_traffic_avg <- function(enriched_data,
     ylab(paste("Number of", paste(result$mode, collapse = " and "))) +
     theme_bw() +
     theme(legend.position = "bottom") +
-    scale_color_discrete(name = aggregated_by) +
+    scale_color_manual(name = aggregated_by,
+                       values = custom_colors_palette(seg)[[aggregated_by]]) +
     ylim(0, NA)
 
   return(graph)

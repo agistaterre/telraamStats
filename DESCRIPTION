@@ -25,6 +25,7 @@ Imports:
     jsonlite,
     lubridate,
     mgcv,
+    paletteer,
     purrr,
     reshape2,
     rlang,
