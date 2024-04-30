@@ -4,11 +4,21 @@
 
 # telraamStats
 
-The aim of this package is to grant the user tools for data visualisation and data analysis of mobility data for Telraam sensors. It reuses and expands on functionnalities from this [`application`](https://agistaterre.shinyapps.io/mov-around/).
+The aim of this package is to grant the user tools for data visualisation and data analysis of mobility data for Telraam sensors.
 
-[`Link to forked Github repository`](https://github.com/KetsiaGuichard/telraamStats) [`Link to original Github repository`](https://github.com/agistaterre/mov-around)
+An example of using this package can be seen in this [`application`](https://agistaterre.shinyapps.io/mov-around/), although it also utilizes more advanced representations.
+
+[`Link to Github repository`](https://github.com/KetsiaGuichard/telraamStats) 
 
 This package is currently in a development version, feel free to contact us for more information !
+
+# Telraam Sensors
+
+[Telraam](https://telraam.net/en/what-is-telraam) is a Belgian company that offers a citizen-powered solution for gathering diverse traffic data using an affordable device. The sensor continuously monitors street activity from a citizen's window, capturing data on various transportation modes like cars, heavy vehicles, cyclists, and pedestrians. This data is crucial for informing traffic planning and engaging local communities in dialogue with authorities.
+
+The sensors employs advanced AI and proprietary algorithms to detect, classify and count road users, providing anonymous, aggregate data with a 15-minute resolution. The device operates autonomously once installed in an upper-floor window with an unobstructed view of the street. Data collected by Telraam devices can be shared as Open Data.
+
+For more information or to view the map of currently available sensors, you can visit the [Telraam website](https://telraam.net).
 
 # Specific Terms
 
@@ -53,4 +63,4 @@ Or directly read this page : `vignette("data-details")`.
 
 # Future Developments
 
-Future developments will focus on data quality topics: descriptive statistics and visualizations of data quality, as well as imputation methods for data with low update frequencies (indicating low quality).
+Future developments will focus on data quality topics: descriptive statistics and visualizations of data quality, as well as imputation methods for data with low `update` frequencies (indicating low quality).
