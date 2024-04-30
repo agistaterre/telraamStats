@@ -34,7 +34,6 @@ Imports:
     synchrony,
     tibble,
     tidyr,
-    viridis,
     yaml,
     zoo
 Encoding: UTF-8

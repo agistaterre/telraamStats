@@ -12,7 +12,7 @@
 #' @import ggplot2
 #' @importFrom dplyr left_join
 #' @importFrom tidyr replace_na
-#' @importFrom viridis scale_fill_viridis
+#' @importFrom paletteer scale_fill_paletteer_c
 #'
 gg_availability <- function(enriched_data,
                             date_range = NULL){
@@ -43,7 +43,8 @@ gg_availability <- function(enriched_data,
   graph <- ggplot(heatmap_data_full,
                   aes(x=.data$day, y=.data$segment_fullname, fill=.data$uptime_avg)) +
     geom_tile() +
-    scale_fill_viridis(option="inferno", name = "Proportion of hours with an uptime greater than 0.5") +
+    scale_fill_paletteer_c("viridis::inferno",
+                           name = "Proportion of hours with an uptime greater than 0.5") +
     labs(x = "Date", y = "Segment", title = "Data Availability by date and segment") +
     theme_bw() +
     theme(legend.position="bottom")
