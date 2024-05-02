@@ -75,7 +75,8 @@ get_segments <- function(){
 get_segment_name <- function(segment_id){
   segments <- get_segments()
   if(!segment_id %in% segments){
-    stop('This ID is unknown. Please update configuration file.')
+    message('This ID is unknown. Please update configuration file.')
+    return(NULL)
   }
   return(names(segments)[segments==segment_id])
 }

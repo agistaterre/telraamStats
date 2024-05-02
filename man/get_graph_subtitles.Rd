@@ -30,7 +30,8 @@ Character, with a description of all parameters filled, usable as subtitle for g
 Create subtitles for graphics.
 }
 \examples{
-get_graph_subtitles(segments = c("Route1"), mode = "car", direction = "lft", weekdays = "monday", hours = 12:14)
+get_graph_subtitles(segments = c("Route1"),
+  mode = "car", direction = "lft", weekdays = "monday", hours = 12:14)
 
 }
 \keyword{internal}

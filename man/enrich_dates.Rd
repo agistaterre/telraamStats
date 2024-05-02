@@ -16,7 +16,8 @@ Same dataframe with 3 additionnal columns : day, weekday and hour.
 Enrich traffic data with date informations.
 }
 \examples{
-df <- data.frame('date' = c("2022-02-18 08:00:00 CET","2022-02-18 09:00:00 CET"), stringsAsFactors = F)
+df <- data.frame('date' = c("2022-02-18 08:00:00 CET","2022-02-18 09:00:00 CET"),
+  stringsAsFactors = FALSE)
 enrich_dates(df)
 
 }

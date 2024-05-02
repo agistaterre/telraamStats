@@ -12,7 +12,8 @@
 #' @keywords internal
 #'
 #' @examples
-#' get_graph_subtitles(segments = c("Route1"), mode = "car", direction = "lft", weekdays = "monday", hours = 12:14)
+#' get_graph_subtitles(segments = c("Route1"),
+#'   mode = "car", direction = "lft", weekdays = "monday", hours = 12:14)
 #'
 get_graph_subtitles <- function(segments = NULL,
                                 modes = NULL,
@@ -57,9 +58,12 @@ get_graph_subtitles <- function(segments = NULL,
 #' @keywords internal
 #'
 #' @examples
-#' check_options_graph(c('car','pedestrian'),c('car','pedestrian','bike','heavy'),c('car','heavy'))
-#' check_options_graph(c('coucou','salut'),c('car','pedestrian','bike','heavy'),c('car','heavy'))
-#' check_options_graph(NULL,c('car','pedestrian','bike','heavy'),c('car','heavy'))
+#' check_options_graph(c('car','pedestrian'),
+#'   c('car','pedestrian','bike','heavy'),c('car','heavy'))
+#' check_options_graph(c('coucou','salut'),
+#'   c('car','pedestrian','bike','heavy'),c('car','heavy'))
+#' check_options_graph(NULL,
+#'   c('car','pedestrian','bike','heavy'),c('car','heavy'))
 #'
 check_options_graph <- function(options_selected, options_available, default){
   unknown = setdiff(options_selected, options_available)

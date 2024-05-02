@@ -18,6 +18,7 @@ this function create a local configuration template file
 in the \verb{\\inst} directory, to edit with specific information.
 }
 \examples{
-create_config() #doesn't work: a config file already exists.
-
+\dontrun{
+create_config()
+}
 }

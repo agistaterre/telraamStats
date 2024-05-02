@@ -24,7 +24,8 @@ Same dataframe with two additionnal columns :
 Enrich traffic data with french vacation and public holidays
 }
 \examples{
-df <- data.frame('day' = as.Date(c("2022-02-18","2022-01-01")), 'date' = c('2022-02-18 12:00:00 CET','2022-01-01 12:00:00 CET'))
+df <- data.frame('day' = as.Date(c("2022-02-18","2022-01-01")),
+  'date' = c('2022-02-18 12:00:00 CET','2022-01-01 12:00:00 CET'))
 enrich_special_days(df)
 
 }

@@ -35,7 +35,8 @@ enrich_traffic <- function(data){
 #' @keywords internal
 #'
 #' @examples
-#' df <- data.frame('date' = c("2022-02-18 08:00:00 CET","2022-02-18 09:00:00 CET"), stringsAsFactors = F)
+#' df <- data.frame('date' = c("2022-02-18 08:00:00 CET","2022-02-18 09:00:00 CET"),
+#'   stringsAsFactors = FALSE)
 #' enrich_dates(df)
 #'
 enrich_dates <- function(data){
@@ -121,11 +122,11 @@ enrich_uptime <- function(data){
 #'
 #' @export
 #'
-#'
 #' @keywords internal
 #'
 #' @examples
-#' df <- data.frame('day' = as.Date(c("2022-02-18","2022-01-01")), 'date' = c('2022-02-18 12:00:00 CET','2022-01-01 12:00:00 CET'))
+#' df <- data.frame('day' = as.Date(c("2022-02-18","2022-01-01")),
+#'   'date' = c('2022-02-18 12:00:00 CET','2022-01-01 12:00:00 CET'))
 #' enrich_special_days(df)
 #'
 enrich_special_days <- function(data, vacations = NULL, public_holidays = NULL){

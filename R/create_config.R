@@ -13,8 +13,9 @@
 #' @importFrom yaml write_yaml
 #'
 #' @examples
-#' create_config() #doesn't work: a config file already exists.
-#'
+#' \dontrun{
+#' create_config()
+#' }
 create_config <- function(overwrite=FALSE){
   file_path = "inst/config.yml"
   template <- list("default"=list("url"="https://telraam-api.net/v1",
@@ -23,10 +24,10 @@ create_config <- function(overwrite=FALSE){
   if(!file.exists(file_path) | overwrite){
     if(!dir.exists("inst/")){
       dir.create("inst/")
-      result = TRUE
     }
     file.create(file_path)
     yaml::write_yaml(template, file_path)
+    result = TRUE
   }
   else {
     warning("A configuration file already exists in the 'inst' directory")
