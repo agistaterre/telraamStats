@@ -1,34 +1,44 @@
 #'  Check API State
 #'
-#'  Return the state of he Telraam API. Determine if updates can be made.
+#'  Return the state of the 'Telraam' API. Determine if updates can be made.
 #'
-#' @param key the api key (set by the set_telraam_token function)
+#' @param key the API key (set by the set_telraam_token function - default -, or directly filled).
 #'
-#' @return TRUE if the API responds well, FALSE otherwise
+#' @return A booleean : TRUE if the API responds well, FALSE otherwise.
 #' @export
 #'
 #' @importFrom httr VERB
 #'
+#' @examples
+#' my_token <- 'ThisIsNotAValidToken'
+#' get_api_state(my_token)
 #'
 get_api_state <- function(key = get_telraam_token()){
+  file_path = "inst/config.yml"
+  if(!file.exists(file_path)){
+    create_config
+  }
   key <- c(
     'X-Api-Key' = key
   )
-  VERB("GET", url = config::get(file = "inst/config.yml")$url, add_headers(key))$status_code == 200  # the request suceeded if equal to 200
+  VERB("GET", url = config::get(file = "inst/config.yml")$url,
+       add_headers(key))$status_code == 200  # the request suceeded if equal to 200
 }
 
 
-#' Saves an Authentication Token for the telraam API
+#' Saves an authentication token for the 'Telraam' API.
+#'
+#' If you want to get this token after this instruction, please use \code{get_telraam_token()}.
 #'
 #' @param token a \code{string} with the token
 #'
-#' @return TRUE if token correctly set
+#' @return A boolean, TRUE if the token is correctly set
 #' @export
 #'
 #' @examples
-#'
-#' mytoken = "ivRgw7ZAGFedfwIdASezecdnETZDsdETB4Bqv3pbs5X8JDNnt1pQtpxDmpR6as2k"
-#' set_telraam_token(mytoken)
+#' my_token <- "MyTelraamToken"
+#' set_telraam_token(my_token)
+#' get_telraam_token()
 #'
 set_telraam_token = function(token) {
   if (is.null(token)) {
@@ -37,10 +47,15 @@ set_telraam_token = function(token) {
   return(Sys.setenv(key = token))
 }
 
-#' Get the current authentication Token for the telraam API
+#' Get the current authentication token for the 'Telraam' API
 #'
-#' @return Token currently used
+#' @return Token currently used, set by \code{set_telraam_token()}
 #' @export
+#'
+#' @examples
+#' my_token <- "MyTelraamToken"
+#' set_telraam_token(my_token)
+#' get_telraam_token()
 #'
 get_telraam_token=function(){
   PAT=Sys.getenv('key')

@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_state.R
 \name{set_telraam_token}
 \alias{set_telraam_token}
-\title{Saves an Authentication Token for the telraam API}
+\title{Saves an authentication token for the 'Telraam' API.}
 \usage{
 set_telraam_token(token)
 }
@@ -10,14 +10,14 @@ set_telraam_token(token)
 \item{token}{a \code{string} with the token}
 }
 \value{
-TRUE if token correctly set
+A boolean, TRUE if the token is correctly set
 }
 \description{
-Saves an Authentication Token for the telraam API
+If you want to get this token after this instruction, please use \code{get_telraam_token()}.
 }
 \examples{
-
-mytoken = "ivRgw7ZAGFedfwIdASezecdnETZDsdETB4Bqv3pbs5X8JDNnt1pQtpxDmpR6as2k"
-set_telraam_token(mytoken)
+my_token <- "MyTelraamToken"
+set_telraam_token(my_token)
+get_telraam_token()
 
 }

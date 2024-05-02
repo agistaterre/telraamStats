@@ -2,19 +2,23 @@
 % Please edit documentation in R/data_enrich.R
 \name{enrich_uptime}
 \alias{enrich_uptime}
-\title{Enrich traffic data with uptime quality indication
-If the uptime is lower than 0.5, uptime_quality will be FALSE, else TRUE}
+\title{Enrich traffic data with uptime quality indication}
 \usage{
 enrich_uptime(data)
 }
 \arguments{
-\item{data}{Data frame containing a uptime column}
+\item{data}{Data frame containing an \code{uptime} column}
 }
 \value{
-Same dataframe with an additionnal column indicating if the uptime is greater or lower than 0.5.
+Same dataframe with an additionnal column indicating
+if the uptime is greater (TRUE) or lower (FALSE) than 0.5.
 }
 \description{
-Enrich traffic data with uptime quality indication
-If the uptime is lower than 0.5, uptime_quality will be FALSE, else TRUE
+If the uptime is lower than 0.5, \code{uptime_quality} will be FALSE, else TRUE
+}
+\examples{
+df <- data.frame('uptime' = c(0.05, 0.95))
+enrich_uptime(df)
+
 }
 \keyword{internal}

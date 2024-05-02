@@ -2,19 +2,23 @@
 % Please edit documentation in R/data_enrich.R
 \name{enrich_name}
 \alias{enrich_name}
-\title{Enrich traffic data with segment name
-Segment fullname is also added : it's the combination of segment's id and name.}
+\title{Enrich traffic data with segment name}
 \usage{
 enrich_name(data)
 }
 \arguments{
-\item{data}{Data frame containing a segment_id column}
+\item{data}{Data frame containing a \code{segment_id} column}
 }
 \value{
-Same dataframe with two additionnal columns : segment name and full name
+Same dataframe with two additionnal columns : \code{segment_name} and \code{segment_fullname}
 }
 \description{
-Enrich traffic data with segment name
-Segment fullname is also added : it's the combination of segment's id and name.
+\code{segment_fullname} is also added : it's the combination of segment's id and name.
+\code{segment_id} should be in the configuration file.
+}
+\examples{
+df <- data.frame('segment_id' = c(9000002156, 9000001906))
+enrich_name(df)
+
 }
 \keyword{internal}

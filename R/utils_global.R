@@ -11,7 +11,7 @@ pkg.globals <- new.env(parent = emptyenv())
 #' @importFrom lubridate ymd_hms
 #' @importFrom rlang .data
 #'
-#'@keywords internal
+#' @keywords internal
 #'
 set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 
@@ -66,7 +66,6 @@ get_segments <- function(){
 #' Get the name of a segment giving its id
 #'
 #' @param segment_id ID of segment, should be present in inst/config.yml
-#'
 #'
 #' @return Name of the segment, as specified in the configuration file
 #' @export

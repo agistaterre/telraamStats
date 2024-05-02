@@ -7,11 +7,16 @@
 get_api_state(key = get_telraam_token())
 }
 \arguments{
-\item{key}{the api key (set by the set_telraam_token function)}
+\item{key}{the API key (set by the set_telraam_token function - default -, or directly filled).}
 }
 \value{
-TRUE if the API responds well, FALSE otherwise
+A booleean : TRUE if the API responds well, FALSE otherwise.
 }
 \description{
-Return the state of he Telraam API. Determine if updates can be made.
+Return the state of the 'Telraam' API. Determine if updates can be made.
+}
+\examples{
+my_token <- 'ThisIsNotAValidToken'
+get_api_state(my_token)
+
 }

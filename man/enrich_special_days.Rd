@@ -7,16 +7,25 @@
 enrich_special_days(data, vacations = NULL, public_holidays = NULL)
 }
 \arguments{
-\item{data}{Data frame containing a uptime column}
+\item{data}{Data frame containing a \code{day} and a \code{date}(day + hour + timezone) column}
 
-\item{vacations}{data frame containing the vacation dates}
+\item{vacations}{Data frame containing the vacation dates}
 
-\item{public_holidays}{data frame containing the public holidays dates}
+\item{public_holidays}{Data frame containing the public holidays dates}
 }
 \value{
-Same dataframe with two additionnal boolean columns (TRUE if the day corresponds to vacation/public holiday)
+Same dataframe with two additionnal columns :
+\itemize{
+\item holiday, a boolean : TRUE if the day corresponds to public holiday, FALSE otherwise
+\item vacation, indicating the french vacation, "No vacation" otherwise.
+}
 }
 \description{
 Enrich traffic data with french vacation and public holidays
+}
+\examples{
+df <- data.frame('day' = as.Date(c("2022-02-18","2022-01-01")), 'date' = c('2022-02-18 12:00:00 CET','2022-01-01 12:00:00 CET'))
+enrich_special_days(df)
+
 }
 \keyword{internal}

@@ -7,10 +7,17 @@
 create_config(overwrite = FALSE)
 }
 \arguments{
-\item{overwrite}{If the file exist, should it be overwriten ?}
+\item{overwrite}{If the file exist, should it be overwriten?}
+}
+\value{
+Boolean, TRUE if the file is created, FALSE overwise (config already exists for example).
 }
 \description{
 If the user needs to specify the IDs of his own sensors,
 this function create a local configuration template file
-in the 'inst' directory, to edit with specific informations.
+in the \verb{\\inst} directory, to edit with specific information.
+}
+\examples{
+create_config() #doesn't work: a config file already exists.
+
 }

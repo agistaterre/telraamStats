@@ -64,24 +64,35 @@
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data</dt>
-<dd><p>Data frame containing a uptime column</p></dd>
+<dd><p>Data frame containing a <code>day</code> and a <code>date</code>(day + hour + timezone) column</p></dd>
 
 
 <dt>vacations</dt>
-<dd><p>data frame containing the vacation dates</p></dd>
+<dd><p>Data frame containing the vacation dates</p></dd>
 
 
 <dt>public_holidays</dt>
-<dd><p>data frame containing the public holidays dates</p></dd>
+<dd><p>Data frame containing the public holidays dates</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>Same dataframe with two additionnal boolean columns (TRUE if the day corresponds to vacation/public holiday)</p>
-    </div>
+<p>Same dataframe with two additionnal columns :</p><ul><li><p>holiday, a boolean : TRUE if the day corresponds to public holiday, FALSE otherwise</p></li>
+<li><p>vacation, indicating the french vacation, "No vacation" otherwise.</p></li>
+</ul></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="st">'day'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2022-02-18"</span>,<span class="st">"2022-01-01"</span><span class="op">)</span><span class="op">)</span>, <span class="st">'date'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'2022-02-18 12:00:00 CET'</span>,<span class="st">'2022-01-01 12:00:00 CET'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">enrich_special_days</span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          day                    date holiday         vacation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2022-02-18 2022-02-18 12:00:00 CET   FALSE Vacances d'Hiver</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 2022-01-01 2022-01-01 12:00:00 CET    TRUE Vacances de Noël</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
