@@ -85,9 +85,9 @@ Below is an example of all these possible filters and parameters :
 plot(
   gg_traffic_evolution(traffic,
                        date_range = c('2022-01-01','2022-03-01'),
-                       segment = c(9000001844),
+                       segment = 'RteVitre-06',
                        mode = c('car','pedestrian'),
-                       direction = c('lft'),
+                       direction = 'lft',
                        smoothed = FALSE,
                        agg_day = FALSE)
 )
@@ -117,9 +117,9 @@ As before, it's possible to select a specific period, a specific segment, a mode
 plot(
   gg_traffic_avg(traffic,
                  date_range = c('2022-07-01','2022-09-01'),
-                 segment = c("RteVitre-06"),
-                 mode = c('car'),
-                 direction = c('rgt'),
+                 segment = 'RteVitre-06',
+                 mode = 'car',
+                 direction = 'rgt',
                  weekday = c('monday','friday')
                  )
 )
@@ -133,7 +133,8 @@ The same function `gg_traffic_avg()` can be used to calculate the average traffi
 
 ```{r, eval=TRUE}
 plot(
-  gg_traffic_avg(traffic, aggregated_by = "segment_name")
+  gg_traffic_avg(traffic, 
+                 aggregated_by = "segment_name")
 )
 ```
 
@@ -144,10 +145,10 @@ Similarly to before, it is possible to specify a period, a direction of travel, 
 ```{r, eval=TRUE}
 plot(
   gg_traffic_avg(traffic, 
-                 aggregated_by = "segment_name",
-                 weekday = c('sunday'),
-                 mode = c('car'),
-                 direction = c('rgt'))
+                 aggregated_by = 'segment_name',
+                 weekday = 'sunday',
+                 mode = 'car',
+                 direction = 'rgt')
 )
 ```
 
@@ -158,10 +159,10 @@ This function `gg_traffic_avg()` can also be used to compare directions of trave
 ```{r, eval=TRUE}
 plot(
   gg_traffic_avg(traffic, 
-                 aggregated_by = "direction",
-                 weekday = c('monday'),
-                 mode = c('car'),
-                 segments = c('RteVitre-06')
+                 aggregated_by = 'direction',
+                 weekday = 'monday',
+                 mode = 'car',
+                 segments = 'RteVitre-06'
                  )
 )
 ```
@@ -175,9 +176,9 @@ Finally, the function `gg_traffic_avg()` allows for comparing modes of transport
 ```{r, eval=TRUE}
 plot(
   gg_traffic_avg(traffic, 
-                 aggregated_by = "mode",
+                 aggregated_by = 'mode',
                  mode = c('heavy','car'),
-                 segment = c('RteVitre-06'))
+                 segment = 'RteVitre-06')
 )
 ```
 
@@ -205,7 +206,7 @@ This function `gg_car_speed_histogram()` enables you to compare speed histograms
 ```{r, eval=TRUE}
 plot(
   gg_car_speed_histogram(traffic, 
-                         aggregated_by = "segment_name")
+                         aggregated_by = 'segment_name')
 )
 ```
 
@@ -216,7 +217,7 @@ Here is an example by weekday with all the available filters.
 ```{r, eval=TRUE}
 plot(
   gg_car_speed_histogram(traffic, 
-                         weekday = c("monday","sunday"),
+                         weekday = c('monday','sunday'),
                          segments = 'RteVitre-06',
                          hours = 17:20,
                          aggregated_by = "weekday")
