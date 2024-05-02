@@ -6,5 +6,5 @@ test_that("set a Telraam token", {
 
 test_that("call API with a wrong token", {
   set_telraam_token('test')
-  expect_false(api_state())
+  expect_false(get_api_state())
 })

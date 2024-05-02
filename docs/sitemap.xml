@@ -61,6 +61,9 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_uptime.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/filter_agg.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/filter_date.html</loc>
   </url>
   <url>
@@ -74,6 +77,15 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/filtering_agg.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_api_state.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_custom_palette.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_graph_subtitles.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_segment_name.html</loc>
@@ -124,6 +136,9 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/index.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/is_vacation.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/melt_direction_mode.html</loc>
   </url>
   <url>
@@ -152,6 +167,9 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/prep_view_data.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/preprocess_car_speed.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/retrieve_sensor.html</loc>
