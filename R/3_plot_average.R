@@ -49,7 +49,7 @@ gg_traffic_avg <- function(enriched_data,
 
   # Graph
   seg <- unique(result$data$segment_name)
-  graph <- ggplot(traffic, aes(x = hour,
+  graph <- ggplot(traffic, aes(x = .data$hour,
                                y = .data$traffic_sum,
                                color = as.factor(.data[[aggregated_by]]))) +
     geom_line() +

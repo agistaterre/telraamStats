@@ -10,8 +10,7 @@ which_vacations(date, vacation)
 \arguments{
 \item{date}{Date (character format)}
 
-\item{vacation}{Dataframe of vacations, same format as set_globals_vars output.
-TODO : this function could be more efficient.}
+\item{vacation}{Dataframe of vacations, same format as set_globals_vars output.}
 }
 \value{
 Vacation description if the day is between two dates, "No vacation" otherwise.

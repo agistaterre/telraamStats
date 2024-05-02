@@ -26,6 +26,8 @@ enrich_traffic <- function(data){
 #' @return Same dataframe with 3 additionnal columns : day, weekday and hour
 #' @export
 #'
+#' @importFrom lubridate hour
+#'
 #' @keywords internal
 #'
 enrich_dates <- function(data){
@@ -37,9 +39,9 @@ enrich_dates <- function(data){
 
   enriched_data <- data %>%
     mutate(
-      day = as.Date(.data$date),
-      hour = hour(.data$date),
-      weekday = strftime(.data$day,'%u')
+      'day' = as.Date(.data$date),
+      'hour' = hour(.data$date),
+      'weekday' = strftime(.data$day,'%u')
     ) %>%
     mutate('weekday' = weekday_labels[.data$weekday])
   return(enriched_data)
