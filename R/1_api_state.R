@@ -10,7 +10,7 @@
 #' @importFrom httr VERB
 #'
 #'
-api_state <- function(key = get_telraam_token()){
+get_api_state <- function(key = get_telraam_token()){
   key <- c(
     'X-Api-Key' = key
   )

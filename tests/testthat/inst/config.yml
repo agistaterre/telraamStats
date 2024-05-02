@@ -1,0 +1,5 @@
+default:
+  url: https://telraam-api.net/v1
+  segments:
+    segment-01: '9000000000'
+    segment-02: '9000000000'
