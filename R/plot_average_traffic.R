@@ -1,5 +1,9 @@
-#'Average of traffic during a week over a period for a segment or a subset of segment,
-#'for a transportation mode or more, for a direction or both.
+#' Average of traffic during a week.
+#'
+#' @description
+#' A short description...
+#' Average of traffic during a week, over a period for a segment or a subset of segment,
+#' for a transportation mode or more, for a direction or both.
 #'
 #'
 #' @param enriched_data enriched data.frame containing all the data for all your sensors
@@ -17,6 +21,15 @@
 #' @import ggplot2
 #' @importFrom tidyr unnest
 #'
+#' @examples
+#' gg_traffic_avg(traffic)
+#' gg_traffic_avg(traffic,
+#'   date_range = c('2022-07-01','2022-09-01'),
+#'   segment = 'RteVitre-06',
+#'   mode = 'car',
+#'   direction = 'rgt',
+#'   weekday = c('monday','friday')
+#'   )
 gg_traffic_avg <- function(enriched_data,
                            date_range = NULL,
                            segments = NULL,

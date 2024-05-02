@@ -1,5 +1,6 @@
 #' Retrieves data associated with a sensor from the Telraam API
 #'
+#' @description
 #' Retrieves data associated with a sensor from the Telraam API.
 #' The data is retrieved for a specified time period between \code{start_date} and \code{end_date} (inclusive).
 #'
@@ -8,6 +9,7 @@
 #' @param end_date Date. End date "aaaa-mm-jj", must be of the date type.
 #' @param key the api key (set by the set_telraam_token function)
 #'
+#' @return Dataframe from Telraam API, enriched with `enrich_traffic()` function.
 #'
 #' @importFrom lubridate ymd_hms days
 #' @importFrom purrr pmap
@@ -15,6 +17,11 @@
 #' @importFrom dplyr filter bind_rows %>%
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#' period <- as.Date(c('2022-01-01', '2022-12-31'))
+#' retrieve_sensor(9000001844, period[1], period[2])
+#' }
 #'
 retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_token()){
 
@@ -67,14 +74,21 @@ retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_
 
 #' Generate sequence of intervals with three-month periods
 #'
+#' @description
 #' This function is used internally in the \code{retrieve_sensor} function to generate a sequence of intervals with three-month periods. It takes a start date (\code{start_date}) and an end date (\code{end_date}), and returns a data frame with two columns representing the start and end dates of each interval.
 #'
 #' @param start_date Date. Start date in "yyyy-mm-dd" format.
 #' @param end_date Date. End date in "yyyy-mm-dd" format.
 #'
+#' @return Dataframe with a `start` and an `end` columns, each row represents 3 months period.
+#'
 #' @importFrom lubridate ymd
+#' @export
 #'
 #' @keywords internal
+#'
+#' @examples
+#' seq_by_3_month(as.Date('2023-11-01'),as.Date('2024-11-01'))
 #'
 seq_by_3_month <- function(start_date, end_date){
   if (start_date==end_date){

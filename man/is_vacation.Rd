@@ -2,8 +2,7 @@
 % Please edit documentation in R/utils_global.R
 \name{is_vacation}
 \alias{is_vacation}
-\title{Indicates if a date is in vacation period and if true, which vacation.
-If the date is not in a vacation period, "No vacation" is returned.}
+\title{Indicates if a date is in vacation period and if true, which vacation.}
 \usage{
 is_vacation(date, vacation)
 }
@@ -16,7 +15,13 @@ is_vacation(date, vacation)
 Vacation description if the day is between two dates, "No vacation" otherwise.
 }
 \description{
-Indicates if a date is in vacation period and if true, which vacation.
 If the date is not in a vacation period, "No vacation" is returned.
+}
+\examples{
+\dontrun{
+pkg.globals <- new.env(parent = emptyenv())
+set_global_vars()
+is_vacation(as.Date('2022-01-01'), pkg.globals$vacations)
+}
 }
 \keyword{internal}

@@ -2,8 +2,7 @@
 % Please edit documentation in R/plot_average_traffic.R
 \name{gg_traffic_avg}
 \alias{gg_traffic_avg}
-\title{Average of traffic during a week over a period for a segment or a subset of segment,
-for a transportation mode or more, for a direction or both.}
+\title{Average of traffic during a week.}
 \usage{
 gg_traffic_avg(
   enriched_data,
@@ -34,6 +33,17 @@ gg_traffic_avg(
 graph showing weekly average evolution of traffic (for specified parameters) during the specified period.
 }
 \description{
-Average of traffic during a week over a period for a segment or a subset of segment,
+A short description...
+Average of traffic during a week, over a period for a segment or a subset of segment,
 for a transportation mode or more, for a direction or both.
+}
+\examples{
+gg_traffic_avg(traffic)
+gg_traffic_avg(traffic,
+  date_range = c('2022-07-01','2022-09-01'),
+  segment = 'RteVitre-06',
+  mode = 'car',
+  direction = 'rgt',
+  weekday = c('monday','friday')
+  )
 }

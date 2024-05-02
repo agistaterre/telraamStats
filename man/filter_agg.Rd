@@ -31,9 +31,26 @@ filter_agg(
 \item{weekday}{Vector of character. Weekday(s) choosen.}
 }
 \value{
-the filtered data with a new column "traffic" with aggregated data for specified direction/modes
+the filtered data, molten by mode and direction, with new columns :
+\itemize{
+\item \code{mode}, the mode, one row per different transportation mode + date/hour + direction
+\item \code{direction}, the direction, one row per different transportation mode + date/hour + direction
+\item \code{traffic_sum}, the traffic for this mode/direction on this specific date/hour
+}
 }
 \description{
 Not all criteria need to be filled in. Unfilled criteria are set by default so that no filtering is performed.
+}
+\examples{
+date_range = as.Date(c('2022-01-01','2022-01-08'))
+filter_agg(traffic,
+  date_range = date_range,
+  segments = 'RteVitre-06',
+  direction = 'lft',
+  modes = 'pedestrian',
+  weekdays = 'saturday',
+  hours = 12:14,
+  uptime_quality = TRUE
+  )
 }
 \keyword{internal}

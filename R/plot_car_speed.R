@@ -16,6 +16,15 @@
 #' @importFrom tidyr unnest_wider
 #' @importFrom scales percent
 #'
+#' @examples
+#' gg_car_speed_histogram(traffic)
+#' gg_car_speed_histogram(traffic,
+#'   aggregated_by = 'segment_name')
+#' gg_car_speed_histogram(traffic,
+#'   weekday = c('monday','sunday'),
+#'   segments = 'RteVitre-06',
+#'   hours = 17:20,
+#'   aggregated_by = "weekday")
 gg_car_speed_histogram <- function(enriched_data,
                                    date_range = NULL,
                                    segments = NULL,
@@ -24,12 +33,12 @@ gg_car_speed_histogram <- function(enriched_data,
                                    aggregated_by = NULL){
 
   # filtering data and create speed labels
-  result <- preprocess_car_speed(enriched_data,
-                                 date_range,
-                                 segments,
-                                 weekday,
-                                 hours,
-                                 aggregated_by)
+  result <- preprocess_car_speed(enriched_data = enriched_data,
+                                 date_range = date_range,
+                                 segments = segments,
+                                 weekday = weekday,
+                                 hours = hours,
+                                 aggregated_by = aggregated_by)
 
   # aggregate speed histogramm
   id.vars = c('segment_name','weekday','traffic_sum')
@@ -84,8 +93,11 @@ gg_car_speed_histogram <- function(enriched_data,
 }
 
 
-#'Average of v85 car speed per hour over a period, for a segment or a subset of segment.
+#' Average of v85 car speed per hour over a period, for a segment or a subset of segment.
 #'
+#' @description
+#' v85 is the estimated car speed limit in km/h that 85% of all cars respect.
+#' 15% of drivers drive faster than this v85 indicator.
 #'
 #' @param enriched_data enriched data.frame containing all the data for all your sensors
 #' @param date_range Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).
@@ -103,6 +115,14 @@ gg_car_speed_histogram <- function(enriched_data,
 #' @importFrom scales percent
 #' @importFrom stats weighted.mean
 #'
+#' @examples
+#' gg_car_speed_histogram(traffic)
+#' gg_car_speed_histogram(traffic, aggregated_by = 'segment_name')
+#' gg_car_speed_histogram(traffic,
+#'   weekday = c('monday','sunday'),
+#'   segments = 'RteVitre-06',
+#'   hours = 17:20,
+#'   aggregated_by = "weekday")
 gg_car_speed_v85 <- function(enriched_data,
                              date_range = NULL,
                              segments = NULL,
@@ -164,11 +184,11 @@ gg_car_speed_v85 <- function(enriched_data,
 #'
 #'
 #' @param enriched_data enriched data.frame containing all the data for all your sensors
-#' @param date_range Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).
-#' @param segments Character vector. Selected road segment, all if NULL (default).
-#' @param weekday Character vector. Weekday choosen. Default to the all week.
-#' @param hours Integer vector. Hours choosen, default to the all day.
-#' @param aggregated_by Character. Enables comparison with other segments or weekdays. Options are : 'segment_name', 'weekday', NULL (no comparison, default).
+#' @param date_range Date vector. example: c('2021-01-01','2022-01-01').
+#' @param segments Character vector. Selected road segment.
+#' @param weekday Character vector. Weekday choosen.
+#' @param hours Integer vector. Hours choosen.
+#' @param aggregated_by Character. Enables comparison with other segments or weekdays. Options are : 'segment_name', 'weekday'.
 #'
 #' @return list of parameters and data preprocessed.
 #' @export
@@ -177,12 +197,23 @@ gg_car_speed_v85 <- function(enriched_data,
 #'
 #' @keywords internal
 #'
+#' @examples
+#' \dontrun{
+#' preprocess_car_speed(traffic,
+#'   date_range = c('2022-01-01','2022-03-01'),
+#'   segments = 'RteVitre-06',
+#'   weekday = c('monday','sunday'),
+#'   hours = 17:20,
+#'   aggregated_by = "weekday")
+#' }
+#'
 preprocess_car_speed <- function(enriched_data,
-                                    date_range,
-                                    segments,
-                                    weekday,
-                                    hours,
-                                    aggregated_by){
+                                 aggregated_by,
+                                 date_range,
+                                 segments,
+                                 weekday,
+                                 hours
+                                 ){
 
   aggregated_by <- check_options_graph(aggregated_by,
                                        c('segment_name','weekday'),

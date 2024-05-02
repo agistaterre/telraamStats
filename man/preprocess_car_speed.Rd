@@ -6,30 +6,41 @@
 \usage{
 preprocess_car_speed(
   enriched_data,
+  aggregated_by,
   date_range,
   segments,
   weekday,
-  hours,
-  aggregated_by
+  hours
 )
 }
 \arguments{
 \item{enriched_data}{enriched data.frame containing all the data for all your sensors}
 
-\item{date_range}{Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).}
+\item{aggregated_by}{Character. Enables comparison with other segments or weekdays. Options are : 'segment_name', 'weekday'.}
 
-\item{segments}{Character vector. Selected road segment, all if NULL (default).}
+\item{date_range}{Date vector. example: c('2021-01-01','2022-01-01').}
 
-\item{weekday}{Character vector. Weekday choosen. Default to the all week.}
+\item{segments}{Character vector. Selected road segment.}
 
-\item{hours}{Integer vector. Hours choosen, default to the all day.}
+\item{weekday}{Character vector. Weekday choosen.}
 
-\item{aggregated_by}{Character. Enables comparison with other segments or weekdays. Options are : 'segment_name', 'weekday', NULL (no comparison, default).}
+\item{hours}{Integer vector. Hours choosen.}
 }
 \value{
 list of parameters and data preprocessed.
 }
 \description{
 Preprocessing mandatory for car speed graphs functions
+}
+\examples{
+\dontrun{
+preprocess_car_speed(traffic,
+  date_range = c('2022-01-01','2022-03-01'),
+  segments = 'RteVitre-06',
+  weekday = c('monday','sunday'),
+  hours = 17:20,
+  aggregated_by = "weekday")
+}
+
 }
 \keyword{internal}

@@ -2,8 +2,7 @@
 % Please edit documentation in R/plot_evolution_traffic.R
 \name{gg_traffic_evolution}
 \alias{gg_traffic_evolution}
-\title{Evolution of traffic (global, per mode ou per direction), smoothed traffic
-during a period.}
+\title{Evolution of traffic and smoothed traffic.}
 \usage{
 gg_traffic_evolution(
   enriched_data,
@@ -36,4 +35,14 @@ graph showing the evolution of traffic (for specified parameters) during the spe
 \description{
 Evolution of traffic (global, per mode ou per direction), smoothed traffic
 during a period.
+}
+\examples{
+gg_traffic_evolution(traffic)
+gg_traffic_evolution(traffic,
+  date_range = c('2022-01-01','2022-03-01'),
+  segment = 'RteVitre-06',
+  mode = c('car','pedestrian'),
+  direction = 'lft',
+  smoothed = FALSE,
+  agg_day = FALSE)
 }

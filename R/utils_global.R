@@ -1,18 +1,27 @@
 pkg.globals <- new.env(parent = emptyenv())
 
-#' Function to set up the global variables for public holidays an vacations, with the default
+#' Function to set up the global variables for public holidays and vacations, with the default
 #' being the french dates from a governmental API.
 #'
 #' @param vacations data frame containing the vacation dates
 #' @param public_holidays data frame containing the public holidays dates
 #'
+#' @return Don't return anything, set up the global variables for public holidays and vacations.
+#'
 #' @importFrom httr GET content
 #' @importFrom jsonlite fromJSON
 #' @importFrom lubridate ymd_hms
 #' @importFrom rlang .data
+#' @export
 #'
 #' @keywords internal
 #'
+#' @examples
+#' \dontrun{
+#' pkg.globals <- new.env(parent = emptyenv())
+#' set_global_vars()
+#' print(pkg.globals$vacations)
+#' }
 set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 
   if(is.null(vacations)){
@@ -44,6 +53,7 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
   else{
     pkg.globals$public_holidays <- public_holidays
   }
+  return(invisible(NULL))
 }
 
 
@@ -56,6 +66,11 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #' @importFrom stats setNames
 #'
 #' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' get_segments()
+#' }
 #'
 get_segments <- function(){
   file_path = "inst/config.yml"
@@ -77,6 +92,10 @@ get_segments <- function(){
 #'
 #' @keywords internal
 #'
+#' @examples
+#' \dontrun{
+#' get_segment_name(9000001844)
+#' }
 get_segment_name <- function(segment_id){
   segments <- get_segments()
   if(is.null(segments)){
@@ -102,7 +121,10 @@ get_segment_name <- function(segment_id){
 #' @param weekday Vector of character. Weekday(s) choosen.
 #' @param hours Integer vector. Hours choosen, default to the all day.
 #'
-#' @return the filtered data with a new column "traffic" with aggregated data for specified direction/modes
+#' @return the filtered data, molten by mode and direction, with new columns :
+#' - `mode`, the mode, one row per different transportation mode + date/hour + direction
+#' - `direction`, the direction, one row per different transportation mode + date/hour + direction
+#' - `traffic_sum`, the traffic for this mode/direction on this specific date/hour
 #'
 #' @export
 #'
@@ -110,6 +132,17 @@ get_segment_name <- function(segment_id){
 #'
 #' @keywords internal
 #'
+#' @examples
+#' date_range = as.Date(c('2022-01-01','2022-01-08'))
+#' filter_agg(traffic,
+#'   date_range = date_range,
+#'   segments = 'RteVitre-06',
+#'   direction = 'lft',
+#'   modes = 'pedestrian',
+#'   weekdays = 'saturday',
+#'   hours = 12:14,
+#'   uptime_quality = TRUE
+#'   )
 filter_agg <- function(data,
                           date_range = NULL,
                           segments = NULL,
@@ -167,6 +200,8 @@ filter_agg <- function(data,
 
 
 #' Indicates if a date is in vacation period and if true, which vacation.
+#'
+#' @description
 #' If the date is not in a vacation period, "No vacation" is returned.
 #'
 #' @param date Date (character format)
@@ -179,6 +214,12 @@ filter_agg <- function(data,
 #'
 #' @keywords internal
 #'
+#' @examples
+#' \dontrun{
+#' pkg.globals <- new.env(parent = emptyenv())
+#' set_global_vars()
+#' is_vacation(as.Date('2022-01-01'), pkg.globals$vacations)
+#' }
 is_vacation <- function(date, vacation){
   date <- as.POSIXct(date)
   vacation_test <- vacation %>%
@@ -207,6 +248,9 @@ is_vacation <- function(date, vacation){
 #' @importFrom tidyr unnest separate
 #'
 #' @keywords internal
+#'
+#' @examples
+#' melt_direction_mode(traffic[0:2,])
 #'
 melt_direction_mode <- function(data){
 

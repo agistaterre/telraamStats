@@ -32,3 +32,13 @@ graph showing histogram of car speed over a period.
 \description{
 Histogram of car speed over a period, for a segment or a subset of segment.
 }
+\examples{
+gg_car_speed_histogram(traffic)
+gg_car_speed_histogram(traffic,
+  aggregated_by = 'segment_name')
+gg_car_speed_histogram(traffic,
+  weekday = c('monday','sunday'),
+  segments = 'RteVitre-06',
+  hours = 17:20,
+  aggregated_by = "weekday")
+}

@@ -12,4 +12,10 @@ Named vector with names and segment IDs, NULL if there is no configuration file
 \description{
 Get Telraam segments info in yml file and transform them into a named vector
 }
+\examples{
+\dontrun{
+get_segments()
+}
+
+}
 \keyword{internal}
