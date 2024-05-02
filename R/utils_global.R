@@ -102,7 +102,7 @@ get_segment_name <- function(segment_id){
 #'
 #' @keywords internal
 #'
-filtering_agg <- function(data,
+filter_agg <- function(data,
                           date_range = NULL,
                           segments = NULL,
                           direction = NULL,
@@ -171,7 +171,7 @@ filtering_agg <- function(data,
 #'
 #' @keywords internal
 #'
-which_vacations <- function(date, vacation){
+is_vacation <- function(date, vacation){
   date <- as.POSIXct(date)
   vacation_test <- vacation %>%
     mutate(date = date,

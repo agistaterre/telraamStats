@@ -102,6 +102,6 @@ enrich_special_days <- function(data, vacations = NULL, public_holidays = NULL){
   set_global_vars(vacations, public_holidays)
   enriched_data <- data %>%
     mutate(holiday = (.data$day %in% pkg.globals$public_holidays),
-           vacation = lapply(.data$date, function(x){which_vacations(x, pkg.globals$vacations)}))
+           vacation = lapply(.data$date, function(x){is_vacation(x, pkg.globals$vacations)}))
   return(enriched_data)
 }

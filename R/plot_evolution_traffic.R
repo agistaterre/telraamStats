@@ -23,11 +23,11 @@ gg_traffic_evolution <- function(enriched_data,
                                  smoothed = TRUE,
                                  agg_day = TRUE){
 
-  result <- filtering_agg(enriched_data,
-                          date_range = date_range,
-                          segments = segments,
-                          modes = modes,
-                          direction = direction)
+  result <- filter_agg(enriched_data,
+                       date_range = date_range,
+                       segments = segments,
+                       modes = modes,
+                       direction = direction)
 
   # Aggregation by day or by date
   agg_level = if_else(agg_day, "date", "day")
@@ -39,11 +39,11 @@ gg_traffic_evolution <- function(enriched_data,
   graph <- ggplot(traffic, aes_string(x = agg_level, y = "traffic_sum")) +
     geom_line() +
     labs(title = "Traffic over time",
-         subtitle = graph_subtitles(weekdays= result$weekday,
-                                    segments= result$segment,
-                                    directions= result$direction,
-                                    modes= result$mode,
-                                    hours = result$hour)) +
+         subtitle = get_graph_subtitles(weekdays= result$weekday,
+                                        segments= result$segment,
+                                        directions= result$direction,
+                                        modes= result$mode,
+                                        hours = result$hour)) +
     xlab("Date") +
     ylab(paste("Number of", paste(result$mode, collapse = " and "))) +
     theme_bw() +

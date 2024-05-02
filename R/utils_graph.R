@@ -14,11 +14,11 @@
 #'
 #' @keywords internal
 #'
-graph_subtitles <- function(segments = NULL,
-                            modes = NULL,
-                            directions = NULL,
-                            weekdays = NULL,
-                            hours = NULL
+get_graph_subtitles <- function(segments = NULL,
+                                modes = NULL,
+                                directions = NULL,
+                                weekdays = NULL,
+                                hours = NULL
 ){
   subtitle_list = c()
   if(!is.null(modes)){
@@ -85,7 +85,7 @@ check_options_graph <- function(options_selected, options_available, default){
 #'
 #' @keywords internal
 #'
-custom_colors_palette <- function(segments){
+get_custom_palette <- function(segments){
 
   colors_mode = c(
     "car" = '#F95335',

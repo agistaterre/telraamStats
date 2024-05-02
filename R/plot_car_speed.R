@@ -24,12 +24,12 @@ gg_car_speed_histogram <- function(enriched_data,
                                    aggregated_by = NULL){
 
   # filtering data and create speed labels
-  result <- car_speed_preprocessing(enriched_data,
-                                    date_range,
-                                    segments,
-                                    weekday,
-                                    hours,
-                                    aggregated_by)
+  result <- preprocess_car_speed(enriched_data,
+                                 date_range,
+                                 segments,
+                                 weekday,
+                                 hours,
+                                 aggregated_by)
 
   # aggregate speed histogramm
   id.vars = c('segment_name','weekday','traffic_sum')
@@ -62,7 +62,7 @@ gg_car_speed_histogram <- function(enriched_data,
                                     fill = as.factor(.data[[aggregated_by]]))) +
       geom_bar(stat = 'identity', position = position_dodge()) +
       scale_fill_manual(name = aggregated_by,
-                         values = custom_colors_palette(seg)[[aggregated_by]])
+                         values = get_custom_palette(seg)[[aggregated_by]])
   } else {
     graph <- ggplot(speed_hist, aes(x = .data$speed_class,
                                     y = .data$speed_prop)) +
@@ -74,9 +74,9 @@ gg_car_speed_histogram <- function(enriched_data,
           legend.position = 'bottom') +
     scale_y_continuous(labels = percent) +
     labs(title = "Speed Histogram",
-         subtitle = graph_subtitles(weekdays= result$weekday,
-                                    segments= result$segment,
-                                    hours= result$hour)
+         subtitle = get_graph_subtitles(weekdays= result$weekday,
+                                        segments= result$segment,
+                                        hours= result$hour)
          ) +
     xlab('') + ylab("Proportion of cars")
 
@@ -111,12 +111,12 @@ gg_car_speed_v85 <- function(enriched_data,
                              aggregated_by = NULL){
 
   # filtering data and create speed labels
-  result <- car_speed_preprocessing(enriched_data,
-                                    date_range,
-                                    segments,
-                                    weekday,
-                                    hours,
-                                    aggregated_by)
+  result <- preprocess_car_speed(enriched_data,
+                                 date_range,
+                                 segments,
+                                 weekday,
+                                 hours,
+                                 aggregated_by)
 
   # Aggregation
   if(length(aggregated_by)>1){
@@ -138,7 +138,7 @@ gg_car_speed_v85 <- function(enriched_data,
                                  y = .data$v85_avg,
                                  color = as.factor(.data[[aggregated_by]]))) +
       scale_color_manual(name = aggregated_by,
-                         values = custom_colors_palette(seg)[[aggregated_by]])
+                         values = get_custom_palette(seg)[[aggregated_by]])
   } else {
     graph <- ggplot(traffic, aes(x = .data$hour,
                                     y = .data$v85_avg))
@@ -147,9 +147,9 @@ gg_car_speed_v85 <- function(enriched_data,
   graph <- graph +
     geom_line() +
     labs(title = "Average of v85 (15% of drivers drive faster)",
-         subtitle = graph_subtitles(weekdays= result$weekday,
-                                    segments= result$segment
-                                    )) +
+         subtitle = get_graph_subtitles(weekdays= result$weekday,
+                                        segments= result$segment
+                                        )) +
     xlab("Hour") +
     ylab("Average v85 for this period") +
     theme_bw() +
@@ -177,7 +177,7 @@ gg_car_speed_v85 <- function(enriched_data,
 #'
 #' @keywords internal
 #'
-car_speed_preprocessing <- function(enriched_data,
+preprocess_car_speed <- function(enriched_data,
                                     date_range,
                                     segments,
                                     weekday,
@@ -189,11 +189,11 @@ car_speed_preprocessing <- function(enriched_data,
                                        NULL)
 
   # filtering data
-  result <- filtering_agg(enriched_data,
-                          date_range = date_range,
-                          segments = segments,
-                          weekdays = weekday,
-                          hours = hours)
+  result <- filter_agg(enriched_data,
+                       date_range = date_range,
+                       segments = segments,
+                       weekdays = weekday,
+                       hours = hours)
   result$data <- result$data %>% filter(.data$mode == 'car',
                                         .data$direction == 'both')
 

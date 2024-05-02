@@ -29,12 +29,12 @@ gg_traffic_avg <- function(enriched_data,
     direction = c('lft','rgt')
   }
 
-  result <- filtering_agg(enriched_data,
-                          date_range = date_range,
-                          segments = segments,
-                          modes = modes,
-                          direction = direction,
-                          weekdays = weekday)
+  result <- filter_agg(enriched_data,
+                       date_range = date_range,
+                       segments = segments,
+                       modes = modes,
+                       direction = direction,
+                       weekdays = weekday)
 
   # Aggregation
   if(length(aggregated_by)!=1){
@@ -54,17 +54,17 @@ gg_traffic_avg <- function(enriched_data,
                                color = as.factor(.data[[aggregated_by]]))) +
     geom_line() +
     labs(title = paste("Average traffic per", aggregated_by),
-         subtitle = graph_subtitles(weekdays= result$weekday,
-                                    segments= result$segment,
-                                    directions= result$direction,
-                                    modes= result$mode,
-                                    hours = result$hour)) +
+         subtitle = get_graph_subtitles(weekdays= result$weekday,
+                                        segments= result$segment,
+                                        directions= result$direction,
+                                        modes= result$mode,
+                                        hours = result$hour)) +
     xlab("Hour") +
     ylab(paste("Number of", paste(result$mode, collapse = " and "))) +
     theme_bw() +
     theme(legend.position = "bottom") +
     scale_color_manual(name = aggregated_by,
-                       values = custom_colors_palette(seg)[[aggregated_by]]) +
+                       values = get_custom_palette(seg)[[aggregated_by]]) +
     ylim(0, NA)
 
   return(graph)
