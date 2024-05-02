@@ -38,7 +38,8 @@ plot_deseas <- function(data, sensor1,sensor2, hour_x, direction1, direction2, m
   # seasonal
   graphiques$seasonal <- ggplot(seas) + geom_line(aes(x=date,y=.data$seas,col=.data$sensor),size=1)+
     scale_x_continuous(breaks = 1:7,
-                       labels = c("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")) +
+                       labels = c('monday','tuesday','wednesday',
+                                  'thursday','friday','saturday','sunday')) +
     ggtitle('Seasonal')+
     put_ticks+
     theme_bw()+

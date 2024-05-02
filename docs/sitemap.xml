@@ -22,7 +22,16 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/index.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/news/index.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/api_state.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/car_speed_preprocessing.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/check_options_graph.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/convert_string_to_list.html</loc>
@@ -31,7 +40,25 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/create_config.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/custom_colors_palette.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/decompose_2_fct.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_dates.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_name.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_special_days.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_traffic.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/enrich_uptime.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/filter_date.html</loc>
@@ -46,10 +73,25 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/filtering.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/filtering_agg.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_segment_name.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_segments.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_telraam_token.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_availability.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_car_speed_histogram.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_car_speed_v85.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_na_dist.html</loc>
@@ -58,7 +100,16 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_na_heatmap.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_traffic_avg.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_traffic_evolution.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/gg_working_sensor.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/graph_subtitles.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/imp_na.html</loc>
@@ -71,6 +122,9 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/melt_direction_mode.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/na_prop.html</loc>
@@ -116,6 +170,9 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/traffic.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/which_vacations.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/write_update_data.html</loc>

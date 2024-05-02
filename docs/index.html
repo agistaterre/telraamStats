@@ -5,16 +5,18 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="Tools to download, analyse and visualise mobility data from Telraam sensors &lt;https://telraam.net/en/what-is-telraam&gt;.
-    Powers a shiny app for the use case of Châteaubourg city (France): &lt;https://agistaterre.shinyapps.io/mov-around/&gt;.">
-<title>Analysis of Mobility Data from Telraam Sensors • telraamStats</title>
+<meta name="description" content="Toolkit to streamline the processing of Telraam data, sourced from open data
+    mobility sensors. These tools range from data retrieval (without the need for
+    API knowledge) to data visualization, including data preprocessing.">
+<title>Retrieval and Visualization of Mobility Data from Telraam Sensors • telraamStats</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Analysis of Mobility Data from Telraam Sensors">
-<meta property="og:description" content="Tools to download, analyse and visualise mobility data from Telraam sensors &lt;https://telraam.net/en/what-is-telraam&gt;.
-    Powers a shiny app for the use case of Châteaubourg city (France): &lt;https://agistaterre.shinyapps.io/mov-around/&gt;.">
+<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Retrieval and Visualization of Mobility Data from Telraam Sensors">
+<meta property="og:description" content="Toolkit to streamline the processing of Telraam data, sourced from open data
+    mobility sensors. These tools range from data retrieval (without the need for
+    API knowledge) to data visualization, including data preprocessing.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -47,6 +49,9 @@
     <a class="dropdown-item" href="articles/data_visualization.html">Visualize and analyse traffic</a>
   </div>
 </li>
+<li class="nav-item">
+  <a class="nav-link" href="news/index.html">Changelog</a>
+</li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="search.json" id="search-input" placeholder="Search for" autocomplete="off">
@@ -54,7 +59,7 @@
 
       <ul class="navbar-nav">
 <li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/agistaterre/telraamStats/" aria-label="github">
+  <a class="external-link nav-link" href="https://github.com/KetsiaGuichard/telraamStats/" aria-label="github">
     <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
@@ -70,8 +75,28 @@
 <div class="section level1">
 <div class="page-header"><h1 id="telraamstats">telraamStats<a class="anchor" aria-label="anchor" href="#telraamstats"></a>
 </h1></div>
-<p>The aim of this package is to grant the user tools for data visualisation and data analysis of mobility data for Telraam sensors. It reuses and expands on functionnalities from this <a href="https://agistaterre.shinyapps.io/mov-around/" class="external-link"><code>application</code></a>.</p>
-<p><a href="https://github.com/agistaterre/mov-around" class="external-link"><code>Link to the Github</code></a></p>
+<p>The aim of this package is to grant the user tools for data visualisation and data analysis of mobility data for Telraam sensors.</p>
+<p>An example of using this package can be seen in this <a href="https://agistaterre.shinyapps.io/mov-around/" class="external-link"><code>application</code></a>, although it also utilizes more advanced representations.</p>
+<p><a href="https://github.com/KetsiaGuichard/telraamStats" class="external-link"><code>Link to Github repository</code></a></p>
+<p>This package is currently in a development version, feel free to contact us for more information !</p>
+</div>
+<div class="section level1">
+<h1 id="telraam-sensors">Telraam Sensors<a class="anchor" aria-label="anchor" href="#telraam-sensors"></a>
+</h1>
+<p><a href="https://telraam.net/en/what-is-telraam" class="external-link">Telraam</a> is a Belgian company that offers a citizen-powered solution for gathering diverse traffic data using an affordable device. The sensor continuously monitors street activity from a citizen’s window, capturing data on various transportation modes like cars, heavy vehicles, cyclists, and pedestrians. This data is crucial for informing traffic planning and engaging local communities in dialogue with authorities.</p>
+<p>The sensors employs advanced AI and proprietary algorithms to detect, classify and count road users, providing anonymous, aggregate data with a 15-minute resolution. The device operates autonomously once installed in an upper-floor window with an unobstructed view of the street. Data collected by Telraam devices can be shared as Open Data.</p>
+<p>For more information or to view the map of currently available sensors, you can visit the <a href="https://telraam.net" class="external-link">Telraam website</a>.</p>
+</div>
+<div class="section level1">
+<h1 id="specific-terms">Specific Terms<a class="anchor" aria-label="anchor" href="#specific-terms"></a>
+</h1>
+<p>Telraam data includes specific terms that are essential for further use of this package :</p>
+<ul>
+<li>
+<strong><em>segment</em></strong> is the abbreviated term for a road segment. A road segment is a part of a road, defined by a set of geographical coordinate pairs and a Telraam id. These segments are defined typically between two corners of a street, so a longer street will most likely consist of multiple road segments ;</li>
+<li>a <strong><em>sensor</em></strong> is the device that measures traffic in a specific segment. Multiple sensors can be associated with the same road segment, but a unique sensor is not linked to multiple segments. Sensors are also defined by their configuration, primarily their version (either V1 or S2, with S2 being the most advanced version of Telraam devices) ;</li>
+<li>the <strong><em>uptime</em></strong>: Telraam V1 sensors don’t count trafic 100% of the time. A portion of their time is used for calculations and preprocessing. The uptime is the percentage of time during which the counter is actively counting. Data provided through the Telraam API is already corrected for this uptime but Telraam recommends keeping an eye on the uptime values. A high uptime, typically between 0.7-0.8, indicates very good data. The first and last daylight hour of the day will consistently have lower uptimes due to the aforementioned reasons, but if uptimes during the day are below 0.5, it usually indicates a potential issue with the instance. Uptime for Telraam S2 units is almost always 1.</li>
+</ul>
 </div>
 <div class="section level1">
 <h1 id="licence">Licence<a class="anchor" aria-label="anchor" href="#licence"></a>
@@ -101,12 +126,17 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"data-details"</span><span class="op">)</span></span></code></pre></div>
 <p>Or directly read this page : <code><a href="articles/data-details.html">vignette("data-details")</a></code>.</p>
 </div>
+<div class="section level1">
+<h1 id="future-developments">Future Developments<a class="anchor" aria-label="anchor" href="#future-developments"></a>
+</h1>
+<p>Future developments will focus on data quality topics: descriptive statistics and visualizations of data quality, as well as imputation methods for data with low <code>update</code> frequencies (indicating low quality).</p>
+</div>
 
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/agistaterre/telraamStats/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/agistaterre/telraamStats/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/KetsiaGuichard/telraamStats/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/KetsiaGuichard/telraamStats/issues/" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

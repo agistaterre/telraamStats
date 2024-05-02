@@ -28,11 +28,14 @@
     <a class="dropdown-item" href="../articles/data_visualization.html">Visualize and analyse traffic</a>
   </div>
 </li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
+</li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
       <ul class="navbar-nav"><li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/agistaterre/telraamStats/" aria-label="github">
+  <a class="external-link nav-link" href="https://github.com/KetsiaGuichard/telraamStats/" aria-label="github">
     <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
@@ -77,13 +80,27 @@
           
           <code><a href="filtering.html">filtering()</a></code> 
         </dt>
-        <dd>Filter by selected criteria.
-Not all criteria need to be filled in. Unfilled criteria are set by default so that no filtering is performed.</dd>
+        <dd>Filter by selected criteria.</dd>
       </dl><dl><dt>
           
           <code><a href="get_telraam_token.html">get_telraam_token()</a></code> 
         </dt>
         <dd>Get the current authentication Token for the telraam API</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gg_availability.html">gg_availability()</a></code> 
+        </dt>
+        <dd>Availability and quality of sensors during a period through a heatmap.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gg_car_speed_histogram.html">gg_car_speed_histogram()</a></code> 
+        </dt>
+        <dd>Histogram of car speed over a period, for a segment or a subset of segment.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gg_car_speed_v85.html">gg_car_speed_v85()</a></code> 
+        </dt>
+        <dd>Average of v85 car speed per hour over a period, for a segment or a subset of segment.</dd>
       </dl><dl><dt>
           
           <code><a href="gg_na_dist.html">gg_na_dist()</a></code> 
@@ -96,6 +113,18 @@ The function gives a graphical representation of NA's distribution (monthly) dur
         </dt>
         <dd>gg_na_heatmap
 This function generates a heatmap representation of the proportion of missing values (NA) for different sensors over monthly periods during a selected time frame.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gg_traffic_avg.html">gg_traffic_avg()</a></code> 
+        </dt>
+        <dd>Average of traffic during a week over a period for a segment or a subset of segment,
+for a transportation mode or more, for a direction or both.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gg_traffic_evolution.html">gg_traffic_evolution()</a></code> 
+        </dt>
+        <dd>Evolution of traffic (global, per mode ou per direction), smoothed traffic
+during a period.</dd>
       </dl><dl><dt>
           
           <code><a href="gg_working_sensor.html">gg_working_sensor()</a></code> 
