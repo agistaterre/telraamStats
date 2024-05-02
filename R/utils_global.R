@@ -52,13 +52,18 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #' @description
 #' Get Telraam segments info in yml file and transform them into a named vector
 #'
-#' @return Named vector with names and segment IDs
+#' @return Named vector with names and segment IDs, NULL if there is no configuration file
 #' @importFrom stats setNames
 #'
 #' @keywords internal
 #'
 get_segments <- function(){
-  segments <- config::get(file = "inst/config.yml")$segments
+  file_path = "inst/config.yml"
+  if(!file.exists(file_path)){
+    segments <- NULL
+  } else {
+    segments <- config::get(file = "inst/config.yml")$segments
+  }
   return(segments)
 }
 
@@ -67,13 +72,16 @@ get_segments <- function(){
 #'
 #' @param segment_id ID of segment, should be present in inst/config.yml
 #'
-#' @return Name of the segment, as specified in the configuration file
+#' @return Name of the segment, as specified in the configuration file, NULL otherwise.
 #' @export
 #'
 #' @keywords internal
 #'
 get_segment_name <- function(segment_id){
   segments <- get_segments()
+  if(is.null(segments)){
+    return(NULL)
+  }
   if(!segment_id %in% segments){
     message('This ID is unknown. Please update configuration file.')
     return(NULL)

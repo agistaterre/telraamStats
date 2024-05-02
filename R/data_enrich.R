@@ -78,6 +78,7 @@ enrich_dates <- function(data){
 #' enrich_name(df)
 #'
 enrich_name <- function(data){
+
   enriched_data <- data %>%
     mutate(segment_name = lapply(.data$segment_id, get_segment_name)) %>%
     unite("segment_fullname", .data$segment_id, .data$segment_name, sep = ' - ', remove = FALSE)

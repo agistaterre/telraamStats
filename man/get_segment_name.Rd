@@ -10,7 +10,7 @@ get_segment_name(segment_id)
 \item{segment_id}{ID of segment, should be present in inst/config.yml}
 }
 \value{
-Name of the segment, as specified in the configuration file
+Name of the segment, as specified in the configuration file, NULL otherwise.
 }
 \description{
 Get the name of a segment giving its id

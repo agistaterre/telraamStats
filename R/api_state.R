@@ -10,13 +10,14 @@
 #' @importFrom httr VERB
 #'
 #' @examples
+#' \dontrun{
 #' my_token <- 'ThisIsNotAValidToken'
 #' get_api_state(my_token)
-#'
+#' }
 get_api_state <- function(key = get_telraam_token()){
   file_path = "inst/config.yml"
   if(!file.exists(file_path)){
-    create_config
+    create_config()
   }
   key <- c(
     'X-Api-Key' = key
