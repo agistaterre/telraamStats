@@ -25,7 +25,7 @@ The data is retrieved for a specified time period between \code{start_date} and 
 \examples{
 \dontrun{
 period <- as.Date(c('2022-01-01', '2022-12-31'))
-retrieve_sensor(9000001844, period[1], period[2])
+retrieve_sensor('RteVitre-06', period[1], period[2])
 }
 
 }
