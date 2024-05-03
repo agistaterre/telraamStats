@@ -11,8 +11,8 @@
 #' @keywords internal
 #'
 #' @examples
-#' enriched_traffic <- enrich_traffic(traffic)
-#' setdiff(colnames(enriched_traffic), colnames(traffic))
+#' enriched_traffic <- enrich_traffic(traffic[0:10,])
+#' setdiff(colnames(enriched_traffic[0:10,]), colnames(traffic[0:10,]))
 #'
 enrich_traffic <- function(data){
   enriched_data <- enrich_dates(data)

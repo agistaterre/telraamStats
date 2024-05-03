@@ -116,10 +116,10 @@ get_segment_name <- function(segment_id){
 #'
 #' @param data Traffic Data Frame
 #' @param date_range Date vector, c("aaaa-mm-jj","aaaa-mm-jj")
-#' @param segment Vector of character. Ids of desired segments.
+#' @param segments Vector of character. Ids of desired segments.
 #' @param direction Vector of character. Direction of the street (lft, right, both).
 #' @param modes Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")
-#' @param weekday Vector of character. Weekday(s) choosen.
+#' @param weekdays Vector of character. Weekday(s) choosen.
 #' @param hours Integer vector. Hours choosen, default to the all day.
 #'
 #' @return the filtered data, molten by mode and direction, with new columns :

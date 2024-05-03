@@ -20,15 +20,15 @@ filter_agg(
 
 \item{date_range}{Date vector, c("aaaa-mm-jj","aaaa-mm-jj")}
 
+\item{segments}{Vector of character. Ids of desired segments.}
+
 \item{direction}{Vector of character. Direction of the street (lft, right, both).}
 
 \item{modes}{Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")}
 
+\item{weekdays}{Vector of character. Weekday(s) choosen.}
+
 \item{hours}{Integer vector. Hours choosen, default to the all day.}
-
-\item{segment}{Vector of character. Ids of desired segments.}
-
-\item{weekday}{Vector of character. Weekday(s) choosen.}
 }
 \value{
 the filtered data, molten by mode and direction, with new columns :

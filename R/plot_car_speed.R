@@ -17,10 +17,12 @@
 #' @importFrom scales percent
 #'
 #' @examples
-#' gg_car_speed_histogram(traffic)
-#' gg_car_speed_histogram(traffic,
+#' library(dplyr)
+#' subset_traffic <- traffic %>% filter(day < '2022-02-01', hour > 9)
+#' gg_car_speed_histogram(subset_traffic)
+#' gg_car_speed_histogram(subset_traffic,
 #'   aggregated_by = 'segment_name')
-#' gg_car_speed_histogram(traffic,
+#' gg_car_speed_histogram(subset_traffic,
 #'   weekday = c('monday','sunday'),
 #'   segments = 'RteVitre-06',
 #'   hours = 17:20,
@@ -116,9 +118,11 @@ gg_car_speed_histogram <- function(enriched_data,
 #' @importFrom stats weighted.mean
 #'
 #' @examples
-#' gg_car_speed_histogram(traffic)
-#' gg_car_speed_histogram(traffic, aggregated_by = 'segment_name')
-#' gg_car_speed_histogram(traffic,
+#' library(dplyr)
+#' subset_traffic <- traffic %>% filter(day < '2022-02-01', hour > 9)
+#' gg_car_speed_histogram(subset_traffic[0:100,])
+#' gg_car_speed_histogram(subset_traffic, aggregated_by = 'segment_name')
+#' gg_car_speed_histogram(subset_traffic,
 #'   weekday = c('monday','sunday'),
 #'   segments = 'RteVitre-06',
 #'   hours = 17:20,

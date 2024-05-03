@@ -17,8 +17,8 @@ This function add day, weekday, hour, segment_name and full_name and uptime qual
 This function is already used by the data retrievement process.
 }
 \examples{
-enriched_traffic <- enrich_traffic(traffic)
-setdiff(colnames(enriched_traffic), colnames(traffic))
+enriched_traffic <- enrich_traffic(traffic[0:10,])
+setdiff(colnames(enriched_traffic[0:10,]), colnames(traffic[0:10,]))
 
 }
 \keyword{internal}

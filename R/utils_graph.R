@@ -94,7 +94,7 @@ check_options_graph <- function(options_selected, options_available, default){
 #'
 #' @keywords internal
 #'
-#' get_custom_palette(c("Route1","Route2"))
+#' get_custom_palette(c("Route1", "Route2"))
 #'
 get_custom_palette <- function(segments){
 
