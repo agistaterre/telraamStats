@@ -15,6 +15,9 @@ list of color palettes (named vector) for each option (mode, direction, segment_
 \description{
 Colors palettes for each option (mode, direction, segment_name, weekday, hour)
 }
-\keyword{"Route2"))}
-\keyword{get_custom_palette(c("Route1",}
+\examples{
+segments <- c('Route1', 'Route2')
+get_custom_palette(segments)
+
+}
 \keyword{internal}
