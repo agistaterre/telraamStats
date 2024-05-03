@@ -18,3 +18,6 @@ graph showing availability and quality of sensors over the selected date range.
 Higher is the uptime average, higher is the quality of data.
 A null uptime means that the sensor wasn't available during this period.
 }
+\examples{
+ gg_availability(traffic)
+}

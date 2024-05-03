@@ -13,6 +13,16 @@ write_update_data(segment_name, start_date, end_date)
 
 \item{end_date}{Date. End date "aaaa-mm-jj"}
 }
+\value{
+Boolean : TRUE if the data is well saved/written, FALSE otherwise (no data for example)
+}
 \description{
 Writes or updates the sensor data in the data folder. It retrieves the data for the specified sensor between \code{start_date} and \code{end_date} (inclusive) using the \code{retrieve_sensor} function, and then converts certain columns to character strings before writing the data to a RData file in the data folder.
+}
+\examples{
+\dontrun{
+period <- as.Date(c('2022-01-01', '2022-12-31'))
+write_update_data('RteVitre-06', period[1], period[2])
+}
+
 }

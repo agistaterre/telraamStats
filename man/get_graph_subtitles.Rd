@@ -13,18 +13,25 @@ get_graph_subtitles(
 )
 }
 \arguments{
-\item{segments}{Character vector. Selected road segment, all if NULL (default).}
+\item{segments}{Character vector. Selected road segment to text, no precision if NULL (default).}
 
-\item{modes}{Character vector. Different modes of transportation aggregated (heavy, car, bike, pedestrian) . Default: heavy & car}
+\item{modes}{Character vector. Different modes of transportation selected (heavy, car, bike, pedestrian). Default: NULL}
 
-\item{directions}{Character vector. Direction of the traffic (lft, rgt, both). Default to both.}
+\item{directions}{Character vector. Directions of the traffic (lft, rgt, both) choosen. Default to NULL.}
 
-\item{weekdays}{Character vector. Weekday choosen. Default to the all week.}
+\item{weekdays}{Character vector. Weekdays choosen. Default to NULL.}
+
+\item{hours}{Numeric vector. Hours choosen. Default to NULL.}
 }
 \value{
-DataFrame with one row per hour/segment/transportation mode/direction
+Character, with a description of all parameters filled, usable as subtitle for graphs.
 }
 \description{
 Create subtitles for graphics.
+}
+\examples{
+get_graph_subtitles(segments = c("Route1"),
+  mode = "car", direction = "lft", weekdays = "monday", hours = 12:14)
+
 }
 \keyword{internal}

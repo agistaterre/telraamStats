@@ -19,4 +19,13 @@ Options consistent with the possibilities
 \description{
 Check if options are available in the options list, replace by a default otherwise.
 }
+\examples{
+check_options_graph(c('car','pedestrian'),
+  c('car','pedestrian','bike','heavy'),c('car','heavy'))
+check_options_graph(c('coucou','salut'),
+  c('car','pedestrian','bike','heavy'),c('car','heavy'))
+check_options_graph(NULL,
+  c('car','pedestrian','bike','heavy'),c('car','heavy'))
+
+}
 \keyword{internal}

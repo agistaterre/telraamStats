@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">telraamStats</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,6 +80,10 @@
 <dd><p>Date vector, c("aaaa-mm-jj","aaaa-mm-jj")</p></dd>
 
 
+<dt>segments</dt>
+<dd><p>Vector of character. Ids of desired segments.</p></dd>
+
+
 <dt>direction</dt>
 <dd><p>Vector of character. Direction of the street (lft, right, both).</p></dd>
 
@@ -88,25 +92,84 @@
 <dd><p>Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")</p></dd>
 
 
+<dt>weekdays</dt>
+<dd><p>Vector of character. Weekday(s) choosen.</p></dd>
+
+
 <dt>hours</dt>
 <dd><p>Integer vector. Hours choosen, default to the all day.</p></dd>
-
-
-<dt>segment</dt>
-<dd><p>Vector of character. Ids of desired segments.</p></dd>
-
-
-<dt>weekday</dt>
-<dd><p>Vector of character. Weekday(s) choosen.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>the filtered data with a new column "traffic" with aggregated data for specified direction/modes</p>
-    </div>
+<p>the filtered data, molten by mode and direction, with new columns :</p><ul><li><p><code>mode</code>, the mode, one row per different transportation mode + date/hour + direction</p></li>
+<li><p><code>direction</code>, the direction, one row per different transportation mode + date/hour + direction</p></li>
+<li><p><code>traffic_sum</code>, the traffic for this mode/direction on this specific date/hour</p></li>
+</ul></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">date_range</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'2022-01-01'</span>,<span class="st">'2022-01-08'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">filter_agg</span><span class="op">(</span><span class="va">traffic</span>,</span></span>
+<span class="r-in"><span>  date_range <span class="op">=</span> <span class="va">date_range</span>,</span></span>
+<span class="r-in"><span>  segments <span class="op">=</span> <span class="st">'RteVitre-06'</span>,</span></span>
+<span class="r-in"><span>  direction <span class="op">=</span> <span class="st">'lft'</span>,</span></span>
+<span class="r-in"><span>  modes <span class="op">=</span> <span class="st">'pedestrian'</span>,</span></span>
+<span class="r-in"><span>  weekdays <span class="op">=</span> <span class="st">'saturday'</span>,</span></span>
+<span class="r-in"><span>  hours <span class="op">=</span> <span class="fl">12</span><span class="op">:</span><span class="fl">14</span>,</span></span>
+<span class="r-in"><span>  uptime_quality <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $data</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  date        day hour  weekday holiday         vacation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2022-01-01 12:00:00 2022-01-01   12 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 2022-01-01 13:00:00 2022-01-01   13 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 2022-01-08 12:00:00 2022-01-08   12 saturday   FALSE      No vacation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 2022-01-08 13:00:00 2022-01-08   13 saturday   FALSE      No vacation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 2022-01-08 14:00:00 2022-01-08   14 saturday   FALSE      No vacation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   segment_name  v85</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  RteVitre-06  6.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  RteVitre-06 40.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  RteVitre-06 43.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  RteVitre-06 44.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  RteVitre-06 44.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                   car_speed_hist_0to70plus</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                 100, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        0.000000, 2.222222, 11.111111, 63.333333, 22.222222, 0.000000, 0.000000, 1.111111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 6.3333333, 3.6666667, 3.6666667, 41.3333333, 38.6666667, 6.0000000, 0.0000000, 0.3333333</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 1.7667845, 3.1802120, 3.5335689, 41.6961131, 45.2296820, 4.2402827, 0.3533569, 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 0.9740260, 0.3246753, 2.9220779, 48.7012987, 40.9090909, 5.8441558, 0.0000000, 0.3246753</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                                                                                                                                                                               car_speed_hist_0to120plus</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                                                                                                                                                           0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                           0.000000, 0.000000, 0.000000, 2.222222, 3.333333, 7.777778, 22.222222, 41.111111, 16.666667, 5.555556, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.111111, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  3.6666667, 2.6666667, 1.6666667, 2.0000000, 1.0000000, 2.6666667, 14.0000000, 27.3333333, 29.0000000, 9.6666667, 5.3333333, 0.6666667, 0.0000000, 0.0000000, 0.3333333, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 1.0600707, 0.7067138, 1.4134276, 1.7667845, 0.7067138, 2.8268551, 13.7809187, 27.9151943, 28.9752650, 16.2544170, 3.5335689, 0.7067138, 0.0000000, 0.3533569, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 0.9740260, 0.0000000, 0.3246753, 0.0000000, 0.9740260, 1.9480519, 14.2857143, 34.4155844, 28.8961039, 12.0129870, 4.8701299, 0.9740260, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.3246753, 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      uptime uptime_quality       mode direction traffic_sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.7875000           TRUE pedestrian       lft   16.507937</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 0.7277778           TRUE pedestrian       lft   10.992366</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 0.7808333           TRUE pedestrian       lft    0.000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 0.7922222           TRUE pedestrian       lft    1.262272</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 0.7922222           TRUE pedestrian       lft    1.262272</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $segment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "RteVitre-06"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "pedestrian"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $direction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "lft"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $weekday</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "saturday"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $hour</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 12 13 14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 

@@ -1,7 +1,8 @@
-#'Availability and quality of sensors during a period through a heatmap.
+#' Availability and quality of sensors during a period through a heatmap.
 #'
-#'Higher is the uptime average, higher is the quality of data.
-#'A null uptime means that the sensor wasn't available during this period.
+#' @description
+#' Higher is the uptime average, higher is the quality of data.
+#' A null uptime means that the sensor wasn't available during this period.
 #'
 #' @param enriched_data enriched data.frame containing all the data for all your sensors
 #' @param date_range Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL.
@@ -14,6 +15,8 @@
 #' @importFrom tidyr replace_na
 #' @importFrom paletteer scale_fill_paletteer_c
 #'
+#' @examples
+#'  gg_availability(traffic)
 gg_availability <- function(enriched_data,
                             date_range = NULL){
   if(length(date_range) > 1){

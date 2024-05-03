@@ -1,4 +1,3 @@
-
 #' Traffic data of Telraam sensors in Châteaubourg (FR)
 #'
 #' Telraam sensors continously monitor a street form a citizen window.

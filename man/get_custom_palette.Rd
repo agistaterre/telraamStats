@@ -2,17 +2,22 @@
 % Please edit documentation in R/utils_graph.R
 \name{get_custom_palette}
 \alias{get_custom_palette}
-\title{Colors palettes for each option}
+\title{Colors palettes for each option (mode, direction, segment_name, weekday, hour)}
 \usage{
 get_custom_palette(segments)
 }
 \arguments{
-\item{segments}{List of characters. Segments name of the dataframe.}
+\item{segments}{Character vectors. Segments name of the dataframe.}
 }
 \value{
-list of color palettes (named vector) for each option
+list of color palettes (named vector) for each option (mode, direction, segment_name, weekday, hour)
 }
 \description{
-Colors palettes for each option
+Colors palettes for each option (mode, direction, segment_name, weekday, hour)
+}
+\examples{
+segments <- c('Route1', 'Route2')
+get_custom_palette(segments)
+
 }
 \keyword{internal}

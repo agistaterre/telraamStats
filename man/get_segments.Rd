@@ -7,9 +7,15 @@
 get_segments()
 }
 \value{
-Named vector with names and segment IDs
+Named vector with names and segment IDs, NULL if there is no configuration file
 }
 \description{
 Get Telraam segments info in yml file and transform them into a named vector
+}
+\examples{
+\dontrun{ #run if you want to create a inst/ directory containing config file
+  create_config()
+  get_segments()
+}
 }
 \keyword{internal}

@@ -15,7 +15,17 @@ retrieve_sensor(segment_name, start_date, end_date, key = get_telraam_token())
 
 \item{key}{the api key (set by the set_telraam_token function)}
 }
+\value{
+Dataframe from Telraam API, enriched with \code{enrich_traffic()} function.
+}
 \description{
 Retrieves data associated with a sensor from the Telraam API.
 The data is retrieved for a specified time period between \code{start_date} and \code{end_date} (inclusive).
+}
+\examples{
+\dontrun{
+period <- as.Date(c('2022-01-01', '2022-12-31'))
+retrieve_sensor('RteVitre-06', period[1], period[2])
+}
+
 }

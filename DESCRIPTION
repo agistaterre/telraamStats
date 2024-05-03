@@ -1,16 +1,16 @@
 Package: telraamStats
 Title: Retrieval and Visualization of Mobility Data from 'Telraam' Sensors
-Version: 1.0.0.9000
+Version: 1.1.0
 Authors@R: c(
     person("Lilou", "Augeray", email = "lilou.augeray@etudiant.univ-rennes.fr", role = "aut"),
-    person("Ulysse", "Caromel", email = "caromelulysse@gmail.com", role = "aut", comment = c(ORCID = "YOUR-ORCID-ID")),
-    person("Ketsia", "Guichard", email = "ketsia.guichard@univ-rennes.fr", role = "aut", comment = c(ORCID = "0009-0002-2280-7465")),    
-    person("Pascal", "Irz", email = "pascal.irz@gmail.com", role = "cre", comment = c(ORCID = "0000-0002-2066-8935")),    
+    person("Ulysse", "Caromel", email = "caromelulysse@gmail.com", role = "aut"),
+    person("Ketsia", "Guichard", email = "ketsia.guichard@univ-rennes.fr", role = "cre", comment = c(ORCID = "0009-0002-2280-7465")),    
+    person("Pascal", "Irz", email = "pascal.irz@gmail.com", role = "aut", comment = c(ORCID = "0000-0002-2066-8935")),    
     person("Mijin", "Park", email = "mijinpark@orange.fr", role = "aut"),
     person("Tanguy", "Richard", email = "tanguy.richard@etudiant.univ-rennes1.fr", role = "aut"),
     person("Agis-ta-terre", email = "agistaterre35@gmail.com", role = c("cph", "fnd"))
     )
-Description: Toolkit to streamline the processing of 'Telraam' data, sourced from open data
+Description: Streamline the processing of 'Telraam' data, sourced from open data
     mobility sensors. These tools range from data retrieval (without the need for
     API knowledge) to data visualization, including data preprocessing.
 License: file LICENSE
@@ -38,7 +38,7 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: http://annuaire.agistaterre.org/telraamStats/
+URL: https://annuaire.agistaterre.org/telraamStats/
 Depends: 
     R (>= 2.10)
 LazyData: true

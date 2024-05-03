@@ -6,9 +6,17 @@
 #' @param start_date Date. Start date "aaaa-mm-jj"
 #' @param end_date Date. End date "aaaa-mm-jj"
 #'
+#' @return Boolean : TRUE if the data is well saved/written, FALSE otherwise (no data for example)
+#'
 #' @importFrom lubridate ymd
 #'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' period <- as.Date(c('2022-01-01', '2022-12-31'))
+#' write_update_data('RteVitre-06', period[1], period[2])
+#' }
 #'
 write_update_data <- function(segment_name, start_date, end_date){
 
@@ -17,7 +25,8 @@ write_update_data <- function(segment_name, start_date, end_date){
 
   # Handle the case where there is no data
   if(nrow(data) == 0){
-    stop("No data for this period")
+    message("No data for this period")
+    result = FALSE
   }
 
   # conversion from a numeric vector to a character string of car_speed_hist_0to70plus and car_speed_hist_0to120plus
@@ -36,5 +45,10 @@ write_update_data <- function(segment_name, start_date, end_date){
       data <- data[!duplicated(data$date),] # if some lines are repeated they are eliminated
     }
     save(data, file = file_name)
+    result = TRUE
   }
+  else {
+    result = FALSE
+  }
+  return(result)
 }

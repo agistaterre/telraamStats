@@ -1,5 +1,9 @@
-#'Evolution of traffic (global, per mode ou per direction), smoothed traffic
-#'during a period.
+#'Evolution of traffic and smoothed traffic.
+#'
+#' @description
+#' Evolution of traffic (global, per mode ou per direction), smoothed traffic
+#' during a period.
+#'
 #'
 #' @param enriched_data enriched data.frame containing all the data for all your sensors
 #' @param date_range Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).
@@ -15,6 +19,15 @@
 #' @import dplyr
 #' @import ggplot2
 #'
+#' @examples
+#' gg_traffic_evolution(traffic)
+#' gg_traffic_evolution(traffic,
+#'   date_range = c('2022-01-01','2022-03-01'),
+#'   segment = 'RteVitre-06',
+#'   mode = c('car','pedestrian'),
+#'   direction = 'lft',
+#'   smoothed = FALSE,
+#'   agg_day = FALSE)
 gg_traffic_evolution <- function(enriched_data,
                                  date_range = NULL,
                                  segments = NULL,

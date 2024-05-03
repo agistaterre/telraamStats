@@ -17,4 +17,7 @@ DataFrame with one row per hour/segment/transportation mode/direction
 Melt dataframe to obtain one row per hour/segment/transportation mode/direction
 This format makes graphs with ggplot and filtering easier.
 }
+\examples{
+melt_direction_mode(traffic[0:2,])
+}
 \keyword{internal}

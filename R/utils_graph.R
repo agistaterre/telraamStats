@@ -1,18 +1,19 @@
 #' Create subtitles for graphics.
 #'
-#' @param segments Character vector. Selected road segment, all if NULL (default).
-#' @param modes Character vector. Different modes of transportation aggregated (heavy, car, bike, pedestrian) . Default: heavy & car
-#' @param directions Character vector. Direction of the traffic (lft, rgt, both). Default to both.
-#' @param weekdays Character vector. Weekday choosen. Default to the all week.
+#' @param segments Character vector. Selected road segment to text, no precision if NULL (default).
+#' @param modes Character vector. Different modes of transportation selected (heavy, car, bike, pedestrian). Default: NULL
+#' @param directions Character vector. Directions of the traffic (lft, rgt, both) choosen. Default to NULL.
+#' @param weekdays Character vector. Weekdays choosen. Default to NULL.
+#' @param hours Numeric vector. Hours choosen. Default to NULL.
 #'
-#' @return DataFrame with one row per hour/segment/transportation mode/direction
+#' @return Character, with a description of all parameters filled, usable as subtitle for graphs.
 #' @export
 #'
-#' @import dplyr
-#' @import reshape2
-#' @importFrom tidyr unnest
-#'
 #' @keywords internal
+#'
+#' @examples
+#' get_graph_subtitles(segments = c("Route1"),
+#'   mode = "car", direction = "lft", weekdays = "monday", hours = 12:14)
 #'
 get_graph_subtitles <- function(segments = NULL,
                                 modes = NULL,
@@ -47,14 +48,22 @@ get_graph_subtitles <- function(segments = NULL,
 
 #' Check if options are available in the options list, replace by a default otherwise.
 #'
-#'@param options_selected List of characters. Selected options.
-#'@param options_available List of characters. Valid options.
-#'@param default List of characters. Default options.
+#' @param options_selected List of characters. Selected options.
+#' @param options_available List of characters. Valid options.
+#' @param default List of characters. Default options.
 #'
-#'@return Options consistent with the possibilities
-#'@export
+#' @return Options consistent with the possibilities
+#' @export
 #'
-#'@keywords internal
+#' @keywords internal
+#'
+#' @examples
+#' check_options_graph(c('car','pedestrian'),
+#'   c('car','pedestrian','bike','heavy'),c('car','heavy'))
+#' check_options_graph(c('coucou','salut'),
+#'   c('car','pedestrian','bike','heavy'),c('car','heavy'))
+#' check_options_graph(NULL,
+#'   c('car','pedestrian','bike','heavy'),c('car','heavy'))
 #'
 check_options_graph <- function(options_selected, options_available, default){
   unknown = setdiff(options_selected, options_available)
@@ -74,16 +83,20 @@ check_options_graph <- function(options_selected, options_available, default){
   return(options)
 }
 
-#' Colors palettes for each option
+#' Colors palettes for each option (mode, direction, segment_name, weekday, hour)
 #'
-#' @param segments List of characters. Segments name of the dataframe.
+#' @param segments Character vectors. Segments name of the dataframe.
 #'
-#' @return list of color palettes (named vector) for each option
+#' @return list of color palettes (named vector) for each option (mode, direction, segment_name, weekday, hour)
 #' @export
 #'
 #' @import paletteer
 #'
 #' @keywords internal
+#'
+#' @examples
+#' segments <- c('Route1', 'Route2')
+#' get_custom_palette(segments)
 #'
 get_custom_palette <- function(segments){
 

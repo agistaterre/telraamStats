@@ -11,7 +11,14 @@ seq_by_3_month(start_date, end_date)
 
 \item{end_date}{Date. End date in "yyyy-mm-dd" format.}
 }
+\value{
+Dataframe with a \code{start} and an \code{end} columns, each row represents 3 months period.
+}
 \description{
 This function is used internally in the \code{retrieve_sensor} function to generate a sequence of intervals with three-month periods. It takes a start date (\code{start_date}) and an end date (\code{end_date}), and returns a data frame with two columns representing the start and end dates of each interval.
+}
+\examples{
+seq_by_3_month(as.Date('2023-11-01'),as.Date('2024-11-01'))
+
 }
 \keyword{internal}

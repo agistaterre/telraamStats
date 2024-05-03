@@ -163,4 +163,4 @@ By importing data from your own road segments (following the previous steps) or 
 -   *car_speed_hist_0to70plus, car_speed_hist_0to120plus* : the estimated car speed distribution in 10 km/h bins from 0 to 70+ km/h or 120+ km/h (in percentage) ;
 -   *v85* : estimated car speed limit in km/h that 85% of all cars respect.
 
-Complete data description can be found in the data documentation of this package, or you can refer to the [Telraam API website](https://documenter.getpostman.com/view/8210376/TWDRqyaV#3bb3c6bd-ea23-4329-b885-0d142403ecbb) for further details.
+Complete data description can be found in the data documentation of this package, or you can refer to the [Telraam API website](https://telraam-api.net/) for further details.

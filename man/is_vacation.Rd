@@ -2,8 +2,7 @@
 % Please edit documentation in R/utils_global.R
 \name{is_vacation}
 \alias{is_vacation}
-\title{Indicates if a date is in vacation period and if true, which vacation.
-If the date is not in a vacation period, "No vacation" is returned.}
+\title{Indicates if a date is in vacation period and if true, which vacation.}
 \usage{
 is_vacation(date, vacation)
 }
@@ -16,7 +15,12 @@ is_vacation(date, vacation)
 Vacation description if the day is between two dates, "No vacation" otherwise.
 }
 \description{
-Indicates if a date is in vacation period and if true, which vacation.
 If the date is not in a vacation period, "No vacation" is returned.
+}
+\examples{
+vacation <- data.frame('description' = c('Vacances de Noël'),
+  start_date = as.POSIXct('2021-12-17 23:00:00'),
+  end_date = as.POSIXct('2022-01-02 23:00:00'))
+is_vacation(as.Date('2022-01-01'), vacation)
 }
 \keyword{internal}

@@ -30,5 +30,17 @@ gg_car_speed_v85(
 graph showing the average of v85 speed per hour.
 }
 \description{
-Average of v85 car speed per hour over a period, for a segment or a subset of segment.
+v85 is the estimated car speed limit in km/h that 85\% of all cars respect.
+15\% of drivers drive faster than this v85 indicator.
+}
+\examples{
+library(dplyr)
+subset_traffic <- traffic \%>\% filter(day < '2022-02-01', hour > 9)
+gg_car_speed_histogram(subset_traffic[0:100,])
+gg_car_speed_histogram(subset_traffic, aggregated_by = 'segment_name')
+gg_car_speed_histogram(subset_traffic,
+  weekday = c('monday','sunday'),
+  segments = 'RteVitre-06',
+  hours = 17:20,
+  aggregated_by = "weekday")
 }

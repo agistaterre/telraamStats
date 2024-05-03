@@ -10,9 +10,17 @@ import_sensor(list_sensor)
 \item{list_sensor}{A character vector specifying the names of sensors to import data for.}
 }
 \value{
-A data.frame containing the imported data.
+A dataframe containing the imported data.
 }
 \description{
 Imports data associated with a given list of sensor names from .RData files contained in a data directory.
 The main purpose of this function is to load the data saved with write update data.
+}
+\examples{
+\dontrun{
+period <- as.Date(c('2022-01-01', '2022-12-31'))
+write_update_data('RteVitre-06', period[1], period[2])
+write_update_data('ParisArcEnCiel-05', period[1], period[2])
+import_sensor(c('RteVitre-06', 'ParisArcEnCiel-05'))
+}
 }

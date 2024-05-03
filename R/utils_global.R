@@ -1,18 +1,25 @@
 pkg.globals <- new.env(parent = emptyenv())
 
-#' Function to set up the global variables for public holidays an vacations, with the default
+#' Function to set up the global variables for public holidays and vacations, with the default
 #' being the french dates from a governmental API.
 #'
 #' @param vacations data frame containing the vacation dates
 #' @param public_holidays data frame containing the public holidays dates
 #'
+#' @return Don't return anything, set up the global variables for public holidays and vacations.
+#'
 #' @importFrom httr GET content
 #' @importFrom jsonlite fromJSON
 #' @importFrom lubridate ymd_hms
 #' @importFrom rlang .data
+#' @export
 #'
-#'@keywords internal
+#' @keywords internal
 #'
+#' @examples
+#' pkg.globals <- new.env(parent = emptyenv())
+#' set_global_vars()
+#' print(pkg.globals$vacations)
 set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 
   if(is.null(vacations)){
@@ -44,6 +51,7 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
   else{
     pkg.globals$public_holidays <- public_holidays
   }
+  return(invisible(NULL))
 }
 
 
@@ -52,13 +60,25 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #' @description
 #' Get Telraam segments info in yml file and transform them into a named vector
 #'
-#' @return Named vector with names and segment IDs
+#' @return Named vector with names and segment IDs, NULL if there is no configuration file
 #' @importFrom stats setNames
 #'
 #' @keywords internal
 #'
+#' @export
+#'
+#' @examples
+#' \dontrun{ #run if you want to create a inst/ directory containing config file
+#'   create_config()
+#'   get_segments()
+#' }
 get_segments <- function(){
-  segments <- config::get(file = "inst/config.yml")$segments
+  file_path = "inst/config.yml"
+  if(!file.exists(file_path)){
+    segments <- NULL
+  } else {
+    segments <- config::get(file = "inst/config.yml")$segments
+  }
   return(segments)
 }
 
@@ -67,16 +87,24 @@ get_segments <- function(){
 #'
 #' @param segment_id ID of segment, should be present in inst/config.yml
 #'
-#'
-#' @return Name of the segment, as specified in the configuration file
+#' @return Name of the segment, as specified in the configuration file, NULL otherwise.
 #' @export
 #'
 #' @keywords internal
 #'
+#' @examples
+#' \dontrun{ #run if you want to create a inst/ directory containing config file
+#'   create_config()
+#'   get_segment_name(9000000000)
+#'   }
 get_segment_name <- function(segment_id){
   segments <- get_segments()
+  if(is.null(segments)){
+    return(NULL)
+  }
   if(!segment_id %in% segments){
-    stop('This ID is unknown. Please update configuration file.')
+    message('This ID is unknown. Please update configuration file.')
+    return(NULL)
   }
   return(names(segments)[segments==segment_id])
 }
@@ -88,13 +116,16 @@ get_segment_name <- function(segment_id){
 #'
 #' @param data Traffic Data Frame
 #' @param date_range Date vector, c("aaaa-mm-jj","aaaa-mm-jj")
-#' @param segment Vector of character. Ids of desired segments.
+#' @param segments Vector of character. Ids of desired segments.
 #' @param direction Vector of character. Direction of the street (lft, right, both).
 #' @param modes Vector of character. Type(s) of mobility: c("car","heavy","pedestrian","bike")
-#' @param weekday Vector of character. Weekday(s) choosen.
+#' @param weekdays Vector of character. Weekday(s) choosen.
 #' @param hours Integer vector. Hours choosen, default to the all day.
 #'
-#' @return the filtered data with a new column "traffic" with aggregated data for specified direction/modes
+#' @return the filtered data, molten by mode and direction, with new columns :
+#' - `mode`, the mode, one row per different transportation mode + date/hour + direction
+#' - `direction`, the direction, one row per different transportation mode + date/hour + direction
+#' - `traffic_sum`, the traffic for this mode/direction on this specific date/hour
 #'
 #' @export
 #'
@@ -102,6 +133,17 @@ get_segment_name <- function(segment_id){
 #'
 #' @keywords internal
 #'
+#' @examples
+#' date_range = as.Date(c('2022-01-01','2022-01-08'))
+#' filter_agg(traffic,
+#'   date_range = date_range,
+#'   segments = 'RteVitre-06',
+#'   direction = 'lft',
+#'   modes = 'pedestrian',
+#'   weekdays = 'saturday',
+#'   hours = 12:14,
+#'   uptime_quality = TRUE
+#'   )
 filter_agg <- function(data,
                           date_range = NULL,
                           segments = NULL,
@@ -159,6 +201,8 @@ filter_agg <- function(data,
 
 
 #' Indicates if a date is in vacation period and if true, which vacation.
+#'
+#' @description
 #' If the date is not in a vacation period, "No vacation" is returned.
 #'
 #' @param date Date (character format)
@@ -171,6 +215,11 @@ filter_agg <- function(data,
 #'
 #' @keywords internal
 #'
+#' @examples
+#' vacation <- data.frame('description' = c('Vacances de Noël'),
+#'   start_date = as.POSIXct('2021-12-17 23:00:00'),
+#'   end_date = as.POSIXct('2022-01-02 23:00:00'))
+#' is_vacation(as.Date('2022-01-01'), vacation)
 is_vacation <- function(date, vacation){
   date <- as.POSIXct(date)
   vacation_test <- vacation %>%
@@ -200,6 +249,8 @@ is_vacation <- function(date, vacation){
 #'
 #' @keywords internal
 #'
+#' @examples
+#' melt_direction_mode(traffic[0:2,])
 melt_direction_mode <- function(data){
 
   id_cols <- c('date','day','hour','weekday','holiday','vacation','segment_name')

@@ -2,8 +2,7 @@
 % Please edit documentation in R/data_enrich.R
 \name{enrich_traffic}
 \alias{enrich_traffic}
-\title{Enrich traffic data with date features, names and uptime filters.
-This function add day, weekday, hour, segment_name and full_name and uptime quality boolean.}
+\title{Enrich traffic data with date features, names and uptime filters.}
 \usage{
 enrich_traffic(data)
 }
@@ -11,10 +10,15 @@ enrich_traffic(data)
 \item{data}{Raw data frame from the Telraam API, imported through the package.}
 }
 \value{
-Same dataframe with additionnal informations.
+Same dataframe with additionnal informations : day, hour, weekday, holiday, vacation, segment_name, uptime_quality
 }
 \description{
-Enrich traffic data with date features, names and uptime filters.
 This function add day, weekday, hour, segment_name and full_name and uptime quality boolean.
+This function is already used by the data retrievement process.
+}
+\examples{
+enriched_traffic <- enrich_traffic(traffic[0:10,])
+setdiff(colnames(enriched_traffic[0:10,]), colnames(traffic[0:10,]))
+
 }
 \keyword{internal}
