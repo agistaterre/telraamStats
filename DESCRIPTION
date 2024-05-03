@@ -10,7 +10,7 @@ Authors@R: c(
     person("Tanguy", "Richard", email = "tanguy.richard@etudiant.univ-rennes1.fr", role = "aut"),
     person("Agis-ta-terre", email = "agistaterre35@gmail.com", role = c("cph", "fnd"))
     )
-Description: Toolkit to streamline the processing of 'Telraam' data, sourced from open data
+Description: Streamline the processing of 'Telraam' data, sourced from open data
     mobility sensors. These tools range from data retrieval (without the need for
     API knowledge) to data visualization, including data preprocessing.
 License: file LICENSE
@@ -38,7 +38,7 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: http://annuaire.agistaterre.org/telraamStats/
+URL: https://annuaire.agistaterre.org/telraamStats/
 Depends: 
     R (>= 2.10)
 LazyData: true
