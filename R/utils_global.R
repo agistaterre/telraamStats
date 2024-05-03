@@ -17,11 +17,9 @@ pkg.globals <- new.env(parent = emptyenv())
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
 #' pkg.globals <- new.env(parent = emptyenv())
 #' set_global_vars()
 #' print(pkg.globals$vacations)
-#' }
 set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 
   if(is.null(vacations)){
@@ -67,11 +65,13 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #'
 #' @keywords internal
 #'
-#' @examples
-#' \dontrun{
-#' get_segments()
-#' }
+#' @export
 #'
+#' @examples
+#' \dontrun{ #run if you want to create a inst/ directory containing config file
+#'   create_config()
+#'   get_segments()
+#' }
 get_segments <- function(){
   file_path = "inst/config.yml"
   if(!file.exists(file_path)){
@@ -93,9 +93,10 @@ get_segments <- function(){
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
-#' get_segment_name(9000001844)
-#' }
+#' \dontrun{ #run if you want to create a inst/ directory containing config file
+#'   create_config()
+#'   get_segment_name(9000000000)
+#'   }
 get_segment_name <- function(segment_id){
   segments <- get_segments()
   if(is.null(segments)){
@@ -215,11 +216,10 @@ filter_agg <- function(data,
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
-#' pkg.globals <- new.env(parent = emptyenv())
-#' set_global_vars()
-#' is_vacation(as.Date('2022-01-01'), pkg.globals$vacations)
-#' }
+#' vacation <- data.frame('description' = c('Vacances de Noël'),
+#'   start_date = as.POSIXct('2021-12-17 23:00:00'),
+#'   end_date = as.POSIXct('2022-01-02 23:00:00'))
+#' is_vacation(as.Date('2022-01-01'), vacation)
 is_vacation <- function(date, vacation){
   date <- as.POSIXct(date)
   vacation_test <- vacation %>%
@@ -251,7 +251,6 @@ is_vacation <- function(date, vacation){
 #'
 #' @examples
 #' melt_direction_mode(traffic[0:2,])
-#'
 melt_direction_mode <- function(data){
 
   id_cols <- c('date','day','hour','weekday','holiday','vacation','segment_name')

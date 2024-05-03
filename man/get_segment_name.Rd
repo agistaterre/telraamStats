@@ -16,8 +16,9 @@ Name of the segment, as specified in the configuration file, NULL otherwise.
 Get the name of a segment giving its id
 }
 \examples{
-\dontrun{
-get_segment_name(9000001844)
-}
+\dontrun{ #run if you want to create a inst/ directory containing config file
+  create_config()
+  get_segment_name(9000000000)
+  }
 }
 \keyword{internal}

@@ -20,10 +20,8 @@ Function to set up the global variables for public holidays and vacations, with 
 being the french dates from a governmental API.
 }
 \examples{
-\dontrun{
 pkg.globals <- new.env(parent = emptyenv())
 set_global_vars()
 print(pkg.globals$vacations)
-}
 }
 \keyword{internal}

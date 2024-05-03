@@ -19,6 +19,5 @@ This format makes graphs with ggplot and filtering easier.
 }
 \examples{
 melt_direction_mode(traffic[0:2,])
-
 }
 \keyword{internal}

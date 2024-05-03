@@ -18,10 +18,9 @@ Vacation description if the day is between two dates, "No vacation" otherwise.
 If the date is not in a vacation period, "No vacation" is returned.
 }
 \examples{
-\dontrun{
-pkg.globals <- new.env(parent = emptyenv())
-set_global_vars()
-is_vacation(as.Date('2022-01-01'), pkg.globals$vacations)
-}
+vacation <- data.frame('description' = c('Vacances de Noël'),
+  start_date = as.POSIXct('2021-12-17 23:00:00'),
+  end_date = as.POSIXct('2022-01-02 23:00:00'))
+is_vacation(as.Date('2022-01-01'), vacation)
 }
 \keyword{internal}

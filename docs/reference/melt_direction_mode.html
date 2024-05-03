@@ -80,6 +80,111 @@ This format makes graphs with ggplot and filtering easier.</p>
 <p>DataFrame with one row per hour/segment/transportation mode/direction</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">melt_direction_mode</span><span class="op">(</span><span class="va">traffic</span><span class="op">[</span><span class="fl">0</span><span class="op">:</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       date        day hour  weekday holiday         vacation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11 2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13 2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14 2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17 2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18 2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19 2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20 2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21 2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22 2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23 2022-01-01 01:00:00 CET 2022-01-01    1 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24 2022-01-01 02:00:00 CET 2022-01-01    2 saturday    TRUE Vacances de Noël</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    segment_name v85 car_speed_hist_0to70plus</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9   RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24  RteVitre-06  NA   0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                    car_speed_hist_0to120plus</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    uptime uptime_quality       mode direction traffic_sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       0          FALSE pedestrian      both           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       0          FALSE pedestrian      both           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       0          FALSE       bike      both           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4       0          FALSE       bike      both           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       0          FALSE      heavy      both           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       0          FALSE      heavy      both           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7       0          FALSE        car      both           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8       0          FALSE        car      both           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9       0          FALSE pedestrian       lft           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10      0          FALSE pedestrian       lft           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11      0          FALSE       bike       lft           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12      0          FALSE       bike       lft           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13      0          FALSE      heavy       lft           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14      0          FALSE      heavy       lft           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15      0          FALSE        car       lft           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16      0          FALSE        car       lft           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17      0          FALSE pedestrian       rgt           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18      0          FALSE pedestrian       rgt           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19      0          FALSE       bike       rgt           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20      0          FALSE       bike       rgt           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21      0          FALSE      heavy       rgt           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22      0          FALSE      heavy       rgt           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23      0          FALSE        car       rgt           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24      0          FALSE        car       rgt           0</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 

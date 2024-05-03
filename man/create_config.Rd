@@ -18,7 +18,7 @@ this function create a local configuration template file
 in the \verb{\\inst} directory, to edit with specific information.
 }
 \examples{
-\dontrun{
-create_config()
+\dontrun{ #run if you want to create a inst/ directory containing config file
+  create_config()
 }
 }
