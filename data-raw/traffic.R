@@ -1,6 +1,6 @@
 # If your Telraam token isn't in your environment variables
 # please fill the argument of set_telraam_token function
-if (!api_state()) {
+if (!get_api_state()) {
   set_telraam_token('yourTelraamToken')
 }
 
@@ -11,6 +11,7 @@ period <- as.Date(c('2022-01-01', '2022-12-31'))
 # Get Data from API
 traffic <- data.frame()
 for (segment in segments) {
+  print(segment)
   traffic_tmp <-
     retrieve_sensor(segment, period[1], period[2])
   traffic <- rbind(traffic, traffic_tmp)
