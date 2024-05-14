@@ -58,15 +58,19 @@ retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_
       rawToChar() %>%
       fromJSON()
     df <- content$report
-    df$date <- format(ymd_hms(df$date, tz = df$timezone[1]), "%Y-%m-%d %H:%M:%S %Z")
-    df <- enrich_traffic(df)
+    if (length(df)>0){
+      df$date <- format(ymd_hms(df$date, tz = df$timezone[1]), "%Y-%m-%d %H:%M:%S %Z")
+      df <- enrich_traffic(df)
+    }
     df
   })
 
   result <- bind_rows(resTraffic_list)
 
-  if (length(result$date)!=0){ # in case the download is empty
+  if (length(result) > 0){ # in case the download is empty
     result$date <- format(ymd_hms(result$date, tz = result$timezone[1]),"%Y-%m-%d %H:%M:%S %Z") # We change the class of date with a time difference of 2
+  } else {
+    message("There is no data for the selected period.")
   }
   return(result)
 }
