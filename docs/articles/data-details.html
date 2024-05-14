@@ -468,21 +468,23 @@ function. Once executed, you find a <code>config.yml</code> file in the
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/create_config.html">create_config</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The file already contains the following template, which you can
-modify (directly in the yml file) to add your own segments (in a numeric
-format, without quotes)</p>
+modify (directly in the yml file) to add your own segments, adhering to
+the format of the template, that is, segment name (without quotes),
+followed by a colon, then the segment number within quotes :
+<code>segmentName: '9000000000'</code>.</p>
 <pre><code>default:
   url: https://telraam-api.net/v1
   segments:
-    segment-01:9000000000
-    segment-02:9000000000</code></pre>
+    segment-01: '9000000000'
+    segment-02: '9000000000'</code></pre>
 <p>You can specify as many segments as you want and personalize the
 segment’s names.</p>
 <pre><code>default:
   url: https://telraam-api.net/v1
   segments:
-    MyFirstSegment:9000000000
-    My-second-segment:9000000000
-    My_3rd_segment:9000000000</code></pre>
+    MyFirstSegment: '9000000000'
+    My-second-segment: '9000000000'
+    My_3rd_segment: '9000000000'</code></pre>
 </div>
 <div class="section level4">
 <h4 id="get-data-for-your-road-segments">4. Get data for your road segments<a class="anchor" aria-label="anchor" href="#get-data-for-your-road-segments"></a>

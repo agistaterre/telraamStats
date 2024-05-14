@@ -105,14 +105,14 @@ This file can be created using the `create_config()` function. Once executed, yo
 create_config()
 ```
 
-The file already contains the following template, which you can modify (directly in the yml file) to add your own segments (in a numeric format, without quotes)
+The file already contains the following template, which you can modify (directly in the yml file) to add your own segments, adhering to the format of the template, that is, segment name (without quotes), followed by a colon, then the segment number within quotes : `segmentName: '9000000000'`.
 
 ```         
 default:
   url: https://telraam-api.net/v1
   segments:
-    segment-01:9000000000
-    segment-02:9000000000
+    segment-01: '9000000000'
+    segment-02: '9000000000'
 ```
 
 You can specify as many segments as you want and personalize the segment's names.
@@ -121,9 +121,9 @@ You can specify as many segments as you want and personalize the segment's names
 default:
   url: https://telraam-api.net/v1
   segments:
-    MyFirstSegment:9000000000
-    My-second-segment:9000000000
-    My_3rd_segment:9000000000
+    MyFirstSegment: '9000000000'
+    My-second-segment: '9000000000'
+    My_3rd_segment: '9000000000'
 ```
 
 #### 4. Get data for your road segments
