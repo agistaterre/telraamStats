@@ -8,9 +8,7 @@ The aim of this package is to grant the user tools for data visualisation and da
 
 An example of using this package can be seen in this [`application`](https://agistaterre.shinyapps.io/mov-around/), although it also utilizes more advanced representations.
 
-[`Link to Github repository`](https://github.com/KetsiaGuichard/telraamStats) 
-
-This package is currently in a development version, feel free to contact us for more information !
+[`Link to Github repository`](https://github.com/agistaterre/telraamStats) 
 
 # Telraam Sensors
 
@@ -38,28 +36,17 @@ This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 Inter
 
 # Install Package
 
-If you want to install this package from Github, you can use the devtools package:
-
 ``` r
-if(!require(devtools)){
-    install.packages("devtools")
-}
-devtools::install_github("https://github.com/KetsiaGuichard/telraamStats",
-                              dependencies = TRUE, 
-                              build_vignettes = TRUE)
+install.packages('telraamStats')
+library(telraamStats)
 ```
 
-Vignette (and the entire package) is currently in a development version. If you wish to review the vignette, the `build_vignettes` argument is mandatory.
 
 # Vignettes
 
-Once the package is installed, you can run the following command to view the first vignette :
-
-``` r
-vignette("data-details")
-```
-
-Or directly read this page : `vignette("data-details")`.
+Two vignettes are currently available: 
+-   one explaining the retrieval of Telraam data and describing the data included in the package (`vignette("data-details")`)
+-   the second detailing the available graphical representations (`vignette("data-visualization")`).
 
 # Future Developments
 
