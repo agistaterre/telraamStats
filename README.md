@@ -45,6 +45,7 @@ library(telraamStats)
 # Vignettes
 
 Two vignettes are currently available: 
+
 -   one explaining the retrieval of Telraam data and describing the data included in the package (`vignette("data-details")`)
 -   the second detailing the available graphical representations (`vignette("data-visualization")`).
 
