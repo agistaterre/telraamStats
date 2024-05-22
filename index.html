@@ -41,8 +41,8 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/data_visualization.html">Visualize and analyse traffic</a>
     <a class="dropdown-item" href="articles/data-details.html">Gathering data</a>
+    <a class="dropdown-item" href="articles/data-visualization.html">Visualize and analyse traffic</a>
   </div>
 </li>
 <li class="nav-item">
@@ -73,8 +73,7 @@
 </h1></div>
 <p>The aim of this package is to grant the user tools for data visualisation and data analysis of mobility data for Telraam sensors.</p>
 <p>An example of using this package can be seen in this <a href="https://agistaterre.shinyapps.io/mov-around/" class="external-link"><code>application</code></a>, although it also utilizes more advanced representations.</p>
-<p><a href="https://github.com/KetsiaGuichard/telraamStats" class="external-link"><code>Link to Github repository</code></a></p>
-<p>This package is currently in a development version, feel free to contact us for more information !</p>
+<p><a href="https://github.com/agistaterre/telraamStats" class="external-link"><code>Link to Github repository</code></a></p>
 </div>
 <div class="section level1">
 <h1 id="telraam-sensors">Telraam Sensors<a class="anchor" aria-label="anchor" href="#telraam-sensors"></a>
@@ -104,23 +103,14 @@
 <div class="section level1">
 <h1 id="install-package">Install Package<a class="anchor" aria-label="anchor" href="#install-package"></a>
 </h1>
-<p>If you want to install this package from Github, you can use the devtools package:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/" class="external-link">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"https://github.com/KetsiaGuichard/telraamStats"</span>,</span>
-<span>                              dependencies <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                              build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p>Vignette (and the entire package) is currently in a development version. If you wish to review the vignette, the <code>build_vignettes</code> argument is mandatory.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">'telraamStats'</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://annuaire.agistaterre.org/telraamStats/" class="external-link">telraamStats</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level1">
 <h1 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
 </h1>
-<p>Once the package is installed, you can run the following command to view the first vignette :</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"data-details"</span><span class="op">)</span></span></code></pre></div>
-<p>Or directly read this page : <code><a href="articles/data-details.html">vignette("data-details")</a></code>.</p>
+<p>Two vignettes are currently available: - one explaining the retrieval of Telraam data and describing the data included in the package (<code><a href="articles/data-details.html">vignette("data-details")</a></code>) - the second detailing the available graphical representations (<code><a href="articles/data-visualization.html">vignette("data-visualization")</a></code>).</p>
 </div>
 <div class="section level1">
 <h1 id="future-developments">Future Developments<a class="anchor" aria-label="anchor" href="#future-developments"></a>
