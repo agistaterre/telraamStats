@@ -1,0 +1,6 @@
+url: https://ketsiaguichard.github.io/telraamStats/
+template:
+  bootstrap: 5
+  bootswatch: materia
+  bslib:
+    pkgdown-nav-height: 100px

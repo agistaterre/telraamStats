@@ -1,0 +1,44 @@
+Package: telraamStats
+Title: Retrieval and Visualization of Mobility Data from 'Telraam' Sensors
+Version: 1.1.0
+Authors@R: c(
+    person("Lilou", "Augeray", email = "lilou.augeray@etudiant.univ-rennes.fr", role = "aut"),
+    person("Ulysse", "Caromel", email = "caromelulysse@gmail.com", role = "aut"),
+    person("Ketsia", "Guichard", email = "ketsia.guichard@univ-rennes.fr", role = "cre", comment = c(ORCID = "0009-0002-2280-7465")),    
+    person("Pascal", "Irz", email = "pascal.irz@gmail.com", role = "aut", comment = c(ORCID = "0000-0002-2066-8935")),    
+    person("Mijin", "Park", email = "mijinpark@orange.fr", role = "aut"),
+    person("Tanguy", "Richard", email = "tanguy.richard@etudiant.univ-rennes1.fr", role = "aut"),
+    person("Agis-ta-terre", email = "agistaterre35@gmail.com", role = c("cph", "fnd"))
+    )
+Description: Streamline the processing of 'Telraam' data, sourced from open data
+    mobility sensors. These tools range from data retrieval (without the need for
+    API knowledge) to data visualization, including data preprocessing.
+License: file LICENSE
+BugReports: https://github.com/KetsiaGuichard/telraamStats/issues/
+Imports:
+    config,
+    dplyr,
+    ggplot2,
+    httr,
+    jsonlite,
+    lubridate,
+    paletteer,
+    purrr,
+    reshape2,
+    rlang,
+    scales,
+    tidyr,
+    yaml
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://annuaire.agistaterre.org/telraamStats/
+Depends: 
+    R (>= 2.10)
+LazyData: true
