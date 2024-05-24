@@ -68,10 +68,8 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #' @export
 #'
 #' @examples
-#' \dontrun{ #run if you want to create a inst/ directory containing config file
-#'   create_config()
-#'   get_segments()
-#' }
+#' create_config()
+#' get_segments()
 get_segments <- function(){
   file_path = "inst/config.yml"
   if(!file.exists(file_path)){

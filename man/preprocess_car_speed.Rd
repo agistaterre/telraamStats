@@ -33,14 +33,12 @@ list of parameters and data preprocessed.
 Preprocessing mandatory for car speed graphs functions
 }
 \examples{
-\dontrun{
 preprocess_car_speed(traffic,
   date_range = c('2022-01-01','2022-03-01'),
   segments = 'RteVitre-06',
   weekday = c('monday','sunday'),
   hours = 17:20,
   aggregated_by = "weekday")
-}
 
 }
 \keyword{internal}

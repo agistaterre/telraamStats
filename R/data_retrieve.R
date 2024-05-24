@@ -18,7 +18,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \dontrun{ # This function requires a valid API key
 #' period <- as.Date(c('2022-01-01', '2022-12-31'))
 #' retrieve_sensor('RteVitre-06', period[1], period[2])
 #' }

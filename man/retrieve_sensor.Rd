@@ -23,7 +23,7 @@ Retrieves data associated with a sensor from the Telraam API.
 The data is retrieved for a specified time period between \code{start_date} and \code{end_date} (inclusive).
 }
 \examples{
-\dontrun{
+\dontrun{ # This function requires a valid API key
 period <- as.Date(c('2022-01-01', '2022-12-31'))
 retrieve_sensor('RteVitre-06', period[1], period[2])
 }

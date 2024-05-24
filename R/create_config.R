@@ -13,9 +13,7 @@
 #' @importFrom yaml write_yaml
 #'
 #' @examples
-#' \dontrun{ #run if you want to create a inst/ directory containing config file
-#'   create_config()
-#' }
+#' create_config()
 create_config <- function(overwrite=FALSE){
   file_path = "inst/config.yml"
   template <- list("default"=list("url"="https://telraam-api.net/v1",
