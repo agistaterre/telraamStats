@@ -13,7 +13,7 @@ Named vector with names and segment IDs, NULL if there is no configuration file
 Get Telraam segments info in yml file and transform them into a named vector
 }
 \examples{
-create_config()
+create_config(create_directory = FALSE)
 get_segments()
 }
 \keyword{internal}

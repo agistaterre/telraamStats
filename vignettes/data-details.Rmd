@@ -101,7 +101,7 @@ Each road segment has a unique ID, which can be found in the Telraam location UR
 
 This file can be created using the `create_config()` function. Once executed, you find a `config.yml` file in the `inst\` folder of your work directory.
 
-```{r}
+```{r, eval=FALSE}
 create_config()
 ```
 
@@ -124,6 +124,13 @@ default:
     MyFirstSegment: '9000000000'
     My-second-segment: '9000000000'
     My_3rd_segment: '9000000000'
+```
+
+If you don't want to create a folder in your project directory, another option is to use a temporary folder and specify your segments names and IDs directly through the `create_config()` function, but you will have to re-run this command at each session.
+
+```{r, eval=FALSE, echo=TRUE}
+list_of_segments = list("Burel"= "9000002156", "Vitre" = "9000001844")
+create_config(segments = list_of_segments, create_directory = FALSE)
 ```
 
 #### 4. Get data for your road segments

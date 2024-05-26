@@ -32,7 +32,7 @@ retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_
   # Get Segment_id
   if(!is.numeric(segment_name)){
     segment_id <- get_segments()[segment_name]
-    if(is.na(segment_id)){
+    if(is.na(names(segment_id))){
       stop("Segment name unknown")
     }
   }
