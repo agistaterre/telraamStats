@@ -14,7 +14,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \dontrun{ # This example requires a valid API key
 #' period <- as.Date(c('2022-01-01', '2022-12-31'))
 #' write_update_data('RteVitre-06', period[1], period[2])
 #' write_update_data('ParisArcEnCiel-05', period[1], period[2])
@@ -30,8 +30,14 @@ import_sensor <- function(list_sensor){
     }
   }
 
+  if(dir.exists('data/')){
+    folder_path = 'data/'
+  } else {
+    folder_path = paste(tempdir(), '/', sep = "")
+  }
+
   data <- map_dfr(list_sensor, ~ {
-    file <- paste0('data/', .x, '.RData')
+    file <- paste0('folder_path', .x, '.RData')
     if (file.exists(file)) {
       # we select the data that we don't consider null (arbitrary choice)
       import <- load(file)

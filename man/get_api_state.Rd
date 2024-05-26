@@ -16,8 +16,6 @@ Boolean: TRUE if the API responds well, FALSE otherwise.
 Return the state of the 'Telraam' API. Determine if updates can be made.
 }
 \examples{
-\dontrun{
 my_token <- 'ThisIsNotAValidToken'
 get_api_state(my_token)
-}
 }

@@ -17,7 +17,7 @@ Imports data associated with a given list of sensor names from .RData files cont
 The main purpose of this function is to load the data saved with write update data.
 }
 \examples{
-\dontrun{
+\dontrun{ # This example requires a valid API key
 period <- as.Date(c('2022-01-01', '2022-12-31'))
 write_update_data('RteVitre-06', period[1], period[2])
 write_update_data('ParisArcEnCiel-05', period[1], period[2])

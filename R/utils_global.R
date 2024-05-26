@@ -68,20 +68,17 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #' @export
 #'
 #' @examples
-#' \dontrun{ #run if you want to create a inst/ directory containing config file
-#'   create_config()
-#'   get_segments()
-#' }
+#' create_config(create_directory = FALSE)
+#' get_segments()
 get_segments <- function(){
-  file_path = "inst/config.yml"
+  file_path = get_config_path()
   if(!file.exists(file_path)){
     segments <- NULL
   } else {
-    segments <- config::get(file = "inst/config.yml")$segments
+      segments <- config::get(file = file_path)$segments
   }
   return(segments)
 }
-
 
 #' Get the name of a segment giving its id
 #'

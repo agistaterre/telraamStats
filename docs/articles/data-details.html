@@ -466,7 +466,7 @@ segments, you can specify them by editing the
 function. Once executed, you find a <code>config.yml</code> file in the
 <code>inst\</code> folder of your work directory.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_config.html">create_config</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_config.html">create_config</a></span><span class="op">(</span>create_directory <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>The file already contains the following template, which you can
 modify (directly in the yml file) to add your own segments, adhering to
 the format of the template, that is, segment name (without quotes),
@@ -485,6 +485,13 @@ segment’s names.</p>
     MyFirstSegment: '9000000000'
     My-second-segment: '9000000000'
     My_3rd_segment: '9000000000'</code></pre>
+<p>If you don’t want to create a folder in your project directory,
+another option is to use a temporary folder and specify your segments
+names and IDs directly through the <code><a href="../reference/create_config.html">create_config()</a></code>
+function, but you will have to re-run this command at each session.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">list_of_segments</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"Burel"</span><span class="op">=</span> <span class="st">"9000002156"</span>, <span class="st">"Vitre"</span> <span class="op">=</span> <span class="st">"9000001844"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/create_config.html">create_config</a></span><span class="op">(</span>segments <span class="op">=</span> <span class="va">list_of_segments</span>, create_directory <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="get-data-for-your-road-segments">4. Get data for your road segments<a class="anchor" aria-label="anchor" href="#get-data-for-your-road-segments"></a>
@@ -495,27 +502,27 @@ this segment from the Telraam API. This function takes, as arguments,
 the name of the segment, the first and the last day of the period of
 interest. You must use the same names as specified in the configuration
 files and dates must be of the date type.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/retrieve_sensor.html">retrieve_sensor</a></span><span class="op">(</span>segment_name <span class="op">=</span> <span class="st">"segment-01"</span>, </span>
 <span>                start_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-01'</span><span class="op">)</span>, </span>
 <span>                end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>If you want to store the data, you can directly use
 <code><a href="../reference/write_update_data.html">write_update_data()</a></code>, which performs the same task but also
-writes or updates the sensor data in the <code>data/</code> directory in
-.Rdata format. The arguments are the same as those of the previous
-function:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+writes or updates the sensor data in a temporary folder or in the
+<code>data/</code> directory in .Rdata format. The arguments are the
+same as those of the previous function:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/write_update_data.html">write_update_data</a></span><span class="op">(</span>segment_name <span class="op">=</span> <span class="st">"segment-01"</span>,</span>
 <span>                  start_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-01'</span><span class="op">)</span>,</span>
-<span>                  end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/write_update_data.html">write_update_data</a></span><span class="op">(</span><span class="st">"segment-02"</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-08-01'</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                  end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span>,</span>
+<span>                  create_directory <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="co">#TRUE if you want to save the data in a permanent folder</span></span></code></pre></div>
 <p>To retrieve data you have already stored, you can use
 <code><a href="../reference/import_sensor.html">import_sensor()</a></code>. This function imports data associated with
 a given list of sensor names from .RData files contained in the
 <code>data/</code> directory. Here, you should also use the same names
 as specified in the configuration files. All available periods will be
 imported.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/import_sensor.html">import_sensor</a></span><span class="op">(</span>list_sensor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"segment-01"</span>,<span class="st">"segment-02"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>

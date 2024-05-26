@@ -204,14 +204,12 @@ gg_car_speed_v85 <- function(enriched_data,
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
 #' preprocess_car_speed(traffic,
 #'   date_range = c('2022-01-01','2022-03-01'),
 #'   segments = 'RteVitre-06',
 #'   weekday = c('monday','sunday'),
 #'   hours = 17:20,
 #'   aggregated_by = "weekday")
-#' }
 #'
 preprocess_car_speed <- function(enriched_data,
                                  aggregated_by,

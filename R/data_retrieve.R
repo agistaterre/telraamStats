@@ -18,7 +18,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \dontrun{ # This function requires a valid API key
 #' period <- as.Date(c('2022-01-01', '2022-12-31'))
 #' retrieve_sensor('RteVitre-06', period[1], period[2])
 #' }
@@ -32,7 +32,7 @@ retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_
   # Get Segment_id
   if(!is.numeric(segment_name)){
     segment_id <- get_segments()[segment_name]
-    if(is.na(segment_id)){
+    if(is.na(names(segment_id))){
       stop("Segment name unknown")
     }
   }
@@ -41,7 +41,8 @@ retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_
   }
 
   # calling of the API
-  traffic_url <- paste(config::get(file = "inst/config.yml")$url,
+  config_file = get_config_path()
+  traffic_url <- paste(config::get(file = config_file)$url,
                        '/reports/traffic', sep='')
   resTraffic_list <- pmap(list(dates$start, dates$end), ~ {
     resTraffic <- POST(traffic_url,
