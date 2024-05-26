@@ -57,3 +57,42 @@ create_config <- function(segments = list("segment-01"="9000000000",
   }
   return(result)
 }
+
+#'  Get the path of configuration file.
+#'
+#'  The configuration file could be in the `inst` directory, or in a temporary
+#'  directory, according to the `create_directory` option of the `create_config()`
+#'  function. If the configuration file doesn't exist, this function create a file
+#'  in a temporary directory and send a message to the user.
+#'
+#' @return Character: path of the configuration file, needed for a lot of functions.
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @examples
+#' create_config(create_directory=FALSE)
+#' get_config_path()
+get_config_path <- function(){
+  project_folder = "inst/"
+  tmp_folder = paste(tempdir(), "/", sep = "")
+  config_name = "config.yml"
+  if(dir.exists(project_folder)){
+    project_file = paste(project_folder, config_name, sep = "")
+     if(file.exists(project_file)) {
+       return(project_file)
+     }
+  }
+  if(dir.exists(tmp_folder)){
+    tmp_file = paste(tmp_folder, config_name, sep = "")
+    if(file.exists(tmp_file)) {
+      return(tmp_file)
+    }
+  } else {
+    create_config()
+    message("Creation of a default config file in the temp directory, please use create_config() to overwrite.")
+    tmp_file = paste(tmp_folder, config_name, sep = "")
+    return(tmp_file)
+  }
+}

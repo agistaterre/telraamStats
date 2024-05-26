@@ -41,7 +41,8 @@ retrieve_sensor <- function(segment_name,start_date,end_date, key = get_telraam_
   }
 
   # calling of the API
-  traffic_url <- paste(config::get(file = "inst/config.yml")$url,
+  config_file = get_config_path()
+  traffic_url <- paste(config::get(file = config_file)$url,
                        '/reports/traffic', sep='')
   resTraffic_list <- pmap(list(dates$start, dates$end), ~ {
     resTraffic <- POST(traffic_url,

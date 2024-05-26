@@ -71,16 +71,11 @@ set_global_vars <- function(vacations = NULL, public_holidays = NULL){
 #' create_config(create_directory = FALSE)
 #' get_segments()
 get_segments <- function(){
-  file_path = "inst/config.yml"
-  tmp_file_path = paste(tempdir(), 'config.yml', sep = "/")
-  if((!file.exists(file_path)) & (!file.exists(tmp_file_path))){
+  file_path = get_config_path()
+  if(!file.exists(file_path)){
     segments <- NULL
   } else {
-    if(file.exists(file_path)){
       segments <- config::get(file = file_path)$segments
-    } else if(file.exists(tmp_file_path)){
-      segments <- config::get(file = tmp_file_path)$segments
-    }
   }
   return(segments)
 }

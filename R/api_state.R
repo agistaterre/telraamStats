@@ -13,15 +13,14 @@
 #' my_token <- 'ThisIsNotAValidToken'
 #' get_api_state(my_token)
 get_api_state <- function(key = get_telraam_token()){
-  file_path = "inst/config.yml"
-  tmp_file_path = paste(tempdir(), 'config.yml', sep = "/")
-  if((!file.exists(file_path)) & (!file.exists(tmp_file_path))){
+  file_path = get_config_path()
+  if(!file.exists(file_path)){
     create_config(create_directory = FALSE)
   }
   key <- c(
     'X-Api-Key' = key
   )
-  VERB("GET", url = config::get(file = "inst/config.yml")$url,
+  VERB("GET", url = config::get(file = file_path)$url,
        add_headers(key))$status_code == 200  # the request suceeded if equal to 200
 }
 
