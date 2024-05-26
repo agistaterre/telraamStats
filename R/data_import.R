@@ -37,7 +37,7 @@ import_sensor <- function(list_sensor){
   }
 
   data <- map_dfr(list_sensor, ~ {
-    file <- paste0('folder_path', .x, '.RData')
+    file <- paste0(folder_path, .x, '.RData')
     if (file.exists(file)) {
       # we select the data that we don't consider null (arbitrary choice)
       import <- load(file)

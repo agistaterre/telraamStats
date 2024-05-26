@@ -86,13 +86,11 @@ get_config_path <- function(){
   }
   if(dir.exists(tmp_folder)){
     tmp_file = paste(tmp_folder, config_name, sep = "")
-    if(file.exists(tmp_file)) {
-      return(tmp_file)
+    if(!file.exists(tmp_file)) {
+      create_config()
+      message("Creation of a default config file in the temp directory, please use create_config() to overwrite.")
+      tmp_file = paste(tmp_folder, config_name, sep = "")
     }
-  } else {
-    create_config()
-    message("Creation of a default config file in the temp directory, please use create_config() to overwrite.")
-    tmp_file = paste(tmp_folder, config_name, sep = "")
     return(tmp_file)
   }
 }
