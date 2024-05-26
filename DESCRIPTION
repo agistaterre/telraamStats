@@ -1,6 +1,6 @@
 Package: telraamStats
 Title: Retrieval and Visualization of Mobility Data from 'Telraam' Sensors
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: c(
     person("Lilou", "Augeray", email = "lilou.augeray@etudiant.univ-rennes.fr", role = "aut"),
     person("Ulysse", "Caromel", email = "caromelulysse@gmail.com", role = "aut"),
