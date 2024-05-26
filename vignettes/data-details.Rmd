@@ -102,7 +102,7 @@ Each road segment has a unique ID, which can be found in the Telraam location UR
 This file can be created using the `create_config()` function. Once executed, you find a `config.yml` file in the `inst\` folder of your work directory.
 
 ```{r, eval=FALSE}
-create_config()
+create_config(create_directory = TRUE)
 ```
 
 The file already contains the following template, which you can modify (directly in the yml file) to add your own segments, adhering to the format of the template, that is, segment name (without quotes), followed by a colon, then the segment number within quotes : `segmentName: '9000000000'`.
@@ -137,19 +137,19 @@ create_config(segments = list_of_segments, create_directory = FALSE)
 
 Once you have specified the names and IDs of your road segments, you can use the `retrieve_sensor()` function to gather data from this segment from the Telraam API. This function takes, as arguments, the name of the segment, the first and the last day of the period of interest. You must use the same names as specified in the configuration files and dates must be of the date type.
 
-```{r}
+```{r, eval=FALSE}
 retrieve_sensor(segment_name = "segment-01", 
                 start_date = as.Date('2023-09-01'), 
                 end_date = as.Date('2023-09-30'))
 ```
 
-If you want to store the data, you can directly use `write_update_data()`, which performs the same task but also writes or updates the sensor data in the `data/` directory in .Rdata format. The arguments are the same as those of the previous function:
+If you want to store the data, you can directly use `write_update_data()`, which performs the same task but also writes or updates the sensor data in a temporary folder or in the `data/` directory in .Rdata format. The arguments are the same as those of the previous function:
 
-```{r}
+```{r, eval=FALSE}
 write_update_data(segment_name = "segment-01",
                   start_date = as.Date('2023-09-01'),
-                  end_date = as.Date('2023-09-30'))
-write_update_data("segment-02", as.Date('2023-08-01'), as.Date('2023-09-30'))
+                  end_date = as.Date('2023-09-30'),
+                  create_directory = FALSE) #TRUE if you want to save the data in a permanent folder
 ```
 
 To retrieve data you have already stored, you can use `import_sensor()`. This function imports data associated with a given list of sensor names from .RData files contained in the `data/` directory. Here, you should also use the same names as specified in the configuration files. All available periods will be imported.

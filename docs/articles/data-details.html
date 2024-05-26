@@ -466,7 +466,7 @@ segments, you can specify them by editing the
 function. Once executed, you find a <code>config.yml</code> file in the
 <code>inst\</code> folder of your work directory.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_config.html">create_config</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_config.html">create_config</a></span><span class="op">(</span>create_directory <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>The file already contains the following template, which you can
 modify (directly in the yml file) to add your own segments, adhering to
 the format of the template, that is, segment name (without quotes),
@@ -508,14 +508,14 @@ files and dates must be of the date type.</p>
 <span>                end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>If you want to store the data, you can directly use
 <code><a href="../reference/write_update_data.html">write_update_data()</a></code>, which performs the same task but also
-writes or updates the sensor data in the <code>data/</code> directory in
-.Rdata format. The arguments are the same as those of the previous
-function:</p>
+writes or updates the sensor data in a temporary folder or in the
+<code>data/</code> directory in .Rdata format. The arguments are the
+same as those of the previous function:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/write_update_data.html">write_update_data</a></span><span class="op">(</span>segment_name <span class="op">=</span> <span class="st">"segment-01"</span>,</span>
 <span>                  start_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-01'</span><span class="op">)</span>,</span>
-<span>                  end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/write_update_data.html">write_update_data</a></span><span class="op">(</span><span class="st">"segment-02"</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-08-01'</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                  end_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2023-09-30'</span><span class="op">)</span>,</span>
+<span>                  create_directory <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="co">#TRUE if you want to save the data in a permanent folder</span></span></code></pre></div>
 <p>To retrieve data you have already stored, you can use
 <code><a href="../reference/import_sensor.html">import_sensor()</a></code>. This function imports data associated with
 a given list of sensor names from .RData files contained in the
