@@ -1,6 +1,6 @@
 Package: telraamStats
 Title: Retrieval and Visualization of Mobility Data from 'Telraam' Sensors
-Version: 1.1.1
+Version: 1.1.2
 Authors@R: c(
     person("Lilou", "Augeray", email = "lilou.augeray@etudiant.univ-rennes.fr", role = "aut"),
     person("Ulysse", "Caromel", email = "caromelulysse@gmail.com", role = "aut"),
@@ -13,7 +13,7 @@ Authors@R: c(
 Description: Streamline the processing of 'Telraam' data, sourced from open data
     mobility sensors. These tools range from data retrieval (without the need for
     API knowledge) to data visualization, including data preprocessing.
-License: file LICENSE
+License: CC BY 4.0
 BugReports: https://github.com/KetsiaGuichard/telraamStats/issues/
 Imports:
     config,
