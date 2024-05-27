@@ -1,0 +1,578 @@
+```{r}
+remove.packages("telraamStats")
+
+
+devtools::install_github("https://github.com/KetsiaGuichard/telraamStats",
+                              dependencies = TRUE, 
+                              build_vignettes = TRUE,
+                              force = TRUE)
+
+
+
+
+
+library(telraamStats)
+library(lubridate)
+library(tidyverse)
+```
+
+
+```{r}
+usethis::edit_r_environ()
+
+Sys.getenv("token")
+
+```
+
+```{r}
+create_config()
+```
+
+Données manquantes aléatoires unique : Ces données manquantes sont causées par des arrêts de mesure imprévus, généralement liés à des problèmes techniques comme des déconnexions ou des problèmes Wi-Fi, qui affectent un capteur particulier de manière aléatoire. --> Type 1
+
+Données manquantes aléatoires multiple : Il s'agit des données qui n'ont pas pu être collectées par un ensemble de capteurs en raison des conditions météorologiques, telles que la pluie ou la neige, de manière aléatoire. Type 2
+
+Données manquantes saisonnières : Ces données manquantes se reproduisent périodiquement aux mêmes moments sur tous les capteurs. Elles peuvent être liées à des phénomènes saisonniers comme le cycle solaire, par exemple. Pour l'instant, nous considérerons ces données comme absentes et ne proposerons pas d'imputation. --> Type 3   
+
+
+
+#Création de fonction 
+```{r}
+#Faire par proportion de missing data
+groupby_func <- function(data){ 
+  group_all <- data %>%  group_by(hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+  group_missing <- data %>% filter(traffic$uptime < 0.5) %>% group_by(hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+  
+  group <- merge(group_all, group_missing, by = "hour", all = TRUE) %>% rename(n_missing = n.y, n = n.x)
+  group$prop_missing <- group$n_missing / group$n * 100
+  return(group)
+}
+
+#Discrimination des missing data par saisons 
+groupby_season_func <- function(data){ 
+  group_all <- data %>%  group_by(season,hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+  group_missing <- data %>% filter(traffic$uptime < 0.5) %>% group_by(season,hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+  
+  group <- merge(group_all, group_missing, by = c("season","hour"), all = TRUE) %>% rename(n_missing = n.y, n = n.x)
+  group$prop_missing <- group$n_missing / group$n * 100
+  return(group)
+
+}
+
+#Filtrer par saison les heures à conserver avec un seuil de missing data
+filtered_hours_data <- function(data, seuil = 0.85){
+  
+  nrow_start <- nrow(data)
+  
+  #Transform date column to date format
+  data$date <- ymd_hms(data$date)
+  
+  # Add a column for the season or each month 
+  data$season <- ifelse(month(data$date) %in% c(3,4,5), "Spring",
+                         ifelse(month(data$date) %in% c(6,7,8), "Summer",
+                                ifelse(month(data$date) %in% c(9,10,11), "Autumn", "Winter")))
+  
+  
+  #Group by hour of the day and season for all data and missing data
+  group_all <- data %>%  group_by(season,hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+  
+  group_missing <- data %>% filter(data$uptime < 0.5) %>% group_by(season,hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+  
+  
+  #Merge the two dataframes and calculate the proportion of missing data
+  group <- merge(group_all, group_missing, by = c("season","hour"), all = TRUE) %>% rename(n_missing = n.y, n = n.x)
+  group$prop_missing <- group$n_missing / group$n * 100
+  
+  
+    #Create a first plot of the proportion of missing data per hour of the day per season without filtering
+  
+    p1 <- group %>% ggplot(aes(x = hour, y = prop_missing, color = season)) + geom_line() + geom_point() + 
+          labs(title = "Proportion of missing data per hour \n of the day per season before filtering", x = "Hour of the day", y = "Proportion of missing data")
+      
+    
+  # filter the hours where the proportion of missing data is higher than the threshold
+  hour_missing <- group %>% filter(prop_missing > seuil) %>% select(hour, season) %>% unique()
+  
+  
+  #Keep the data where the hour is not in the list of hours with high proportion of missing data and where the uptime 
+  data <- data %>% filter(!(hour(date) %in% hour_missing$hour & season %in% hour_missing$season))
+  
+  
+  #Count the number of missing data
+  number_missing <- nrow(data %>% filter(data$uptime < 0.5))
+  
+  #Count the number of rows removed
+  nrow_substract <-  nrow_start - nrow(data)
+  
+  #Create a second plot of the proportion of missing data per hour of the day per season after filtering
+  #Group by hour of the day and season for all data and missing data
+  group_all_filtered <- data %>%  group_by(season,hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+  
+  group_missing_filtered <- data %>% filter(data$uptime < 0.5) %>% group_by(season,hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+  
+  
+  #Merge the two dataframes and calculate the proportion of missing data
+  group_filtered <- merge(group_all_filtered, group_missing_filtered, by = c("season","hour"), all = TRUE) %>% rename(n_missing = n.y, n = n.x)
+  group_filtered$prop_missing <- group_filtered$n_missing / group_filtered$n * 100
+  
+  p2 <- group_filtered %>% ggplot(aes(x = hour, y = prop_missing, color = season)) + geom_line() + geom_point() + 
+          labs(title = "Proportion of missing data per hour \n of the day per season after filtering", x = "Hour of the day", y = "Proportion of missing data") + ylim(0,100)
+  
+  p <- patchwork::wrap_plots(p1,p2)
+
+  
+  #Return a list with the filtered data, the plot, the threshold, the number of missing data and the number of rows removed
+  list_return <-  list(hour_filter = hour_missing, data = data,plot =  p,threshold = seuil,number_missing = number_missing, nrow_substract = nrow_substract)
+  return(list_return)
+  
+}
+
+substract_successive_NA <- function(data_raw, threshold = 24) {
+  # Initialisation d'une nouvelle colonne pour stocker les périodes de données manquantes successives
+  data_raw$successive_missing <- 0
+  
+  
+  # Sélectionner les colonnes pertinentes et filtrer les données manquantes
+  data_false <- data_raw %>% filter(!uptime_quality) %>% arrange(date)
+  data_true <- data_raw %>% filter(uptime_quality) %>% arrange(date)
+
+
+  
+  # Initialiser l'index pour la boucle
+  i <- 1
+  
+  while (i < nrow(data_false)) {
+    # Compter le nombre de données manquantes successives
+    succ <- 1
+    while ((i + succ <= nrow(data_false)) && (difftime(data_false$date[i + succ], data_false$date[i + succ - 1], units = "hours") <= 1)) {
+      succ <- succ + 1
+    }
+    
+    # Assigner la valeur de succ à toutes les lignes successives trouvées
+    data_false$successive_missing[i:(i + succ - 1)] <- succ
+    
+    # Avancer l'index de la taille de la période successives trouvée
+    i <- i + succ
+  }
+  
+  filtered_data_false <- data_false %>% filter(successive_missing < threshold)
+  
+  # Fusionner les données manquantes
+  data <- rbind(filtered_data_false, data_true) %>% arrange(date)
+
+  
+  return(data)
+}
+
+#Nettoyage NA
+
+
+Clean_NA_segments <- function(list_data,threshold_missing = 85, threshold_successive = 24) {
+    segments_clear <- data.frame()
+    for(i in 1:length(list_data)){
+        seg <- list_data[i]
+        data <- substract_successive_NA(data.frame(seg), threshold_successive)
+        segments_clear <- rbind(segments_clear,filtered_hours_data(data, threshold_missing)$data)
+      } 
+  return(segments_clear)
+}
+
+#Représenter pour tout les capteurs , la saisonnalité des valeurs manquantes 
+plot_NA <- function(data){
+  data_long <- data %>% filter(!uptime_quality) %>% select(date,segment_name) %>% mutate(value= as.numeric(substr(segment_name,nchar(segment_name)-1,nchar(segment_name))),segment_name = as.factor(as.character(segment_name)))
+  data_long %>% ggplot(aes(x = date, y = value,color=segment_name)) + geom_point()
+}
+
+
+#Identifier pour chaque données manquantes sont type
+```
+
+
+```{r}
+#Identifier les periodes ou il y a de longue periodes de données manquantes 
+data_burel <- segments_clear  %>% filter(segment_name == "Burel-01")  %>%  select(date,uptime_quality)# %>% filter(!uptime_quality)
+
+data_burel <- data_01
+
+
+segments_clear <- Clean_NA_segments(segments)
+data_filtered <- substract_successive_NA(data_burel)
+```
+
+
+
+
+```{r}
+#Identifier pour chaque données manquantes sont type 1 ou 2
+summarise_NA <- segments_clear %>% group_by(date) %>% summarise(n_missing = sum(uptime < 0.5)) %>% arrange(date)
+summarise_NA$prop_missing <- summarise_NA$n_missing / length(unique(segments_clear$segment_name)) * 100
+
+#Si plus de 50% des données sont manquantes, on considère que la donnée est de type 2 sinon de type 1 
+summarise_NA$type <- ifelse(summarise_NA$prop_missing > 50, 2, 1)
+```
+
+
+```{r}
+#Determiner les. types 3 
+
+#Idée 1: Pour chaque capteur, recuperer les dates ou il y a eu des données manquantes, faire une matrice binaire avec les dates en lignes et les capteurs en colonnes 1 si il y a une valeur manquante 0 sinon
+
+data_type3 <- segments_clear  %>% select(date, segment_name,uptime_quality) %>% mutate(segment_name = as.factor(as.character(segment_name))) 
+captor_type3 <- data_type3 %>% spread(key = segment_name, value = uptime_quality) 
+captor_type3[is.na(captor_type3)] <- TRUE
+
+date_type3 <- data_type3 %>% spread(key = date, value = uptime_quality) 
+date_type3[is.na(date_type3)] <- TRUE
+
+#Corrélation entre les dates 
+correlation_captor <- cor(data_type3[,-1], method = "spearman") 
+correlation_date <-  cor(date_type3[,-1], method = "spearman")
+
+#CAH sur la matrice date_type3
+d <- dist(captor_type3[,-1], method = "euclidean")
+hc <- hclust(d, method = "ward.D2")
+#Perte d'inertie
+
+```
+```{r}
+#Determiner les. types 3 
+
+#Idée 2: Regarder la saisonnalité des valeurs manquantes pour chaque capteur puis regarder pour chaque valeurs manquante si elle appartient a une saisonnalité ou non
+
+#On essaie pour un capteur 
+data_burel <- segments_clear  %>% filter(segment_name == "Burel-01")  %>%  select(date,heavy,car,uptime_quality) %>% mutate(missing= ifelse(uptime_quality,heavy + car,NA)) %>% select(-heavy,-car,-uptime_quality) 
+data_burel <- segments_clear  %>% filter(segment_name == "Burel-01")  %>%  select(date,uptime_quality)# %>% filter(!uptime_quality)
+plot(data_burel$date,data_burel$uptime_quality)
+
+#graphique de la saisonnalité avec ggtsdisplay
+library(forecast)
+ggtsdisplay(as.numeric(data_burel$uptime_quality),main = "Saisonnalité des valeurs manquantes pour le capteur Burel-01")
+ggtsdisplay(as.numeric(diff(data_burel$uptime_quality, lag = 10)
+),main = "Saisonnalité des valeurs manquantes pour le capteur Burel-01")
+
+
+```
+
+```{r}
+#Identifier la version des capteurs 
+V2 <- c("Burel-01","ParisArcEnCiel-05","RueGdDomaine-07", "RuePrieure-11")
+V1 <- c("Leclerc-02","rueVignes-04", "RteVitre-06", "StDidierSud-10","RueVeronniere-13", "RueDesEcoles-14", "RueManoirs-15", "RueToursCarree-16", "BoulevardLiberté-18")
+KO <- c("ParisMarche-03","StDidierNord-08","RueGdDomaine-09","RueVallee","RueCottage-12","PlaceHotelDeVille-17")
+
+segments_clear$version <- ifelse(segments_clear$segment_name %in% V2, "V2", ifelse(segments_clear$segment_name %in% V1, "V1", ifelse(segments_clear$segment_name %in% KO, "KO", NA)))
+
+```
+
+
+# Statistique sur les données manquante de traffic 
+```{r}
+head(traffic)
+
+summary(traffic)
+```
+
+Les données sont manquantes si uptime < 0.5 
+
+```{r}
+nrow(traffic[which(traffic$uptime < 0.5),]) / nrow(traffic) * 100 #54% of the data is missing
+```
+
+```{r}
+plot(
+  gg_traffic_evolution(traffic,                       segment = 'RteVitre-06'))
+```
+
+
+
+
+```{r}
+#distrubution of hours of the day for missing data
+group_hour <- traffic %>% filter(traffic$uptime < 0.5) %>% group_by(hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+ggplot(group_hour, aes(x = hour, y = n)) + geom_line() + labs(title = "Distribution of missing data per hour of the day", x = "Hour of the day", y = "Number of missing data")
+```
+On constate que les données manquantes sont plus fréquentes entre 5h et 20h. 
+
+
+#Par saison
+```{r}
+#Separate by season
+traffic$season <- ifelse(month(traffic$date) %in% c(3,4,5), "Spring",
+                         ifelse(month(traffic$date) %in% c(6,7,8), "Summer",
+                                ifelse(month(traffic$date) %in% c(9,10,11), "Autumn", "Winter")))
+group_season <- traffic %>% filter(traffic$uptime < 0.5) %>% group_by(season) %>% summarise(n = n())
+ggplot(group_season, aes(x = season, y = n)) + geom_bar(stat = "identity") + labs(title = "Distribution of missing data per season", x = "Season", y = "Number of missing data")
+
+```
+
+```{r}
+group_season_hour <- traffic %>% filter(traffic$uptime < 0.5) %>% group_by(season,hour) %>% summarise(n = n())
+
+ggplot(group_season_hour, aes(x = hour, y = n, color = season)) + geom_line() + geom_point() + labs(title = "Distribution of missing data per hour of the day per season", x = "Hour of the day", y = "Number of missing data")
+```
+Il est donc ici plus utile ici de prendre le temps d'ensoleillement en compte pour les données manquantes en fonction des saisons. Par exemple en été, les données manquantes sont moins fréquentes entre 5h et 22h. et en hiver, les données manquantes sont moins fréquentes entre 6h et 18h. 
+
+
+
+
+```{r}
+traffic_day <- traffic %>% mutate(date = ymd_hms(date)) %>% 
+  filter(hour(date) < 19 & hour(date) > 5) 
+
+nrow(traffic_day[which(traffic_day$uptime < 0.5),]) / nrow(traffic_day) * 100 #25% of the data is missing
+
+#distrubution of hours of the day for missing data
+group_hour <- traffic_day %>% filter(traffic_day$uptime < 0.5) %>% group_by(hour(date)) %>% summarise(n = n()) %>% rename(hour = `hour(date)`)
+
+ggplot(group_hour, aes(x = hour, y = n)) + geom_bar(stat = "identity") + labs(title = "Distribution of missing data per hour of the day", x = "Hour of the day", y = "Number of missing data")
+
+
+```
+
+```{r}
+group <- groupby_func(traffic)
+
+group %>% ggplot(aes(x = hour, y = prop_missing)) + geom_line() + geom_point() + labs(title = "Proportion of missing data per hour of the day", x = "Hour of the day", y = "Proportion of missing data")
+
+```
+On peut deja supprimer les heures de la nuit entre 22h et 5h. 
+
+```{r}
+traffic <- traffic %>% filter(hour(date) < 22 & hour(date) > 5)
+```
+
+
+Differencié par saison 
+```{r}
+group_season <- groupby_season_func(traffic)
+group_season %>% ggplot(aes(x = hour, y = prop_missing, color = season)) + geom_line() + geom_point() + labs(title = "Proportion of missing data per hour of the day per season", x = "Hour of the day", y = "Proportion of missing data")
+```
+- On n'aanalyse pas a partir d'un seuol de 85% de données manquantes
+
+-En Hiver Les données sont manquantes a 100% jusqu'a 6h et a partir de 18h
+-En Automne Les données sont manquantes a 100% jusqu'a 6h et a partir de 18h
+
+
+```{r}
+#Recuperer un vecteur d'heure ou les heures ont une proportion de données manquantes est supérieur a 75% pour chaque saison
+hour_missing <- group_season %>% filter(prop_missing > 75) %>% select(hour, season) %>% unique()
+
+#Filtrer les données
+traffic <- traffic %>% filter(!(hour(date) %in% hour_missing$hour & season %in% hour_missing$season))
+
+traffic %>% filter(traffic$uptime < 0.5) %>% nrow()
+
+```
+
+
+Durant les periodes d'ensoleillement on peut compter le nombre de valeur manquante coursécutive 
+```{r}
+traffic %>% filter(traffic$uptime < 0.5) %>% View()
+```
+
+Enlever les heures de la nuits 
+```{r}
+
+traffic = telraamStats::traffic
+filtered <- filtered_hours_data(traffic, seuil = 85)
+
+filtered
+
+traffic_clear <- filtered$data
+
+```
+
+
+
+
+```{r}
+#Tester la corrélation entre les différents capteurs
+data_captor <- traffic_clear %>% mutate(segment_name = as.character(segment_name)) %>%  select(segment_name,heavy,car) %>% mutate(vehicle = heavy + car) %>% select(-heavy,-car) 
+                
+
+```
+`
+# Nettoyage sur un ensemble de capteur pour imputation
+```{r}
+load("/Users/paulvallee/Desktop/Stage CREM/Code R/data/Segments.RData")
+
+```
+
+
+
+
+```{r,warninr=F}
+#1ere technique : On controle chaque capteur indépendament des autres
+
+data_04$segment_name <- "RueDesEcoles-14"
+segments <- list(data_01,data_02,data_04,data_05,data_06,data_07,data_08,data_10,data_11,data_13,data_14,data_15,data_16,data_18)
+segments_clear <- Clean_NA_segments(segments, 85,24)
+```
+
+
+
+#Imputation des données manquantes 
+```{r}
+# seg2 <- rbind(data_01,data_02,data_04,data_05,data_06,data_07,data_10,data_11,data_14)
+# segments_clear2 <- filtered_hours_data(data.frame(seg2), seuil = 85)$data
+
+segment_cor <- segments_clear %>% mutate(segment_name = as.factor(as.character(segment_name)),heavy = as.numeric(heavy),car = as.numeric(car)) %>%  select(date,segment_name,heavy,car) %>% mutate(vehicle = as.numeric(heavy + car)) %>% select(-heavy,-car) %>% pivot_wider(names_from = segment_name,values_from = vehicle) 
+
+
+d <- segment_cor %>% select(-date,-`rueVignes-04`,`StDidierSud-10`)
+na.omit(d) %>% cor() %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)
+
+
+
+```
+
+
+
+
+
+
+
+```{r}
+library(igraph)
+
+# Créer un dataframe avec les relations entre les segments
+relations <- data.frame(
+  segment_name = c("Burel-01", "Leclerc-02", "rueVignes-04", "ParisArcEnCiel-05", "RteVitre-06", "RueGdDomaine-07", "StDidierSud-10", "RuePrieure-11", "RueDesEcoles-14", "RueManoirs-15", "RueVeronniere-13", "RueToursCarree-16", "PlaceHotelDeVille-17", "BoulevardLiberte-18", "BoulevardLaennecSud", "BoulevardLaennecNord"),
+  destination = c("BoulevardLaennecNord", "RueManoirs-15", "RuePrieure-11", "ParisMarche-03", "RueGdDomaine-07", "RteVitre-06", "RueDesEcoles-14", "rueVignes-04", "StDidierSud-10", "ParisArcEnCiel-05", "ParisArcEnCiel-05", "RuePrieure-11", "RuePrieure-11", "BoulevardLaennecSud", "BoulevardLaennecNord", "BoulevardLaennecSud")
+)
+
+# Convertir segment_name et destination en facteur
+relations$segment_name <- as.factor(relations$segment_name)
+relations$destination <- as.factor(relations$destination)
+
+# Créer le graphe à partir du dataframe
+graph <- graph_from_data_frame(relations, directed = TRUE)
+
+# Afficher le graphe
+plot(graph, layout = layout.auto)
+
+
+#Création de la matrice d'adjacence
+adjacency_matrix <- as_adjacency_matrix(graph, attr = NULL, edges = FALSE, names = TRUE, sparse = FALSE)
+adjacency_matrix
+```
+
+```{r}
+set.seed(123)
+#Recuperer la sous matrice correspondant au colonne de test
+adjacency_matrix_sub <- adjacency_matrix[1:9,1:9]
+colnames(adjacency_matrix_sub)
+
+temoin <- segments_clear %>% filter(uptime > 0.5) %>% select(date,segment_name,heavy,car) %>% mutate(vehicle = heavy + car) %>% select(-heavy,-car) %>% pivot_wider(names_from = segment_name,values_from = vehicle)  %>% na.omit()
+
+#Crée des valeurs manquantes aléatoire dans le jeu de données
+test2 <- temoin
+# Nombre de valeurs manquantes à créer
+num_missing <- 50
+
+vec_x <- c()
+vec_y <- c()
+
+for(i in 1:num_missing){
+  # Choisir un élément aléatoire dans le jeu de données
+  x <- sample(1:nrow(test), 1)
+  y <- sample(2:ncol(test), 1)
+  vec_x <- c(vec_x,x)
+  vec_y <- c(vec_y,y)
+  # Remplacer la valeur correspondante par NA
+  test2[x,y] <- NA
+}
+
+test2
+```
+
+
+```{r}
+# Reconstruire test2 en utilisant les valeurs des capteurs voisins
+for (j in 2:ncol(test2)){
+  for (i in 1:nrow(test2)){
+    if(is.na(test2[i,j])){
+      # Recuperer nom colonne
+      col_name <- colnames(test2)[j]
+      # Recuperer les noms des colonnes voisines
+      neighbors <- colnames(adjacency_matrix_sub)[which(adjacency_matrix_sub[col_name,] == 1)]
+      
+      #Si il existe un voisin et que sa valeur est non manquante alors remplacé par cette valeurs 
+      if(length(neighbors) == 1 ){
+            if(!is.na(test2[i,neighbors])){
+              test2[i,j] <- test2[i,neighbors]
+            }
+      }
+      else if(length(neighbors) > 1){
+        #Si il existe plusieurs voisins alors on prend la moyenne
+        test2[i,j] <- mean(test2[i,neighbors],na.rm = TRUE)
+        
+      }
+      else if(length(neighbors) == 0){
+        #Si il n'existe pas de voisin alors on prend la moyenne de la colonne
+        test2[i,j] <- NA}
+    }
+  }
+}
+      
+is.na(test2) %>% sum()
+
+
+mean_error <- 0
+#Comparer les valeurs imputé avec les valeurs réels
+for(i in 1:length(vec_x)){
+    print(paste("Valeur réel : ",test[vec_x[i],vec_y[i]]," Valeur imputé : ",test2[vec_x[i],vec_y[i]]))
+  }
+
+```
+
+
+
+```{r}
+#Pour les differents capteurs, effectuer un kmeans pour trouver des groupes de capteurs similaires 
+
+#On utilise la distance euclidienne pour mesurer la similarité entre les capteurs
+dkmeans1 <- segments_clear %>%  mutate(segment_name = as.factor(as.character(segment_name))) %>% 
+  select(segment_name, heavy_rgt, heavy_lft, car_rgt, car_lft, bike_rgt, bike_lft, pedestrian_lft, pedestrian_rgt,v85)  %>%
+  na.omit() %>% 
+  group_by(segment_name) %>% 
+  summarise(mean_V85 = mean(v85),
+            mean_heavy_rgt = mean(heavy_rgt),
+            mean_heavy_lft = mean(heavy_lft),
+            mean_car_rgt = mean(car_rgt),
+            mean_car_lft = mean(car_lft),
+            mean_bike_rgt = mean(bike_rgt),
+            mean_bike_lft = mean(bike_lft),
+            mean_pedestrian_lft = mean(pedestrian_lft),
+            mean_pedestrian_rgt = mean(pedestrian_rgt)) 
+
+
+dkmeans2 <- segments_clear %>%  mutate(segment_name = as.factor(as.character(segment_name)),vehicle = car + heavy) %>% 
+  select(segment_name, vehicle,v85) %>%  na.omit() %>% group_by(segment_name)  %>% summarise(mean_vehicle = mean(vehicle),mean_V85 = mean(v85)) 
+
+
+#On effectue un kmeans sur les données pour k allant de 2 à 5
+kmeans1 <- dkmeans1 %>% select(-segment_name) %>% scale() %>% kmeans(centers = 4)
+kmeans2 <- dkmeans2 %>% select(-segment_name) %>% scale() %>%  kmeans(centers = 4)
+
+#On représente graphiquement les groupes de capteurs
+dkmeans1$cluster <- kmeans1$cluster
+dkmeans2$cluster <- kmeans2$cluster
+#Ajouter le nom des points 
+dkmeans1 %>% ggplot(aes(x = mean_V85, y = mean_heavy_rgt, color = as.factor(cluster))) + geom_point() + ggtitle("Kmeans sur les capteurs") + xlab("V85") + ylab("Heavy_rgt") + geom_text(aes(label = segment_name),hjust = 0, vjust = 0)
+
+dkmeans2 %>% ggplot(aes(x = mean_V85, y = mean_vehicle, color = as.factor(cluster))) + geom_point() + ggtitle("Kmeans sur les capteurs") + xlab("V85") + ylab("Vehicle") + geom_text(aes(label = segment_name),hjust = 0, vjust = 0)
+
+```
+
+```{r}
+data_01 %>% mutate(vehicle = ifelse(uptime < 0.5,NA,car + heavy)) %>% select(vehicle)%>% plot.ts()
+```
+
+
+```{r}
+
+```
+
+
+
+
