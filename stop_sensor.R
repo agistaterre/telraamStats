@@ -19,7 +19,7 @@ stop_sensor<- function(df_init,uptime_choice=0.1,successive_day=2,remove_data=FA
   
   
   # Remove hours with no information by season
-  df_season<-df_init %>% group_by(segment_id,season,hour) %>% summarise(condition=any(car!=0 & uptime>uptime_choice))
+  df_season<-df_init %>% group_by(season,hour) %>% summarise(condition=any(car!=0 & uptime>uptime_choice))
   
   df_init <- df_init %>%
     semi_join(df_season %>% filter(condition), by = c("season", "hour"))
