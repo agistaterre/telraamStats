@@ -11,7 +11,7 @@ stop_sensor<- function(df_init,uptime_choice=0.1,successive_day=2,remove_data=FA
   # Remove hours where we have no information as the night or less than 10% of information
   # Remove periods when the sensor did not work
 
-  #Créer une colonne pour avoir les saisons
+  #Create a column season
   df_init$date <- ymd_hms(df_init$date) #mettre au format date
   df_init$season <- ifelse(month(df_init$date) %in% c(3,4,5), "Spring",
                         ifelse(month(df_init$date) %in% c(6,7,8), "Summer",
@@ -19,37 +19,52 @@ stop_sensor<- function(df_init,uptime_choice=0.1,successive_day=2,remove_data=FA
   
   
   # Remove hours with no information by season
-  df_season<-df_init %>% group_by(season,hour) %>% summarise(condition=any(car!=0 & uptime>uptime_choice))
+  df_season<-df_init %>% group_by(segment_id,season,hour) %>% summarise(condition=any(car!=0 & uptime>uptime_choice))
   
   df_init <- df_init %>%
-    semi_join(df_season %>% filter(condition), by = c("season", "hour"))
+    semi_join(df_season %>% filter(condition), by = c("segment_id","season", "hour"))
   
+  #Inactivity periods
   rm<-c()
   rm_fin<-c()
   
-  for(i in 1:length(df_init$car))
-  { j=i
-  while ((df_init$car[i]==0 | df_init$uptime[i]<uptime_choice) & i<length(df_init$car))
-  {rm<-c(rm,i)
-  i<-i+1}
+  list_clear_data <- list()
+  seg_id<-unique(df_init$segment_id)
   
-  diff_days<-abs(as.numeric(difftime(df_init$day[i], df_init$day[j], units = "days")))
+  for(id in 1:length(seg_id))
+  {
+    df_segment<-df_init[df_init$segment_id==seg_id[id],]
+    for(i in 1:length(df_segment$car))
+      { j=i
+        while ((df_segment$car[i]==0 | df_segment$uptime[i]<uptime_choice) & i<length(df_segment$car))
+          {rm<-c(rm,i)
+           i<-i+1}
   
-  if(diff_days>successive_day)
-  {rm_fin<-c(rm_fin,rm)}
+        diff_days<-abs(as.numeric(difftime(df_segment$day[i], df_segment$day[j], units = "days")))
   
-  rm<-c()}
+        if(diff_days>successive_day)
+          {rm_fin<-c(rm_fin,rm)}
   
-  if (is.null(rm_fin))
-  {df_init<-df_init}
+        rm<-c()}
   
-  else
-  { if(remove_data==TRUE)
-    {df_init<-df_init[-rm_fin,]}
+        if (is.null(rm_fin))
+          {df_segment<-df_segment}
+  
+        else
+          { if(remove_data==TRUE)
+              {df_segment<-df_segment[-rm_fin,]}
     
-    else
-    {df_init[rm_fin,7:18]=NA
-    df_fin<-df_init}
+            else
+              {df_segment[rm_fin,7:18]=NA} #correspond aux colonnes avec le nombre de véhicules
+          }
+    list_clear_data[[id]]<-df_segment
   }
+
+  #Recombine the final dataframe
+  df_fin<-list_clear_data[[1]]
+  for(i in 2:length(seg_id))
+    {df_fin<-rbind(df_fin,list_clear_data[[i]])}
+  
   return(df_fin)
 }
+  
