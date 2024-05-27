@@ -62,8 +62,9 @@ stop_sensor<- function(df_init,uptime_choice=0.1,successive_day=2,remove_data=FA
 
   #Recombine the final dataframe
   df_fin<-list_clear_data[[1]]
-  for(i in 2:length(seg_id))
-    {df_fin<-rbind(df_fin,list_clear_data[[i]])}
+  if(length(seg_id)>1)
+    {for(i in 2:length(seg_id))
+      {df_fin<-rbind(df_fin,list_clear_data[[i]])}}
   
   return(df_fin)
 }
