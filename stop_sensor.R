@@ -10,6 +10,10 @@ stop_sensor<- function(df_init,uptime_choice=0.1,successive_day=2,remove_data=FA
   # Description :
   # Remove hours where we have no information as the night or less than 10% of information
   # Remove periods when the sensor did not work
+  #
+  # Packages :
+  #        - lubridate
+  #        - dplyr
 
   #Create a column season
   df_init$date <- ymd_hms(df_init$date) #mettre au format date
