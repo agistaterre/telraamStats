@@ -1,11 +1,11 @@
 ---
+title: "Compte rendu de lecture : Prophet"
+author: "VALLEE Paul"
+date: "`r Sys.Date()`"
 editor_options: 
   markdown: 
     wrap: sentence
 ---
-
-## Rapport sur l'Utilisation de Prophet pour l'Imputation des Données Manquantes dans les Données de Mobilité
-
 ### Introduction
 
 **Prophet** est un outil de prévision des séries temporelles développé par Facebook, conçu pour répondre aux besoins des applications business.
@@ -14,18 +14,14 @@ Prophet se distingue par sa flexibilité, son interactivité, et sa capacité à
 
 ### I. Avantages de la Méthode Prophet
 
-**Flexibilité :**
+\- **Flexibilité :** : Intègre facilement la saisonnalité avec plusieurs périodes, permettant à l'analyste de faire différentes hypothèses sur les tendances.
 
-\- **Saisonnalité Multiperiodique** : Intègre facilement la saisonnalité avec plusieurs périodes, permettant à l'analyste de faire différentes hypothèses sur les tendances.
-- **Mesures Non Régulières** : Contrairement aux modèles ARIMA, les mesures n'ont pas besoin d'être régulièrement espacées, ce qui évite l'interpolation des valeurs manquantes après l’élimination de valeurs aberrantes.
+\- **Non necessité de mesures Régulières** : Contrairement aux modèles ARIMA, les mesures n'ont pas besoin d'être régulièrement espacées, ce qui évite l'interpolation des valeurs manquantes après l’élimination de valeurs aberrantes.
+(contradiction avec la partie sur la gestion des données manquante qui croire ?)
 
-**Rapidité d'Ajustement :**
+\- **Rapidité d'Ajustement :** : L'ajustement est rapide, permettant à l'analyste d'explorer de nombreuses spécifications de modèle de manière interactive, par exemple dans une application Shiny.
 
-\- **Exploration Interactive** : L'ajustement est très rapide, permettant à l'analyste d'explorer de nombreuses spécifications de modèle de manière interactive, par exemple dans une application Shiny.
-
-**Paramètres Interprétables :**
-
-\- **Facilité d'Extension** : Le modèle de prévision a des paramètres facilement interprétables que l'analyste peut modifier pour imposer des hypothèses sur la prévision.
+\- **Paramètres Interprétables :** : Le modèle de prévision a des paramètres facilement interprétables que l'analyste peut modifier pour imposer des hypothèses sur la prévision.
 Les analystes, ayant généralement de l'expérience avec la régression, peuvent facilement étendre le modèle pour inclure de nouveaux composants.
 
 ### II. Fonctionnement de Prophet
@@ -53,8 +49,7 @@ Prophet propose deux modèles de tendance pour modéliser la croissance :
 1\.
 **Saturating Growth Model** : Modélise une croissance saturée à une capacité maximale variable.
 
-2.
-**Piecewise Linear Model** : Modélise une croissance linéaire avec des changements à des points spécifiques.
+2.  **Piecewise Linear Model** : Modélise une croissance linéaire avec des changements à des points spécifiques.
 
 **Exemple :** Pour la mobilité urbaine, une augmentation du nombre de véhicules peut être attendue en raison de la croissance démographique, mais il y aura une saturation à un certain point, en fonction de la capacité des routes.
 
@@ -75,7 +70,7 @@ Ce modèle prend en compte des aspects comme la capacité de charge variable et 
 Si le processus analysé ne montre pas de saturation, la fonction de tendance est définie comme linéaire avec des points de rupture indiqués par l'analyste ou déterminés automatiquement par l'algorithme.
 Les points de changement sont intégrés en définissant des points de changement où le taux de croissance peut varier.
 
-### Modèle Final retenu par Facebook 
+### Modèle Final retenu par Facebook
 
 Facebook prend en compte deux aspects important dans la croissance qui ne sont pas capturer par l’équation précédente. 
 
@@ -165,7 +160,101 @@ Prophet permet aux analystes d'intervenir directement pour améliorer la précis
 
 \- **Paramètres de Lissage** : Les paramètres de lissage permettent d'indiquer au modèle combien de variation saisonnière historique est attendue dans le futur.
 
-### Conclusion
+### Ce que ne fait pas Prophet
 
-Prophet est un outil puissant et flexible pour la prévision des séries temporelles, particulièrement adapté aux données de mobilité.
-Sa capacité à gérer les données manquantes sans interpolation en fait un choix viable pour l'imputation des données manquantes à condition de supervisé la construction des differents modèles.
+Voici un résumé en français des différents points concernant les limitations de Prophet :
+
+1.  **Prophet ne permet pas de distribution de bruit non-gaussienne** :
+    -   Actuellement, Prophet suppose toujours une distribution gaussienne du bruit.
+    -   La seule façon de gérer des valeurs suivant une distribution asymétrique est de transformer les valeurs de y avant l'ajustement.
+    -   Une discussion sur GitHub propose des personnalisations du code pour permettre l'utilisation de distributions de Poisson et binomiale négative pour les données de comptage.
+2.  **Prophet ne prend pas en compte l'autocorrélation des résidus** :
+    -   Le bruit epsilon dans la formule de Prophet suppose une distribution normale i.i.d., donc les résidus ne sont pas supposés avoir une autocorrélation, contrairement au modèle ARIMA.
+    -   En analysant les fonctions d'autocorrélation (ACF) et d'autocorrélation partielle (PACF) après l'ajustement des données, une tendance AR(1) claire peut être observée.
+    -   En ajoutant des valeurs décalées comme régresseurs, les résidus peuvent apparaître comme du bruit blanc, mais cette approche n'est pas implémentée dans Prophet pour les prédictions futures.
+3.  **Prophet n'assume pas de tendance stochastique** :
+    -   La composante de tendance de Prophet est toujours déterministe avec des points de changement possibles et n'assume pas de tendance stochastique, contrairement à ARIMA.
+    -   Habituellement, des tests de racine unitaire sont effectués pour déterminer si les données sont stationnaires ou ont une tendance stationnaire. En cas de rejet, les données sont différenciées jusqu'à ce qu'elles soient stationnaires, ce qui introduit une composante de tendance stochastique.
+    -   Utiliser une tendance déterministe sans points de changement sous-estime l'incertitude par rapport à une tendance stochastique, bien que Prophet utilise des points de changement et leur incertitude future pour compenser cette sous-estimation.
+
+### Utilisation de la fonction Prophet sur R
+
+
+```{r,eval=F}
+prophet(
+  df = NULL,
+  growth = "linear",
+  changepoints = NULL,
+  n.changepoints = 25,
+  changepoint.range = 0.8,
+  yearly.seasonality = "auto",
+  weekly.seasonality = "auto",
+  daily.seasonality = "auto",
+  holidays = NULL,
+  seasonality.mode = "additive",
+  seasonality.prior.scale = 10,
+  holidays.prior.scale = 10,
+  changepoint.prior.scale = 0.05,
+  mcmc.samples = 0,
+  interval.width = 0.8,
+  uncertainty.samples = 1000,
+  fit = TRUE,
+  ...
+)
+```
+
+
+### Arguments
+
+-   **df** : (optionnel) Dataframe contenant l'historique.
+    Doit avoir des colonnes `ds` (type date) et `y`, la série temporelle.
+    Si `growth` est logistic, alors `df` doit aussi avoir une colonne `cap` qui spécifie la capacité à chaque `ds`.
+    Si non fourni, l'objet modèle sera initialisé mais non ajusté ; utiliser `fit.prophet(m, df)` pour ajuster le modèle.
+
+-   **growth** : Chaîne 'linear', 'logistic' ou 'flat' pour spécifier une tendance linéaire, logistique ou plate.
+
+-   **changepoints** : Vecteur de dates auxquelles inclure des points de changement potentiels.
+    Si non spécifié, les points de changement potentiels sont sélectionnés automatiquement.
+
+-   **n.changepoints** : Nombre de points de changement potentiels à inclure.
+    Non utilisé si l'entrée `changepoints` est fournie.
+    Si `changepoints` n'est pas fourni, alors `n.changepoints` potentiels sont sélectionnés uniformément à partir de la première proportion `changepoint.range` de `df$ds`.
+
+-   **changepoint.range** : Proportion de l'historique dans laquelle les points de changement de tendance seront estimés.
+    Par défaut à 0,8 pour les premiers 80%.
+
+-   **yearly.seasonality** : Ajuste la saisonnalité annuelle.
+    Peut être 'auto', TRUE, FALSE, ou un nombre de termes de Fourier à générer.
+
+-   **weekly.seasonality** : Ajuste la saisonnalité hebdomadaire.
+    Peut être 'auto', TRUE, FALSE, ou un nombre de termes de Fourier à générer.
+
+-   **daily.seasonality** : Ajuste la saisonnalité quotidienne.
+    Peut être 'auto', TRUE, FALSE, ou un nombre de termes de Fourier à générer.
+
+-   **holidays** : Dataframe avec des colonnes `holiday` (caractère) et `ds` (type date) et éventuellement des colonnes `lower_window` et `upper_window` qui spécifient une plage de jours autour de la date à inclure comme jours fériés.
+    Par exemple, `lower_window=-2` inclura 2 jours avant la date comme jours fériés.
+    Peut également avoir une colonne `prior_scale` spécifiant l'échelle a priori pour chaque jour férié.
+
+-   **seasonality.mode** : Mode de saisonnalité, 'additive' (par défaut) ou 'multiplicative'.
+
+-   **seasonality.prior.scale** : Paramètre modulant la force du modèle de saisonnalité.
+    Des valeurs plus grandes permettent au modèle de s'ajuster à des fluctuations saisonnières plus grandes, des valeurs plus petites amortissent la saisonnalité.
+    Peut être spécifié pour les saisons individuelles en utilisant `add_seasonality`.
+
+-   **holidays.prior.scale** : Paramètre modulant la force du modèle des composants de jours fériés, sauf si remplacé dans l'entrée `holidays`.
+
+-   **changepoint.prior.scale** : Paramètre modulant la flexibilité de la sélection automatique des points de changement.
+    Des valeurs grandes permettront de nombreux points de changement, des valeurs petites en permettront peu.
+
+-   **mcmc.samples** : Entier, si supérieur à 0, effectuera une inférence bayésienne complète avec le nombre spécifié d'échantillons MCMC.
+    Si 0, effectuera une estimation MAP.
+
+-   **interval.width** : Numérique, largeur des intervalles d'incertitude fournis pour la prévision.
+    Si `mcmc.samples=0`, ce sera uniquement l'incertitude dans la tendance en utilisant l'estimation MAP du modèle génératif extrapolé.
+    Si `mcmc.samples>0`, cela sera intégré à tous les paramètres du modèle, y compris l'incertitude dans la saisonnalité.
+
+-   **uncertainty.samples** : Nombre de tirages simulés utilisés pour estimer les intervalles d'incertitude.
+    Définir cette valeur à 0 ou False désactivera l'estimation de l'incertitude et accélérera le calcul.
+
+-   **fit** : Booléen, si FALSE, le modèle est initialisé mais non ajusté.

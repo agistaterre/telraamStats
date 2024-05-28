@@ -4,6 +4,27 @@ pacman::p_load(pdftools)
 
 ```
 
+
+
+```{r}
+## List of used packages 
+list.of.packages <- c("NLP", "openNLP", "SnowballC")
+
+## Returns a not installed packages list
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+
+## Installs new packages
+if(length(new.packages)) 
+  install.packages(new.packages)
+
+
+library(NLP)
+library(openNLP)
+library(SnowballC)
+```
+
+
+
 ```{r}
 #load pdf
 text <- pdf_text("/Users/paulvallee/Downloads/IF_mars_2024_web.pdf")
@@ -12,12 +33,58 @@ cat(text)
 
 for (i in 1:length(text)) {
   if (grepl("travaux", text[i])) {
-   text_travaux <- text[i]
+   page_travaux <- text[i]
   }
 }
 
 #keep only the part about travaux
 cat(text)
+#unlist(strsplit(text, "\n"))
 
+
+#Recuperer le texte entre travaux et le prochain titre en majuscule  mais pas sur la meme ligne
+text_travaux <- str_extract_all(page_travaux, "travaux(.*?)[A-Z]", simplify = TRUE)
+text_travaux
+```
+
+```{r}
+data.frame(text_travaux)
+text_travaux %>%unnest_tokens (word, text)
+```
+
+
+```{r}
+require(pdftools)#package used to load pdf documents
+
+require (tidytext)#package used to tokenize words
+
+require(dplyr)#package required for data frame manipulation
+
+require (ggplot2)#package to create chart
+
+#Create variable of pdf file name
+ pdf_document<- list.files(pattern = "/Users/paulvallee/Downloads/IF_mars_2024_web.pdf")
+
+ #loads all pDF file
+ social_media_paper <- lapply(pdf_document,pdf_text)
+```
+
+
+
+
+
+
+```{r}
+#The Title are in majuscule so i will use this to extract the title from TRAVAUX to the an other line with majuscule
+pull("mistral")
+
+resp <- generate("mistral", "Raconte une histoire qui fait peur",output = "text")
+resp
+```
+```{r}
+resp <- generate("mistral", "Construit un tableau représentant une matrice Identité 3*3",output = "df")
+```
+
+```{r}
 ```
 
