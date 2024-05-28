@@ -1,0 +1,171 @@
+---
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+## Rapport sur l'Utilisation de Prophet pour l'Imputation des Données Manquantes dans les Données de Mobilité
+
+### Introduction
+
+**Prophet** est un outil de prévision des séries temporelles développé par Facebook, conçu pour répondre aux besoins des applications business.
+Il permet de modéliser les tendances non linéaires, les effets saisonniers multiples et les jours fériés mobiles.
+Prophet se distingue par sa flexibilité, son interactivité, et sa capacité à gérer les données manquantes sans nécessiter d'interpolation.
+
+### I. Avantages de la Méthode Prophet
+
+**Flexibilité :**
+
+\- **Saisonnalité Multiperiodique** : Intègre facilement la saisonnalité avec plusieurs périodes, permettant à l'analyste de faire différentes hypothèses sur les tendances.
+- **Mesures Non Régulières** : Contrairement aux modèles ARIMA, les mesures n'ont pas besoin d'être régulièrement espacées, ce qui évite l'interpolation des valeurs manquantes après l’élimination de valeurs aberrantes.
+
+**Rapidité d'Ajustement :**
+
+\- **Exploration Interactive** : L'ajustement est très rapide, permettant à l'analyste d'explorer de nombreuses spécifications de modèle de manière interactive, par exemple dans une application Shiny.
+
+**Paramètres Interprétables :**
+
+\- **Facilité d'Extension** : Le modèle de prévision a des paramètres facilement interprétables que l'analyste peut modifier pour imposer des hypothèses sur la prévision.
+Les analystes, ayant généralement de l'expérience avec la régression, peuvent facilement étendre le modèle pour inclure de nouveaux composants.
+
+### II. Fonctionnement de Prophet
+
+Prophet décompose une série temporelle en plusieurs composantes :
+
+\- $y(t)$ : Valeur observée à l’instant t.
+
+\- $g(t)$ : Fonction de tendance.
+
+\- $s(t)$ : Fonction de saisonnalité.
+
+\- $h(t)$ : Effets des jours fériés.
+
+\- $\epsilon_t$ : Erreur résiduelle.
+
+Cette spécification est similaire à un modèle additif généralisé (GAM), où le temps est la principale variable explicative, avec plusieurs fonctions linéaires et non linéaires du temps comme composants.
+
+### III. Composantes du Modèle
+
+**a) Trend du Modèle :**
+
+Prophet propose deux modèles de tendance pour modéliser la croissance :
+
+1\.
+**Saturating Growth Model** : Modélise une croissance saturée à une capacité maximale variable.
+
+2.
+**Piecewise Linear Model** : Modélise une croissance linéaire avec des changements à des points spécifiques.
+
+**Exemple :** Pour la mobilité urbaine, une augmentation du nombre de véhicules peut être attendue en raison de la croissance démographique, mais il y aura une saturation à un certain point, en fonction de la capacité des routes.
+
+**1. Saturating Growth Model :**
+
+Le modèle de croissance saturée est représenté par une équation logistique :
+
+$$ g(t) = \frac{C}{1 + \exp(-k(t - m))} $$
+
+-   **C** : Capacité de charge, pouvant varier avec le temps.
+-   **k** : Taux de croissance.
+-   **m** : Paramètre de décalage.
+
+Ce modèle prend en compte des aspects comme la capacité de charge variable et le taux de croissance non constant, modélisés par des données externes ou définis explicitement par des points de changement.
+
+**2. Piecewise Linear Model :**
+
+Si le processus analysé ne montre pas de saturation, la fonction de tendance est définie comme linéaire avec des points de rupture indiqués par l'analyste ou déterminés automatiquement par l'algorithme.
+Les points de changement sont intégrés en définissant des points de changement où le taux de croissance peut varier.
+
+### Modèle Final retenu par Facebook 
+
+Facebook prend en compte deux aspects important dans la croissance qui ne sont pas capturer par l’équation précédente. 
+
+La capacité de charge C n’est pas une constante, elle peut en effet augmenté avec le temps.
+
+On va donc remplacé cette capacité fixe C par une capacité variable.
+Elle peut être modélisé par des données externes par exemple.
+
+Le taux de croissance n’est également pas constant, différents aménagements peuvent par exemple modifié la fréquentation d’un capteur.
+Les changements de tendance sont intégrés dans le modèle de croissance en définissant explicitement des points de changement où le taux de croissance peut varier.
+
+Modèle de Croissance Logistique :
+
+Le modèle final de tendance $g(t)$ dans le cas d'une croissance logistique variable est défini comme suit :
+
+$$ g(t) = \frac{C(t)}{1 + \exp\left(-\left(k + a(t) \cdot \delta\right) \left(t - (m + a(t) \cdot \gamma)\right)\right)} $$
+
+où :
+
+\- $C(t)$ est la capacité de charge variable.
+
+\- $k$ est le taux de croissance initial.
+
+\- $a(t)$ représente une fonction d'ajustement au cours du temps.
+
+\- $\delta$ et $\gamma$ sont les paramètres de changement de taux de croissance et de décalage, respectivement.
+
+\- $m$ est le paramètre de décalage initial.
+
+Ce modèle de croissance logistique est un cas particulier d'un modèle linéaire généralisé (GLM) et peut être facilement étendu et implémenté dans d'autres familles de distributions.
+
+#### Modèle de Croissance Linéaire :
+
+Si le processus à analyser ne montre pas de saturation, alors la fonction $g(t)$ est définie par un modèle de croissance linéaire :
+
+$$ g(t) = \left(k + a(t) \cdot \delta\right) t + \left(m + a(t) \cdot \gamma\right) $$
+
+Dans ce modèle, on suppose que la tendance est linéaire, avec :
+
+\- $k$ et $m$ comme paramètres de base pour la pente et l'ordonnée à l'origine.
+
+\- $a(t)$ comme fonction d'ajustement au cours du temps.
+
+\- $\delta$ et $\gamma$ comme paramètres d'ajustement pour la pente et l'ordonnée, respectivement.
+
+**Incertitude des Prévisions de Tendance :**
+
+Pour estimer l'incertitude des prévisions de tendance, Prophet simule des changements futurs de taux de croissance en se basant sur les changements historiques.
+Des intervalles d'incertitude sont ainsi obtenus pour fournir une indication précieuse du niveau d'incertitude.
+
+**b) Saisonnalité :**
+
+Les séries temporelles présentent souvent une saisonnalité multi-périodique.
+Par exemple, les jours de semaine, les calendriers de vacances et les congés scolaires peuvent produire des effets saisonniers.
+
+**Méthode :**
+
+-   **Série de Fourier :** Utilise les séries de Fourier pour modéliser les effets saisonniers périodiques.
+-   **Estimation des Paramètres :** Les paramètres de saisonnalité sont estimés en construisant une matrice de vecteurs de saisonnalité pour chaque valeur de $t$ dans les données historiques et futures.
+
+**c) Effets des Jours Fériés :**
+
+Prophet permet d'intégrer des listes personnalisées de jours fériés et d'événements pour améliorer la précision des prévisions.
+Les effets autour des jours fériés sont également pris en compte en traitant les jours environnants comme des jours fériés.
+
+### IV. Gestion des Données Manquantes
+
+Prophet utilise des méthodes de régression morcelée pour modéliser la tendance, des termes de Fourier pour capturer la saisonnalité, et incorpore également les effets des jours fériés.
+Aucune de ces techniques ne nécessite la disponibilité de toutes les données ; ainsi, les informations manquantes ne sont pas utilisées pour estimer les paramètres, mais plutôt interpolées entre les points connus pour maintenir la cohérence du modèle.
+De plus l'algorithme n'est pas sensible aux outliers
+
+### V. Ajustement du Modèle
+
+**Utilisation de Stan :** - Prophet utilise Stan pour l'ajustement du modèle, avec des méthodes d'optimisation comme L-BFGS et une inférence postérieure complète pour inclure l'incertitude des paramètres.
+
+**Régularisation :** - Les paramètres $\tau$ et $\sigma$ contrôlent la flexibilité et la lissité du modèle, permettant aux analystes de faire des ajustements spécifiques.
+
+### VI. Intervention des Analystes
+
+Prophet permet aux analystes d'intervenir directement pour améliorer la précision des prévisions :
+
+\- **Capacités** : Les analystes peuvent spécifier directement les capacités basées sur des données externes.
+
+\- **Points de Changement** : Les dates connues des changements peuvent être spécifiées directement.
+
+\- **Jours Fériés et Saisonnière** : Les dates des jours fériés pertinents et les échelles temporelles de saisonnalité peuvent être entrées directement.
+
+\- **Paramètres de Lissage** : Les paramètres de lissage permettent d'indiquer au modèle combien de variation saisonnière historique est attendue dans le futur.
+
+### Conclusion
+
+Prophet est un outil puissant et flexible pour la prévision des séries temporelles, particulièrement adapté aux données de mobilité.
+Sa capacité à gérer les données manquantes sans interpolation en fait un choix viable pour l'imputation des données manquantes à condition de supervisé la construction des differents modèles.

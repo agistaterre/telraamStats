@@ -1,0 +1,23 @@
+```{r}
+# Load the required libraries
+pacman::p_load(pdftools)
+
+```
+
+```{r}
+#load pdf
+text <- pdf_text("/Users/paulvallee/Downloads/IF_mars_2024_web.pdf")
+
+#Reach the word in the document the travaux section
+
+for (i in 1:length(text)) {
+  if (grepl("travaux", text[i])) {
+   text_travaux <- text[i]
+  }
+}
+
+#keep only the part about travaux
+text_travaux <- text_travaux[unlist(gregexpr("travaux", text_travaux))
+
+```
+
