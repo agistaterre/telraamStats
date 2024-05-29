@@ -1,4 +1,4 @@
-stop_sensor<- function(df_init,uptime_choice=0.1,successive_day=2,remove_data=FALSE)
+stop_sensor<- function(df_init,uptime_choice=0.5,successive_day=2,remove_data=FALSE)
 {
   # Input parameter :
   #       - df_init : Initial Dataframe 
