@@ -384,16 +384,24 @@ chow_results$end <- Leclerc$date[chow_results$end]
 
 # Afficher les résultats
 print(chow_results %>% filter(is_rupture))
+#crée une sequence de date entre start et end de chaque periode de rupture puis la colonne is_rupture sera true dans le data de base si rupture false sinon
+for (i in 1:nrow(chow_results)) {
+  if (chow_results$is_rupture[i]) {
+    Leclerc$is_rupture <- ifelse(Leclerc$date >= chow_results$start[i] & Leclerc$date <= chow_results$end[i], TRUE, FALSE)
+  }
+}
 
 #affficher d'une autre couleurs les periodes detecter
-ggplot(Leclerc, aes(x = date, y = vehicle)) +
+
+#Representation en modifiant la couleur de la periode de rupture
+ggplot(Leclerc, aes(x = date, y = vehicle,col=is_rupture)) +
   geom_line() +
-  geom_point(data = chow_results %>% filter(is_rupture), aes(color = "Rupture Period"), size = 2) +
   labs(title = "Detection of Unusual Periods in Time Series",
        x = "Date",
        y = "Vehicle Count") +
-  scale_color_manual(values = c("Rupture Period" = "red")) +
   theme_minimal()
+
+
 ```
 
 
