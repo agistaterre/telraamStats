@@ -11,7 +11,7 @@
 #                               force = TRUE)
 
 
-pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet)
+pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet,purrr)
 
 ```
 
@@ -28,6 +28,7 @@ Sys.getenv("token")
 source("Clean_Data.R")
 source("Imputation_function.R")
 source("Utilities_functions.R")
+source("stop_sensor.R")
 ```
 
 
@@ -50,8 +51,22 @@ liste_segment <- Clean_NA_segments_list(segments, 85,24)
 segments_clear$segment_name <- as.factor(as.character(segments_clear$segment_name))
 segments_clear$weekday <- as.factor(as.character(segments_clear$weekday))
 segments_clear$vacation <- as.character(segments_clear$vacation)
-segments_clear$date <- as.Date(segments_clear$date)
 ```
+
+##Nettoyage avec stop_sensor 
+```{r}
+sensor_clear <- data.frame()
+n1 <- 0
+n <- 0
+for (i in 1:length(segments)){
+   sensor_clear <- rbind( sensor_clear,stop_sensor(segments[[i]],uptime_choice=0.5))
+}
+
+```
+
+
+
+
 
 # Importation des données météo 
 ```{r}
@@ -125,12 +140,260 @@ plot.ts(t$uptime)
 ## Corrélation
 
 ```{r}
-segment_cor <- segments_clear %>% mutate(segment_name = as.factor(as.character(segment_name)),heavy = as.numeric(heavy),car = as.numeric(car)) %>%  select(date,segment_name,heavy,car) %>% mutate(vehicle = as.numeric(heavy + car)) %>% select(-heavy,-car) %>% pivot_wider(names_from = segment_name,values_from = vehicle) 
-
+segment_cor <- segments_clear %>% mutate(segment_name = as.factor(as.character(segment_name)),heavy = as.numeric(heavy),car = as.numeric(car)) %>%  select(date,segment_name,heavy,car) %>% mutate(vehicle = as.numeric(heavy + car)) %>% select(-heavy,-car) %>% pivot_wider(names_from = segment_name,values_from = vehicle)  
 
 #d <- segment_cor %>% select(-date) %>% na.omit(d) %>% cor() %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)
 
 
+```
+
+## Corrélation des uptimes des capteurs 
+```{r}
+cor_sensor <- function(df) {
+
+  df <- df %>% 
+  mutate(segment_name = as.factor(as.character(segment_name)),
+         uptime = as.numeric(uptime)) %>% 
+  select(date, segment_name, uptime) %>% 
+  pivot_wider(names_from = segment_name, values_from = uptime) %>% 
+  mutate(across(where(is.list), ~map_dbl(.x, ~ifelse(length(.x) == 0, NA, .x[[1]]))))
+
+  sensors <- setdiff(names(df), "date")
+  cor_matrix <- matrix(NA, nrow = length(sensors), ncol = length(sensors), 
+                       dimnames = list(sensors, sensors))
+  
+  # Parcourir tous les capteurs pour remplir la matrice de corrélation
+  for (sensor1 in sensors) {
+    df_sensor1 <- df %>% select(date, all_of(sensor1)) %>% na.omit()
+    
+    for (sensor2 in sensors) {
+      if (sensor1 == sensor2) {
+        cor_matrix[sensor1, sensor2] <- 1
+      } else {
+        df_sensor2 <- df %>% select(date, all_of(sensor2)) %>% na.omit()
+        df_merged <- merge(df_sensor1, df_sensor2, by = "date")
+        
+        if (nrow(df_merged) > 1) {
+          correlation <- cor(df_merged[[sensor1]], df_merged[[sensor2]], use = "complete.obs")
+          cor_matrix[sensor1, sensor2] <- correlation
+        }
+      }
+    }
+  }
+  
+  return(cor_matrix)
+}
+
+
+cor_sensor(segments_clear) %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)   
+
+#dataV2 <- dataV2 %>% rename(segment_name = segment_fullname)
+dataV2 <- dataV2  %>% filter(segment_name != "") %>%  mutate(segment_name = as.factor(as.character(gsub("[0-9-]+", "",segment_name))),uptime = as.numeric(uptime))
+cor_sensor(dataV2) %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)   
+
+
+```
+# Detection des ruptures de tendances 
+
+1. Analyse de CUSUM
+```{r}
+# Installer et charger le package nécessaire
+install.packages("qcc")
+library(qcc)
+
+
+# Appliquer l'analyse CUSUM
+cusum_chart <- cusum(Leclerc)
+
+# Afficher les résultats
+plot(cusum_chart)
+
+
+```
+
+```{r}
+# Installer et charger le package nécessaire
+library(changepoint)
+
+Leclerc <- segments_clear %>%  filter(segment_name == "Leclerc-02") %>% mutate(vehicle = as.numeric(heavy + car)) 
+
+# Appliquer l'algorithme de PELT
+pelt_result <- cpt.meanvar(Leclerc$vehicle, method = "PELT")
+
+#Extraire les lignes correspondantes aux points de rupture
+rupture_dates <- Leclerc$date[pelt_result@cpts]
+
+#Representer la courbe et identifier d'un trait rouge les periodes correspondates aux points de rupture sur date/_vehicke
+ggplot(Leclerc, aes(x = date, y = vehicle)) +
+  geom_line() +
+  geom_vline(xintercept = as.numeric(rupture_dates), color = "red", linetype = "dashed") +
+  labs(title = "Change Point Detection with PELT",
+       x = "Date",
+       y = "Vehicle Count") +
+  theme_minimal()
+```
+
+
+```{r}
+
+# charger le package zoo
+library(zoo)
+
+# Calcul des z-scores
+Leclerc <- Leclerc %>%
+  mutate(z_score = (vehicle - mean(vehicle, na.rm = TRUE)) / sd(vehicle, na.rm = TRUE))
+Leclerc
+
+
+# Définir un seuil pour les z-scores extrêmes
+z_threshold <- 3
+
+# Identifier les périodes extrêmes
+Leclerc <- Leclerc %>%
+  mutate(extreme = abs(z_score) > z_threshold)
+
+
+
+# Fonction pour identifier des périodes prolongées d'extrêmes
+detect_prolonged_periods <- function(series, window_size, threshold) {
+  rollapply(series, width = window_size, by = 2, FUN = function(x) sum(x) >= threshold, fill = NA, align = "right")
+}
+
+# Appliquer la fonction avec une fenêtre de 7 jours et un seuil de 3 jours extrêmes
+Leclerc <- Leclerc %>%
+  mutate(prolonged_extreme = detect_prolonged_periods(extreme, window_size = 7, threshold = 3))
+
+# Afficher les résultats avec ggplot2
+ggplot(Leclerc, aes(x = date, y = vehicle)) +
+  geom_line() +
+  geom_point(data = Leclerc %>% filter(extreme), aes(color = "Extreme"), size = 2) +
+  geom_point(data = Leclerc %>% filter(prolonged_extreme), aes(color = "Prolonged Extreme"), size = 2) +
+  labs(title = "Detection of Unusual Periods in Time Series",
+       x = "Date",
+       y = "Vehicle Count") +
+  scale_color_manual(values = c("Extreme" = "red", "Prolonged Extreme" = "blue")) +
+  theme_minimal()
+
+
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(zoo)
+
+# Exemple de chargement des données
+# Leclerc <- read.csv("path_to_your_data.csv")
+
+# Supposons que les données soient déjà chargées dans `Leclerc`
+# Si `Leclerc` contient les colonnes `date` et `vehicle`
+Leclerc <- segments_clear %>%  
+  filter(segment_name == "Leclerc-02") %>% 
+  mutate(vehicle = as.numeric(heavy + car)) %>% 
+  select(date, vehicle)
+
+# Convertir la colonne date en objet Date
+Leclerc$date <- as.Date(Leclerc$date)
+
+# Lissage exponentiel pour capturer la tendance
+Leclerc <- Leclerc %>%
+  mutate(smoothed_vehicle = rollmean(vehicle, k = 3, fill = NA, align = "right"))
+
+# Calculer les différences pour identifier les baisses significatives
+Leclerc <- Leclerc %>%
+  mutate(diff_vehicle = c(NA, diff(smoothed_vehicle)))
+
+# Définir des seuils pour les périodes élevées et les baisses
+high_threshold <- quantile(Leclerc$vehicle, 0.95, na.rm = TRUE)
+low_threshold <- quantile(Leclerc$diff_vehicle, 0.05, na.rm = TRUE)
+
+# Identifier les périodes élevées et les périodes de baisse
+Leclerc <- Leclerc %>%
+  mutate(high_period = ifelse(vehicle > high_threshold, TRUE, FALSE),
+         low_period = ifelse(diff_vehicle < low_threshold, TRUE, FALSE))
+
+# Afficher les résultats avec ggplot2
+ggplot(Leclerc, aes(x = date, y = vehicle)) +
+  geom_line() +
+  geom_point(data = Leclerc %>% filter(high_period), aes(color = "High Activity"), size = 2) +
+  geom_point(data = Leclerc %>% filter(low_period), aes(color = "Low Activity"), size = 2) +
+  labs(title = "Detection of Unusual Periods in Time Series",
+       x = "Date",
+       y = "Vehicle Count") +
+  scale_color_manual(values = c("High Activity" = "red", "Low Activity" = "blue")) +
+  theme_minimal()
+
+```
+
+Voici la méthode que je veux mettre en place, identier les differents points de ruptures dans ma serie temporelle. Ensuite j'aimerais effectuer des test de Chow pour identifier les periode de ruptures dans ma serie temporelle. Pour cela on defini entre deux points de rupture comme une periode de rupture. Ensuite on effectue un test de Chow pour identifier si cette periode peut etre identifier a une periode de rupture ou non 
+
+
+
+```{r}
+#Charger les packages nécessaires
+
+library(changepoint)
+library(strucchange)
+
+# Appliquer l'algorithme PELT pour détecter les points de rupture
+pelt_result <- cpt.meanvar(Leclerc$vehicle, method = "PELT")
+
+# Récupérer les indices des points de rupture
+rupture_indices <- pelt_result@cpts
+rupture_indices <- c(rupture_indices, nrow(Leclerc)) # Ajouter la fin de la série pour le dernier segment
+
+# Fonction pour effectuer un test de Chow entre deux points de rupture
+chow_test <- function(data, start, end,threshold = 24) {
+  # Vérifier si le segment est suffisamment long
+  if ((end - start + 1) < threshold) {  
+    return(NA)
+  }
+  
+  # Sélectionner la période de rupture
+  subset_data <- data[start:end, ]
+  
+  # Ajuster un modèle linéaire pour cette période
+  model <- lm(vehicle ~ date, data = subset_data)
+  
+  # Effectuer le test de Chow
+  tryCatch({
+    chow_test_result <- sctest(model, type = "Chow", point = nrow(subset_data) / 2)
+    return(chow_test_result$p.value)
+  }, error = function(e) {
+    return(NA)
+  })
+}
+
+# Effectuer des tests de Chow pour chaque segment entre les points de rupture
+chow_results <- data.frame(
+  start = rupture_indices[-length(rupture_indices)],
+  end = rupture_indices[-1],
+  p_value = sapply(1:(length(rupture_indices) - 1), function(i) {
+    chow_test(Leclerc, rupture_indices[i], rupture_indices[i + 1])
+  })
+)
+
+# Ajouter une colonne pour indiquer si la période est une rupture (p-value < 0.05)
+chow_results <- chow_results %>%
+  mutate(is_rupture = !is.na(p_value) & p_value < 0.05)
+
+
+#Remplacer start et end par les dates correspondantes
+chow_results$start <- Leclerc$date[chow_results$start]
+chow_results$end <- Leclerc$date[chow_results$end]
+
+# Afficher les résultats
+print(chow_results %>% filter(is_rupture))
+
+#affficher d'une autre couleurs les periodes detecter
+ggplot(Leclerc, aes(x = date, y = vehicle)) +
+  geom_line() +
+  geom_point(data = chow_results %>% filter(is_rupture), aes(color = "Rupture Period"), size = 2) +
+  labs(title = "Detection of Unusual Periods in Time Series",
+       x = "Date",
+       y = "Vehicle Count") +
+  scale_color_manual(values = c("Rupture Period" = "red")) +
+  theme_minimal()
 ```
 
 
@@ -367,53 +630,7 @@ TimeSeries_Imputation <- function(data) {
     select(vacation, date, lower_window, upper_window) %>% rename(holiday = vacation, ds = date)
   
   # Train the Prophet model using the training set and holidays
-  model <- prophet(train_set, holidays = holidays,seasonality.prior.scale= 0.5)
-  # Predict values using the test set
-  pred <- predict(model, test_set)
-  
-  # Adjust predictions on the training set to obtain the fitting curve
-  ajust <- predict(model, train_set)
-  fitting_curve <- plot(model, ajust)
-  
-  # Plot the components of the model
-  components <- prophet_plot_components(model, pred)
-  
-  # Prepare the prediction data for plotting
-  dpred <- pred %>% select(ds, yhat) %>% rename(y = yhat) %>% mutate(type = "pred", y = ifelse(y < 0, 0, y))
-  # Prepare the real data for plotting
-  dtrain <- train_set %>% na.omit() %>% select(ds, y) %>% mutate(type = "real")
-  
-  # Convert 'ds' columns to POSIXct format for both data frames
-  dtrain$ds <- as.POSIXct(dtrain$ds)
-  dpred$ds <- as.POSIXct(dpred$ds)
-  
-  # Create a ggplot of the input data, including both real and predicted values
-  plot_inputdata <- ggplot() +
-    geom_point(data = dtrain, aes(x = ds, y = y, color = type)) +
-    geom_point(data = dpred, aes(x = ds, y = y, color = type)) +
-    ggtitle(paste("Prédiction de la fréquentation du segment", data$segment_name[1])) +
-    xlab("Date") +
-    ylab("Nombre de véhicules") +
-    theme(legend.position = "none")
-  
-  # Return a list containing the prediction, fitting curve, components, and plot
-  return(list(prediction = dpred, fitting_curve = fitting_curve, components = components, Imputation = plot_inputdata))
-}
-TimeSeries_Imputation <- function(data) {
-  # Load the prophet library
-  library(prophet)
-  
-  # Prepare the training set by creating 'ds' and 'y' columns
-  train_set <- data %>% mutate(ds = date, y = ifelse(uptime_quality, car + heavy, NA)) %>% select(ds, y)
-  # Prepare the test set by filtering out rows where uptime_quality is false
-  test_set <- data %>% filter(!uptime_quality) %>% mutate(ds = date) %>% select(ds)
-  
-  # Prepare the holidays data for the Prophet model
-  holidays <- data %>% filter(holiday) %>% mutate(lower_window = 0, upper_window = 1, vacation = as.character(vacation)) %>% 
-    select(vacation, date, lower_window, upper_window) %>% rename(holiday = vacation, ds = date)
-  
-  # Train the Prophet model using the training set and holidays
-  model <- prophet(train_set, holidays = holidays)
+  model <- prophet(train_set, holidays = holidays,seasonality.prior.scale =0.1)
   # Predict values using the test set
   pred <- predict(model, test_set)
   
@@ -457,6 +674,11 @@ modelPrieur <- TimeSeries_Imputation(Prieur)
 modelPrieur$fitting_curve 
 ```
 
+```{r}
+modelPrieur <- TimeSeries_Imputation(Prieur)
+modelPrieur$fitting_curve 
+
+```
 
 
 
