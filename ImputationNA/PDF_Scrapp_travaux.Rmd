@@ -69,9 +69,22 @@ require (ggplot2)#package to create chart
  social_media_paper <- lapply(pdf_document,pdf_text)
 ```
 
+```{r}
+#recuperer 
 
 
 
+```
+
+
+```{r}
+ # Identifier les lignes contenant le mot "travaux"
+  works_lines <- grep("travaux", text, ignore.case = TRUE, value = TRUE)
+  
+  # Extraire les informations spécifiques à partir des lignes identifiées
+  works_info <- str_extract_all(works_lines, "[:alnum:][:space:][:punct:]+")
+  
+```
 
 
 ```{r}

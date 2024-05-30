@@ -45,25 +45,16 @@ data_15 <- delete_segment(data_15,"RueManoirs-15","2023-10-01","2024-01-01")
 
 
 
-segments_clear <- Clean_NA_segments(segments, 85,24)
-liste_segment <- Clean_NA_segments_list(segments, 85,24)
+segments_clear <- data.frame()
+for (i in 1:length(segments)){
+   segments_clear <- rbind( segments_clear,stop_sensor(segments[[i]],uptime_choice=0.5))
+}
+
 
 segments_clear$segment_name <- as.factor(as.character(segments_clear$segment_name))
 segments_clear$weekday <- as.factor(as.character(segments_clear$weekday))
 segments_clear$vacation <- as.character(segments_clear$vacation)
 ```
-
-##Nettoyage avec stop_sensor 
-```{r}
-sensor_clear <- data.frame()
-n1 <- 0
-n <- 0
-for (i in 1:length(segments)){
-   sensor_clear <- rbind( sensor_clear,stop_sensor(segments[[i]],uptime_choice=0.5))
-}
-
-```
-
 
 
 
@@ -80,7 +71,8 @@ meteo$DATE <- with_tz(meteo$DATE, tzone =)
 ```{r message=FALSE, warning=FALSE}
 dataV2 <- read.csv("/Users/paulvallee/Desktop/Stage CREM/Code R/data/20230518_20240517_v2_sensors_extract.csv")
 dataV2$uptime_quality <- ifelse(dataV2$uptime >=0.5 ,TRUE,FALSE)
-clean_dataV2 <- Clean_NA_segments(dataV2)
+dataV2 <- dataV2 %>% rename(segment_name = segment_fullname)%>%  filter(segment_name != "") %>%  mutate(segment_name = as.factor(as.character(gsub("[0-9-]+", "",segment_name))),uptime = as.numeric(uptime))
+dataV2 <- stop_sensor(dataV2)
 ```
 
 
@@ -112,6 +104,7 @@ segments_clear <- NA_Type(segments_clear)
 
 ```{r}
 plot_NA(segments_clear)
+
 ```
 
 
@@ -148,51 +141,30 @@ segment_cor <- segments_clear %>% mutate(segment_name = as.factor(as.character(s
 ```
 
 ## Corrélation des uptimes des capteurs 
-```{r}
-cor_sensor <- function(df) {
 
-  df <- df %>% 
+```{r}
+
+sensor_clear %>% 
   mutate(segment_name = as.factor(as.character(segment_name)),
          uptime = as.numeric(uptime)) %>% 
   select(date, segment_name, uptime) %>% 
   pivot_wider(names_from = segment_name, values_from = uptime) %>% 
-  mutate(across(where(is.list), ~map_dbl(.x, ~ifelse(length(.x) == 0, NA, .x[[1]]))))
-
-  sensors <- setdiff(names(df), "date")
-  cor_matrix <- matrix(NA, nrow = length(sensors), ncol = length(sensors), 
-                       dimnames = list(sensors, sensors))
-  
-  # Parcourir tous les capteurs pour remplir la matrice de corrélation
-  for (sensor1 in sensors) {
-    df_sensor1 <- df %>% select(date, all_of(sensor1)) %>% na.omit()
-    
-    for (sensor2 in sensors) {
-      if (sensor1 == sensor2) {
-        cor_matrix[sensor1, sensor2] <- 1
-      } else {
-        df_sensor2 <- df %>% select(date, all_of(sensor2)) %>% na.omit()
-        df_merged <- merge(df_sensor1, df_sensor2, by = "date")
-        
-        if (nrow(df_merged) > 1) {
-          correlation <- cor(df_merged[[sensor1]], df_merged[[sensor2]], use = "complete.obs")
-          cor_matrix[sensor1, sensor2] <- correlation
-        }
-      }
-    }
-  }
-  
-  return(cor_matrix)
-}
+  mutate(across(where(is.list), ~map_dbl(.x, ~ifelse(length(.x) == 0, NA, .x[[1]])))) %>%select(-date) %>%  cor(use="pairwise.complete.obs") %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)
 
 
-cor_sensor(segments_clear) %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)   
 
-#dataV2 <- dataV2 %>% rename(segment_name = segment_fullname)
-dataV2 <- dataV2  %>% filter(segment_name != "") %>%  mutate(segment_name = as.factor(as.character(gsub("[0-9-]+", "",segment_name))),uptime = as.numeric(uptime))
-cor_sensor(dataV2) %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)   
-
-
+dataV2 <- stop_sensor(dataV2,uptime_choice = 0.5)
+dataV2 <- Clean_NA_segments(dataV2)
+dataV2   %>% 
+  mutate(segment_name = as.factor(as.character(segment_name)),
+         uptime = as.numeric(uptime)) %>% 
+  select(date, segment_name, uptime) %>% 
+  pivot_wider(names_from = segment_name, values_from = uptime) %>% 
+  mutate(across(where(is.list), ~map_dbl(.x, ~ifelse(length(.x) == 0, NA, .x[[1]])))) %>%select(-date) %>%  cor(use="pairwise.complete.obs") %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)
 ```
+
+
+
 # Detection des ruptures de tendances 
 
 1. Analyse de CUSUM
@@ -638,7 +610,7 @@ TimeSeries_Imputation <- function(data) {
     select(vacation, date, lower_window, upper_window) %>% rename(holiday = vacation, ds = date)
   
   # Train the Prophet model using the training set and holidays
-  model <- prophet(train_set, holidays = holidays,seasonality.prior.scale =0.1)
+  model <- prophet(train_set, holidays = holidays,seasonality.prior.scale =10)
   # Predict values using the test set
   pred <- predict(model, test_set)
   
@@ -668,7 +640,7 @@ TimeSeries_Imputation <- function(data) {
     theme(legend.position = "none")
   
   # Return a list containing the prediction, fitting curve, components, and plot
-  return(list(prediction = dpred, fitting_curve = fitting_curve, components = components, Imputation = plot_inputdata))
+  return(list(prediction = dpred, fitting_curve = fitting_curve, components = components, Imputation = plot_inputdata,model=model))
 }
 
 ```
@@ -690,6 +662,18 @@ modelPrieur$fitting_curve
 
 
 
+```{r}
+#Modifier les formats de date pour qu'elle soit identique
+changepoints <- as.POSIXct(modelPrieur$model$changepoints)
+changepoints
+Prieur$date <- as.POSIXct(Prieur$date)
+#ajouter les points de changement au data Prieur
+Prieur$changepoints <- ifelse(Prieur$date %in% modelPrieur$model$changepoints,TRUE,FALSE)
+
+#Représenter avec les changepoints avec des vlines
+ggplot(Prieur,aes(x = date,y = car + heavy)) + geom_point() + geom_vline(xintercept = changepoints,linetype = "dashed",color = "red") + ggtitle("Rue du Prieuré")
+
+```
 
 
 
