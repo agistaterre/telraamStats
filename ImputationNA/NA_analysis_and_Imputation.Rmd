@@ -376,6 +376,18 @@ ggplot(Leclerc, aes(x = date, y = vehicle,col=is_rupture)) +
 
 ```
 
+```{r}
+#Modifier les formats de date pour qu'elle soit identique
+changepoints <- as.POSIXct(modelPrieur$model$changepoints)
+changepoints
+Prieur$date <- as.POSIXct(Prieur$date)
+#ajouter les points de changement au data Prieur
+Prieur$changepoints <- ifelse(Prieur$date %in% modelPrieur$model$changepoints,TRUE,FALSE)
+
+#Représenter avec les changepoints avec des vlines
+ggplot(Prieur,aes(x = date,y = car + heavy)) + geom_point() + geom_vline(xintercept = changepoints,linetype = "dashed",color = "red") + ggtitle("Rue du Prieuré")
+
+```
 
 
 
@@ -586,7 +598,7 @@ for(i in 1:length(segment)){
 On peut essayer celui Rue de Prieuré
 
 ```{r}
-Prieur <- dataV2 %>% filter(segment_fullname == "9000005665 - Rue du Prieuré - autre") 
+Prieur <- dataV2 %>% filter(segment_id == "9000005665") 
 Prieur %>% mutate(date = as.POSIXct(date)) %>%  summary()
 
 #Transform public_holiday to binary and rename it
@@ -661,20 +673,165 @@ modelPrieur$fitting_curve
 ```
 
 
-
 ```{r}
-#Modifier les formats de date pour qu'elle soit identique
-changepoints <- as.POSIXct(modelPrieur$model$changepoints)
-changepoints
-Prieur$date <- as.POSIXct(Prieur$date)
-#ajouter les points de changement au data Prieur
-Prieur$changepoints <- ifelse(Prieur$date %in% modelPrieur$model$changepoints,TRUE,FALSE)
+Leclerc <- segments_clear %>% filter(segment_name == "RteVitre-06")
 
-#Représenter avec les changepoints avec des vlines
-ggplot(Prieur,aes(x = date,y = car + heavy)) + geom_point() + geom_vline(xintercept = changepoints,linetype = "dashed",color = "red") + ggtitle("Rue du Prieuré")
+
+Leclerc_hd <-Leclerc %>% group_by(weekday,hour) %>% summarise(vehicle = mean(heavy +car)) %>% mutate(hour = as.factor(hour))
+
+
+#l'inverse
+ggplot(Leclerc_hd,aes(x = weekday,y = vehicle,group = hour,color = hour)) + geom_line() + ggtitle("Nombre de véhicules par jour de la semaine pour chaque heure") + xlab("Jour de la semaine") + ylab("Nombre de véhicules") + theme_minimal()
+
 
 ```
 
 
 
+
+```{r}
+#With autoARIMA
+for (i in unique(Leclerc_hd$hour)) {
+  data <- Leclerc_hd %>% filter(hour == i) 
+  model <- auto.arima(data$y)
+  models[[as.numeric(i)]] <- model
+}
+models[[12]] %>% summary()
+
+#Représentation de l'ajustement des données 
+Leclerc %>% filter(hour == 12 , uptime_quality == F)
+
+
+```
+
+```{r}
+
+Leclerc_hd2 <- Leclerc %>% filter(uptime_quality,weekday== "monday") 
+#Representer tout les lundi 
+ggplot(Leclerc_hd2,aes(x = date,y = heavy + car,col=as.factor(hour))) + geom_line() + ggtitle("Nombre de véhicules par heure pour chaque lundi") + xlab("Heure") + ylab("Nombre de véhicules") + theme_minimal()
+
+```
+
+```{r}
+#Faire un modele prophete pour chaque heure de chaque lundi
+Leclerc_hd2 <- Leclerc_hd2 %>% mutate( y = heavy + car) %>% rename(ds = date) 
+for (i in unique(Leclerc_hd2$hour)) {
+  data <- Leclerc_hd2 %>% filter(hour == i) 
+  model <- prophet(data)
+  models[[as.numeric(i)]] <- model
+}
+
+predict(models[[12]] , Leclerc_hd2 %>% filter(hour == 12) %>% select(ds)) %>% select(ds,yhat) %>% rename(y = yhat) %>% mutate(hour = 12) %>% ggplot(aes(x = ds,y = y)) + geom_line() + ggtitle("Prédiction de la fréquentation pour chaque lundi à 12h") + xlab("Date") + ylab("Nombre de véhicules") + theme_minimal()
+
+
+```
+
+```{r}
+segments_clear %>% filter(holiday, vacation == "No vacation") %>% group_by(day) %>% summarise(holiday = first(holiday),vacation = first(vacation)) 
+```
+
+
+
+```{r}
+RteVitre <- segments_clear %>% filter(segment_name == "RteVitre-06") %>% mutate(y = ifelse(uptime_quality,heavy + car,NA)) %>% rename(ds=date)
+
+
+#faire un model pour chaque jour et chaque heure
+models <- list()
+for (d in unique(RteVitre$weekday)) {
+  for (h in unique(RteVitre$hour)) {
+    data <- RteVitre %>% filter(weekday == d, hour == h)
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+      #Recuperer les vacances 
+      holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
+      
+      
+      model <- prophet(data, holidays = holidays,n.changepoints = 80)
+      models[[paste(d, h, sep = "_")]] <- model
+    } else {
+      warning(paste("Not enough data for weekday", d, "and hour", h))
+    }
+  }
+}
+
+
+#Représenter l'ajustement de la courbe sur les données utilisés
+m12 <- RteVitre %>% filter(weekday == "monday", hour == 12)
+pred_m12 <- predict(models[["monday_12"]], m12 %>% select(ds)) 
+plot(models[["monday_12"]], pred_m12)
+
+#Prédire les valeurs manquantes
+m12_missing <- m12 %>% filter(is.na(y)) %>% select(ds)
+pred_m12_missing <- predict(models[["monday_12"]], m12_missing %>% select(ds)) %>% select(ds, yhat) %>% rename(y = yhat)
+
+#Représentation graphique des valeurs prédites
+ggplot() +
+  geom_point(data = m12, aes(x = ds, y = y), color = "blue") +
+  geom_point(data = pred_m12_missing, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction de la fréquentation pour chaque lundi à 12h") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  theme_minimal()
+
+
+
+```
+
+```{r}
+m18 <- RteVitre %>% filter(weekday == "monday", hour == 18)
+pred_m18 <- predict(models[["monday_18"]], m18 %>% select(ds)) 
+plot(models[["monday_18"]], pred_m18)
+
+#Prédire les valeurs manquantes
+m18_missing <- m18 %>% filter(is.na(y)) %>% select(ds)
+pred_m18_missing <- predict(models[["monday_18"]], m18_missing %>% select(ds)) %>% select(ds, yhat) %>% rename(y = yhat)
+
+#Représentation graphique des valeurs prédites
+ggplot() +
+  geom_point(data = m18, aes(x = ds, y = y), color = "blue") +
+  geom_point(data = pred_m18_missing, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction de la fréquentation pour chaque lundi à 18h") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  theme_minimal()
+
+```
+
+```{r}
+m10 <- RteVitre %>% filter(weekday == "wednesday", hour == 10)
+pred_m10 <- predict(models[["wednesday_10"]], m10 %>% select(ds)) 
+plot(models[["wednesday_10"]], pred_m10)
+
+#Prédire les valeurs manquantes
+m10_missing <- m10 %>% filter(is.na(y)) %>% select(ds)
+pred_m10_missing <- predict(models[["wednesday_10"]], m10_missing %>% select(ds)) %>% select(ds, yhat) %>% rename(y = yhat)
+
+#Représentation graphique des valeurs prédites
+ggplot() +
+  geom_point(data = m10, aes(x = ds, y = y), color = "blue") +
+  geom_point(data = pred_m10_missing, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction de la fréquentation pour chaque lundi à 10h") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  theme_minimal()
+
+```
+```{r}
+#Trouver un algorithme qui permet trouver les ruptures de tendances dans les données (ne tenant pas compte des NA) afin d'ammélioré le morcelage des données
+```
+
+
+```{r}
+#Reconstruire les données avec les données prédites 
+
+#Pour cela on va d'abord prédire les valeurs manquantes pour chaque jour et chaque heure puis on va les ajouter à notre jeu de données
+
+
+
+
+
+
+
+```
 
