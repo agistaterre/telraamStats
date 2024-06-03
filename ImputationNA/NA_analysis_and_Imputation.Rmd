@@ -535,7 +535,6 @@ liste_pred <- TimeSeries_Imputation_list(liste_segments)
 ```
 
 
-
 #Résultat de l'imputation 
 ```{r}
 for(i in 1:length(liste_pred)){
@@ -545,7 +544,7 @@ for(i in 1:length(liste_pred)){
 ```
 
 
-our mesurer la qualité d'un modèle temporel, vous pouvez utiliser plusieurs tests statistiques, en fonction de vos besoins et du type de modèle que vous avez utilisé. Voici quelques options courantes :
+Pour mesurer la qualité d'un modèle temporel, vous pouvez utiliser plusieurs tests statistiques, en fonction de vos besoins et du type de modèle que vous avez utilisé. Voici quelques options courantes :
 
 Erreur moyenne absolue (MAE) : Mesure la moyenne des écarts absolus entre les valeurs prédites et les valeurs réelles. Plus la MAE est faible, meilleure est la performance du modèle.
 
@@ -894,7 +893,6 @@ burel_train <- burel %>% filter(day < "2024-01-01",uptime_quality) %>% mutate(y 
 ```{r}
 
 ```
-
 
 
 
