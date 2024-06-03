@@ -1,4 +1,4 @@
-function(enriched_data,
+Fond_Diag<-function(enriched_data,
                     date_range = NULL,
                     weekday_choice = NULL,
                     hour_choice = NULL,
