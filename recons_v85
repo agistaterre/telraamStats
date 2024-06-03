@@ -1,0 +1,64 @@
+recons_v85<-function(df)
+{
+  # Input parameter :
+  #       - df: Dataframe 
+  # Output parameter :
+  #       - df : Dataframe
+  # Description :
+  #    Reconstitute the v85 by direction from speed_hist_car and add two colums in the dataframe :
+  #       - v85_lft
+  #       - v85_rgt
+  
+  speed<-c(5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125)
+  
+  #Left
+  df$v85_lft<-0
+
+  for (i in 1:length(df$car))
+    {
+      vec<-df$speed_hist_car_lft[i]
+      elements <- strsplit(vec, ",")[[1]]
+      elements[1]<- gsub("\\[", "", elements[1])
+      elements[25]<- gsub("\\]", "", elements[25])
+      vecteur <- as.numeric(elements)
+      per_vec <- sum(vecteur)
+      per_85 <- 0.85*per_vec
+      j<-1
+      som<-0
+
+      while (som<per_85 & j<length(vecteur))
+        {
+          som<-som+vecteur[j]
+          j<-j+1
+        }
+  
+      df$v85_lft[i]<-speed[j]
+    }
+  
+  #Right
+  df$v85_rgt<-0
+
+  for (i in 1:length(df$car))
+    {
+      vec<-df$speed_hist_car_rgt[i]
+      elements <- strsplit(vec, ",")[[1]]
+      elements[1]<- gsub("\\[", "", elements[1])
+      elements[25]<- gsub("\\]", "", elements[25])
+      vecteur <- as.numeric(elements)
+      per_vec <- sum(vecteur)
+      per_85 <- 0.85*per_vec      
+      j<-1
+      som<-0
+  
+      while (som<per_85 & j<length(vecteur))
+        {
+          som<-som+vecteur[j]
+          j<-j+1
+        }
+  
+      df$v85_rgt[i]<-speed[j]
+  
+    }
+
+  return(df)
+}
