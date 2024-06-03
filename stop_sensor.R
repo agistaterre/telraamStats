@@ -1,4 +1,13 @@
-stop_sensor<- function(df_init,uptime_choice=0.5,successive_day=2,remove_data=FALSE)
+stop_sensor<- function(enriched_data,
+                       date_range = NULL,
+                       weekday_choice = NULL,
+                       hour_choice = NULL,
+                       vacation_choice=NULL,
+                       holiday_choice=NULL,
+                       segments = NULL,
+                       uptime_choice=0.5,
+                       successive_day=2,
+                       remove_data=FALSE)
 {
   # Input parameter :
   #       - df_init : Initial Dataframe 
@@ -12,32 +21,45 @@ stop_sensor<- function(df_init,uptime_choice=0.5,successive_day=2,remove_data=FA
   # Remove periods when the sensor did not work
   #
   # Packages :
-  #        - lubridate
-  #        - dplyr
+  #       - lubridate
+  #       - dplyr
 
-  #Create a column season
-  df_init$date <- ymd_hms(df_init$date) #mettre au format date
-  df_init$season <- ifelse(month(df_init$date) %in% c(3,4,5), "Spring",
-                        ifelse(month(df_init$date) %in% c(6,7,8), "Summer",
-                               ifelse(month(df_init$date) %in% c(9,10,11), "Autumn", "Winter")))
+  #Filtrer les données en fonction des demandes de l'utilisateur
+  if(!is.null(segments))
+    {enriched_data<-enriched_data[enriched_data$segment_name==segments,]}
+    
+  if(!is.null(date_range))
+    {enriched_data<-enriched_data[enriched_data$day>=date[1] & enriched_data$day<= date[2],]}
+
+  if(length(enriched_data$car)==0){print("Aucune donnée sur la période sélectionnée")}
+  
+  else
+  {
+  #Créer une colonne pour avoir les saisons
+  enriched_data$date <- ymd_hms(enriched_data$date) #mettre au format date
+  enriched_data$season <- ifelse(month(enriched_data$date) %in% c(3,4,5), "Spring",
+                        ifelse(month(enriched_data$date) %in% c(6,7,8), "Summer",
+                               ifelse(month(enriched_data$date) %in% c(9,10,11), "Autumn", "Winter")))
   
   
   # Remove hours with no information by season
-  df_season<-df_init %>% group_by(segment_id,season,hour) %>% summarise(condition=any(car!=0 & uptime>uptime_choice))
+  df_season<-enriched_data %>% group_by(segment_id,season,hour) %>% summarise(condition=any(car!=0 & uptime>uptime_choice))
   
-  df_init <- df_init %>%
+  enriched_data <- enriched_data %>%
     semi_join(df_season %>% filter(condition), by = c("segment_id","season", "hour"))
   
-  #Inactivity periods
+  print(length(enriched_data$car))
+  
+  #Périodes d'inactivités
   rm<-c()
   rm_fin<-c()
   
   list_clear_data <- list()
-  seg_id<-unique(df_init$segment_id)
+  seg_id<-unique(enriched_data$segment_id)
   
   for(id in 1:length(seg_id))
   {
-    df_segment<-df_init[df_init$segment_id==seg_id[id],]
+    df_segment<-enriched_data[enriched_data$segment_id==seg_id[id],]
     for(i in 1:length(df_segment$car))
       { j=i
         while ((df_segment$car[i]==0 | df_segment$uptime[i]<uptime_choice) & i<length(df_segment$car))
@@ -59,17 +81,35 @@ stop_sensor<- function(df_init,uptime_choice=0.5,successive_day=2,remove_data=FA
               {df_segment<-df_segment[-rm_fin,]}
     
             else
-              {df_segment[rm_fin,7:18]=NA} #correspond aux colonnes avec le nombre de véhicules
+              { colonnes_voulues<-c('heavy','car','bike','pedestrian','heavy_lft','heavy_rgt','car_rgt','car_lft','bike_lft','bike_rgt','pedestrian_lft','pedestrian_rgt')
+                df_segment[rm_fin,colonnes_voulues]=NA}
           }
     list_clear_data[[id]]<-df_segment
   }
-
-  #Recombine the final dataframe
   df_fin<-list_clear_data[[1]]
+  
   if(length(seg_id)>1)
     {for(i in 2:length(seg_id))
       {df_fin<-rbind(df_fin,list_clear_data[[i]])}}
   
-  return(df_fin)
-}
   
+  #Filtration des données avec les demandes de l'utilisateur
+  
+  if(!is.null(weekday_choice))
+  {  
+    df_fin$weekday<-tolower(df_fin$weekday)
+    tolower(weekday_choice)
+    df_fin<-df_fin %>% filter(weekday %in% weekday_choice) }
+
+  if(!is.null(hour_choice))
+  {df_fin<-df_fin %>% filter(hour %in% hour_choice)}
+  
+  if(!is.null(vacation_choice))
+  {df_fin<-df_fin %>% filter(vacation %in% vacation_choice)}
+  
+  if(!is.null(holiday_choice))
+  {df_fin<-df_fin %>% filter(holiday %in% holiday_choice)}
+  
+  return(df_fin)
+  }
+}
