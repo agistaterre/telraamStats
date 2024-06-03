@@ -71,7 +71,7 @@ meteo$DATE <- with_tz(meteo$DATE, tzone =)
 ```{r message=FALSE, warning=FALSE}
 dataV2 <- read.csv("/Users/paulvallee/Desktop/Stage CREM/Code R/data/20230518_20240517_v2_sensors_extract.csv")
 dataV2$uptime_quality <- ifelse(dataV2$uptime >=0.5 ,TRUE,FALSE)
-dataV2 <- dataV2 %>% rename(segment_name = segment_fullname)%>%  filter(segment_name != "") %>%  mutate(segment_name = as.factor(as.character(gsub("[0-9-]+", "",segment_name))),uptime = as.numeric(uptime))
+dataV2 <- dataV2 %>% rename(segment_name = segment_fullname) %>%  filter(segment_name != "") %>%  mutate(segment_name = as.factor(as.character(gsub("[0-9-]+", "",segment_name))),uptime = as.numeric(uptime))
 dataV2 <- stop_sensor(dataV2)
 ```
 
@@ -96,9 +96,12 @@ segments_clear <- segments_clear %>% left_join(meteo, by = c("date" = "DATE"))
 
 ```{r}
 segments_clear <- NA_Type(segments_clear)
+prop.table(table(segments_clear$type))
+
+#differentier par segment_name
+
+
 ```
-
-
 
 # Analyse des données 
 
@@ -144,14 +147,14 @@ segment_cor <- segments_clear %>% mutate(segment_name = as.factor(as.character(s
 
 ```{r}
 
-sensor_clear %>% 
+segments_clear %>% 
   mutate(segment_name = as.factor(as.character(segment_name)),
          uptime = as.numeric(uptime)) %>% 
   select(date, segment_name, uptime) %>% 
   pivot_wider(names_from = segment_name, values_from = uptime) %>% 
   mutate(across(where(is.list), ~map_dbl(.x, ~ifelse(length(.x) == 0, NA, .x[[1]])))) %>%select(-date) %>%  cor(use="pairwise.complete.obs") %>% corrplot::corrplot( method = "number", type = "upper", tl.col = "black", tl.srt = 45)
 
-
+#Filtrer que sur les données dispo dans les deux data
 
 dataV2 <- stop_sensor(dataV2,uptime_choice = 0.5)
 dataV2 <- Clean_NA_segments(dataV2)
@@ -674,7 +677,7 @@ modelPrieur$fitting_curve
 
 
 ```{r}
-Leclerc <- segments_clear %>% filter(segment_name == "RteVitre-06")
+Leclerc <- segments_clear %>% filter(segment_name == "RteVitre-06") %>%  mutate(vehicle = heavy + car) 
 
 
 Leclerc_hd <-Leclerc %>% group_by(weekday,hour) %>% summarise(vehicle = mean(heavy +car)) %>% mutate(hour = as.factor(hour))
@@ -682,6 +685,7 @@ Leclerc_hd <-Leclerc %>% group_by(weekday,hour) %>% summarise(vehicle = mean(hea
 
 #l'inverse
 ggplot(Leclerc_hd,aes(x = weekday,y = vehicle,group = hour,color = hour)) + geom_line() + ggtitle("Nombre de véhicules par jour de la semaine pour chaque heure") + xlab("Jour de la semaine") + ylab("Nombre de véhicules") + theme_minimal()
+ggplot(Leclerc,aes(x = date,y = vehicle)) + geom_line() + ggtitle("Evolution du Nombre de véhicules ") + xlab("Date") + ylab("Nombre de véhicules") + theme_minimal()
 
 
 ```
@@ -827,11 +831,160 @@ ggplot() +
 
 #Pour cela on va d'abord prédire les valeurs manquantes pour chaque jour et chaque heure puis on va les ajouter à notre jeu de données
 
+#Pour chaque modèle faire un predict sur les valeurs manquantes concernant le jour et leurs du modèles et recuperer yhat et ds et un flag  et les mettres dans un unique dataframe
+RteVitre_imputed <- data.frame()
+for (d in unique(RteVitre$weekday)) {
+  for (h in unique(RteVitre$hour)) {
+    model_name <- paste(d, h, sep = "_")
+    model <- models[[model_name]]
+    data <- RteVitre %>% filter(weekday == d, hour == h)
+    missing <- data %>% filter(is.na(y)) %>% select(ds)
+    if (nrow(missing) > 0) {
+      pred <- predict(model, missing %>% select(ds)) %>% select(ds, yhat) %>% rename(y = yhat)
+      pred$weekday <- d
+      pred$hour <- h
+      RteVitre_imputed <- rbind(RteVitre_imputed, pred)
+    }
+  }
+}
+RteVitre_imputed$flag <- "imputed"
+RteVitre_original <- RteVitre %>% filter(!is.na(y)) %>% select(ds, y, weekday, hour) %>% mutate(flag = "original") 
+
+data_input <- rbind(RteVitre_original, RteVitre_imputed) %>% arrange(ds, weekday, hour)
 
 
+#Représentation graphique des valeurs prédites
+data_rep <- data_input %>% filter(weekday %in% c("sunday") )
+
+ggplot() +
+  geom_point(data = data_rep, aes(x = ds, y = y, color = flag)) +
+  ggtitle("Prédiction de la fréquentation pour chaque lundi à 10h") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  theme_minimal()
 
 
+#Representer en prenant l'angle semaine/heure
+ggplot() +
+  geom_point(data = data_rep, aes(x = hour, y = y, color = flag)) +
+  ggtitle("Prédiction de la fréquentation pour chaque lundi") +
+  xlab("Heure") +
+  ylab("Nombre de véhicules") +
+  theme_minimal()
 
 
 ```
+
+
+# Imputation des NA 
+```{r}
+#On cherche a valider une methode d'imputation on selectionne un capteur fiable nous permettant d'imputé nos modeles puis on prédiras sur les valeurs futures qui sont elles aussi fiable
+
+#Selection d'un capteur V2 
+burel <- segments_clear %>% filter(segment_name == "Burel-01")
+
+burel_2024 <- burel %>% filter(day >= "2024-01-01",uptime_quality) %>% mutate(y = car + heavy ,ds=date)
+burel_train <- burel %>% filter(day < "2024-01-01",uptime_quality) %>% mutate(y = car + heavy ,ds=date)
+
+```
+
+
+# Imputation Basique 
+
+```{r}
+
+```
+
+
+
+
+# Modèle Global avec Prophet
+```{r}
+
+```
+
+
+# Modèle par jour et par heure avec Prophet
+
+
+```{r}
+
+
+#On va entrainer un modèle sur les données de burel_train
+models_burel <- list()
+for (d in unique(burel_train$weekday)) {
+  for (h in unique(burel_train$hour)) {
+    data <- burel_train %>% filter(weekday == d, hour == h)
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+      #Recuperer les vacances 
+      holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
+      
+      
+      model <- prophet(data, holidays = holidays,n.changepoints = 80)
+      models_burel[[paste(d, h, sep = "_")]] <- model
+    } else {
+      warning(paste("Not enough data for weekday", d, "and hour", h))
+    }
+  }
+}
+
+#Prédure les valeurs de 2024 
+x <- burel_2024 %>% select(ds, weekday, hour)
+Burel_future <- data.frame()
+for (d in unique(x$weekday)) {
+  for (h in unique(x$hour)) {
+    model_name <- paste(d, h, sep = "_")
+    print(model_name)
+    model <- models_burel[[model_name]]
+    data <- x %>% filter(weekday == d, hour == h)
+    print(data)
+    if (nrow(data) > 0) {
+    pred <- predict(model, data %>% select(ds)) %>% select(ds, yhat) %>% rename(y = yhat)
+    Burel_future <- rbind(Burel_future, pred)
+    }
+  }
+}
+
+#Comparer burel_future et burel_2024
+ggplot() +
+  geom_line(data = burel_2024, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_future, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red")) 
+
+
+```
+
+```{r}
+Data_comp <- burel_2024 %>% left_join(Burel_future, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
+Data_comp
+ggplot() +
+  geom_point(data = Data_comp, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+ 
+#MAE
+mean(abs(Data_comp$error), na.rm = TRUE)
+
+#RMSE
+sqrt(mean(Data_comp$error^2, na.rm = TRUE))
+
+
+#MAE par jour
+Data_comp %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+```
+# Modèle par jour avec Prophet
+
+
+
+
+
 
