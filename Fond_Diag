@@ -1,0 +1,155 @@
+function(enriched_data,
+                    date_range = NULL,
+                    weekday_choice = NULL,
+                    hour_choice = NULL,
+                    vacation_choice=NULL,
+                    holiday_choice=NULL,
+                    segments = NULL,
+                    direction_choice=NULL)
+        
+{
+  #Filtre des demandes de l'utilisateur
+  if(!is.null(segments))
+    {enriched_data<-enriched_data %>% filter(segment_name %in% segments)}
+  id_seg<-unique(enriched_data$segment_id)
+  
+  if(!is.null(date_range))
+    {enriched_data<-enriched_data[enriched_data$day>=date[1] & enriched_data$day<= date[2],]}
+  
+  if(!is.null(weekday_choice))
+  {  
+    enriched_data$weekday<-tolower(enriched_data$weekday)
+    tolower(weekday_choice)
+    enriched_data<-enriched_data %>% filter(weekday %in% weekday_choice) 
+  }
+  
+  if(!is.null(hour_choice))
+  {enriched_data<-enriched_data %>% filter(hour %in% hour_choice)}
+  
+  if(!is.null(vacation_choice))
+  {enriched_data<-enriched_data %>% filter(vacation %in% vacation_choice)}
+  
+  if(!is.null(holiday_choice))
+  {enriched_data<-enriched_data %>% filter(holiday %in% holiday_choice)}
+  
+  direction_choice<-tolower(direction_choice)
+  
+  enriched_data$Version<-ifelse(enriched_data$segment_id %in% version_capteur[10:length(version_capteur$Id_Segment),1],2,1)
+
+  #Calcul des données du graphique
+  #Couleur 
+  enriched_data$weekend<-ifelse(enriched_data$weekday %in% c('saturday','sunday'), "Week-end", "Semaine")
+  
+  for (id in id_seg)
+  {
+    df_seg<-enriched_data[enriched_data$segment_id==id,]
+    if(df_seg$Version[1]==2 & "speed_hist_car_lft" %in% colnames(df_seg)){df_seg<-recons_v85(df_seg)}
+    df_seg<-stop_sensor(df_seg,remove_data = TRUE)
+    
+    if(!("speed_hist_car_lft" %in% colnames(df_seg)))
+    {
+      print("Le choix de la direction n'est pas disponible pour les capteurs de version 2 sans la clef requise et de version 1 ")
+      print("Les diagrammes prennent en compte la route dans son ensemble sans distinction de direction")
+      
+      df_seg$veh_h<-df_seg$car
+      df_seg$km_h<-df_seg$v85
+      df_seg$veh_km<-0
+      for(i in 1:length(df_seg$veh_km))
+        {df_seg$veh_km[i]<-df_seg$veh_h[i]/df_seg$km_h[i]}
+      
+      plot(ggplot(data = df_seg, mapping = aes(x = veh_km, y = veh_h, color = weekend)) +
+        geom_point(pch = 20) +
+        labs(x = 'Concentration', y = 'Débit', title = paste('Segment :', df_seg$segment_fullname[1])))
+      plot(ggplot(data = df_seg, mapping = aes(x = veh_km, y = km_h, color = weekend)) +
+        geom_point(pch = 20) +
+        labs(x = 'Concentration', y = 'Vitesse', title = paste('Segment :', df_seg$segment_fullname[1])))
+      plot(ggplot(data = df_seg, mapping = aes(x = veh_h, y = km_h, color = weekend)) +
+        geom_point(pch = 20) +
+        labs(x = 'Débit', y = 'Vitesse', title = paste('Segment :', df_seg$segment_fullname[1])))
+    }
+    
+    else
+    {
+      if(!is.null(direction_choice))
+      {
+        if(direction_choice=='lft')
+        {
+          
+          veh_h_lft<-df_seg$car_lft
+          km_h_lft<-df_seg$v85_lft
+          veh_km_lft<-rep(0,length(df_seg$car_lft))
+          for(i in 1:length(df_seg$car_lft))
+            {veh_km_lft[i]<-veh_h_lft[i]/km_h_lft[i]}
+          
+          plot(ggplot(data = df_seg, mapping = aes(x = veh_km_lft, y = veh_h_lft, color = weekend)) +
+            geom_point(pch = 20) +
+            labs(x = 'Concentration', y = 'Débit', title = paste('Segment :', df_seg$segment_fullname[1], ' Left')))
+          plot(ggplot(data = df_seg, mapping = aes(x = veh_km_lft, y = km_h_lft, color = weekend)) +
+            geom_point(pch = 20) +
+            labs(x = 'Concentration', y = 'Vitesse', title = paste('Segment :', df_seg$segment_fullname[1], ' Left')))
+          plot(ggplot(data = df_seg, mapping = aes(x = veh_h_lft, y = km_h_lft, color = weekend)) +
+            geom_point(pch = 20) +
+            labs(x = 'Concentration', y = 'Débit', title = paste('Segment :', df_seg$segment_fullname[1],' Left')))
+        }
+        
+        else 
+        {
+          
+          veh_h_rgt<-df_seg$car_rgt
+          km_h_rgt<-df_seg$v85_rgt
+          veh_km_rgt<-rep(0,length(df_seg$car_rgt))
+          for(i in 1:length(df_seg$car_rgt))
+          {veh_km_rgt[i]<-veh_h_rgt[i]/km_h_rgt[i]}
+          
+          plot(ggplot(data = df_seg, mapping = aes(x = veh_km_rgt, y = veh_h_rgt, color = weekend)) +
+            geom_point(pch = 20) +
+            labs(x = 'Concentration', y = 'Débit', title = paste('Segment :', df_seg$segment_fullname[1], ' Right')))
+          plot(ggplot(data = df_seg, mapping = aes(x = veh_km_rgt, y = km_h_rgt, color = weekend)) +
+            geom_point(pch = 20) +
+            labs(x = 'Concentration', y = 'Vitesse', title = paste('Segment :', df_seg$segment_fullname[1], ' Right')))
+          plot(ggplot(data = df_seg, mapping = aes(x = veh_h_rgt, y = km_h_rgt, color = weekend)) +
+            geom_point(pch = 20) +
+            labs(x = 'Concentration', y = 'Débit', title = paste('Segment :', df_seg$segment_fullname[1],' Right')))
+          
+        }
+      }
+      
+      else
+      {
+        #Left
+        veh_h_lft<-df_seg$car_lft
+        km_h_lft<-df_seg$v85_lft
+        veh_km_lft<-rep(0,length(df_seg$car_lft))
+        for(i in 1:length(df_seg$car_lft))
+          {veh_km_lft[i]<-veh_h_lft[i]/km_h_lft[i]}
+        
+        plot(ggplot(data = df_seg, mapping = aes(x = veh_km_lft, y = veh_h_lft, color = weekend)) +
+          geom_point(pch = 20) +
+          labs(x = 'Concentration', y = 'Débit', title = paste('Segment :', df_seg$segment_fullname[1], ' Left')))
+        plot(ggplot(data = df_seg, mapping = aes(x = veh_km_lft, y = km_h_lft, color = weekend)) +
+          geom_point(pch = 20) +
+          labs(x = 'Concentration', y = 'Vitesse', title = paste('Segment :', df_seg$segment_fullname[1], ' Left')))
+        plot(ggplot(data = df_seg, mapping = aes(x = veh_h_lft, y = km_h_lft, color = weekend)) +
+          geom_point(pch = 20) +
+          labs(x = 'Débit', y = 'Vitesse', title = paste('Segment :', df_seg$segment_fullname[1],' Left')))
+        
+        #Rigth
+        veh_h_rgt<-df_seg$car_rgt
+        km_h_rgt<-df_seg$v85_rgt
+        veh_km_rgt<-rep(0,length(df_seg$car_rgt))
+        for(i in 1:length(df_seg$car_rgt))
+          {veh_km_rgt[i]<-veh_h_rgt[i]/km_h_rgt[i]}
+        
+        plot(ggplot(data = df_seg, mapping = aes(x = veh_km_rgt, y = veh_h_rgt, color = weekend)) +
+          geom_point(pch = 20) +
+          labs(x = 'Concentration', y = 'Débit', title = paste('Segment :', df_seg$segment_fullname[1], ' Right')))
+        plot(ggplot(data = df_seg, mapping = aes(x = veh_km_rgt, y = km_h_rgt, color = weekend)) +
+          geom_point(pch = 20) +
+          labs(x = 'Concentration', y = 'Vitesse', title = paste('Segment :', df_seg$segment_fullname[1], ' Right')))
+        plot(ggplot(data = df_seg, mapping = aes(x = veh_h_rgt, y = km_h_rgt, color = weekend)) +
+          geom_point(pch = 20) +
+          labs(x = 'Débit', y = 'Vitesse', title = paste('Segment :', df_seg$segment_fullname[1],' Right')))
+      }
+    }
+  }
+}
