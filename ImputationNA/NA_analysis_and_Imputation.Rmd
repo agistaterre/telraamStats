@@ -982,6 +982,70 @@ Data_comp %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRU
 # Modèle par jour avec Prophet
 
 
+#Detection des points de ruptures
+
+
+#Interpolation des valeurs manquantes
+```{r}
+data_filled <- zoo::na.approx(Burel_train$y)
+
+```
+
+
+
+
+```{r}
+#Algo PELT sur Burel
+library(changepoint)
+cptmean <- cpt.mean(data_filled, method = "PELT")
+cptvar <- cpt.var(data_filled, method = "PELT")
+cptmeanvar <- cpt.meanvar(data_filled, method = "PELT")
+```
+
+```{r}
+#Comparaison des résultats
+plot(cptmean)
+plot(cptvar)
+plot(cptmeanvar)
+
+#Recuperer les changepoints 
+cpts_mean <- cpts(cptmean)
+cpts_var <- cpts(cptvar)
+cpts_meanvar <- cpts(cptmeanvar)
+
+
+#Recuperer les dates relatifs a ses changements
+date_mean <- Burel_train$ds[cpts_mean]
+date_var <- Burel_train$ds[cpts_var]
+date_meanvar <- Burel_train$ds[cpts_meanvar]
+
+```
+
+
+
+
+
+
+
+```{r}
+# Installer et charger le package
+install.packages("strucchange")
+library(strucchange)
+
+# Remplacer les NA par la moyenne des non-NA (ou une autre méthode de votre choix)
+data_filled <- zoo::na.approx(Burel_train$y)
+
+# Appliquer la méthode de détection des points de rupture
+breakpoints_result <- breakpoints(data_filled ~ 1)
+
+# Résumé des résultats
+summary(breakpoints_result)
+
+# Visualiser les points de rupture
+plot(breakpoints_result)
+
+```
+
 
 
 
