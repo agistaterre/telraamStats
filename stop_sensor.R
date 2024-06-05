@@ -7,7 +7,7 @@
 #' @param date_range Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).
 #' @param segments Character vector. Selected road segment, all if NULL (default).
 #' @param successive_day Integer. Number of day choosen. Default to 2
-#' @param uptime_choice 
+#' @param uptime_choice Real. Uptime choosen. Default to 0.5
 #' 
 #' @return enriched_data 
 #' @export
@@ -57,10 +57,25 @@ retrieve_missing_data<- function(enriched_data,
     return(enriched_data)
 }
 
-
-
-
-
+#' @description
+#' A short description...
+#' Retrieve hours with no data 
+#'
+#'
+#' @param enriched_data enriched data.frame containing all the data for all your sensors
+#' @param uptime_choice Real. Uptime choosen. Default to 0.5
+#' 
+#' @return enriched_data 
+#' @export
+#'
+#' @import dplyr
+#' @import lubridate
+#'
+#' @examples
+#' retrieve_missing_hours(traffic)
+#' retrieve_missing_hours(traffic,
+#'                         uptime_choice=0.3)
+                       
 retrieve_missing_hours<-function(enriched_data,uptime_choice)
 {
   enriched_data$date <- ymd_hms(enriched_data$date) 
@@ -75,11 +90,26 @@ retrieve_missing_hours<-function(enriched_data,uptime_choice)
   return(enriched_data)
 }
 
-
-
-
-
-
+#' @description
+#' A short description...
+#' Replace incomplete data with NA,
+#'
+#'
+#' @param enriched_data enriched data.frame containing all the data for all your sensors
+#' @param successive_day Integer. Number of day choosen. Default to 2
+#' @param uptime_choice Real. Uptime choosen. Default to 0.5
+#' 
+#' @return enriched_data 
+#' @export
+#'
+#' @import dplyr
+#' @import lubridate
+#'
+#' @examples
+#' replace_inactivity_period(traffic)
+#' replace_inactivity_period(traffic,
+#'                           uptime_choice=0.3,
+#'                           successive_day=1)
 
 replace_inactivity_period<-function (enriched_data,successive_day,uptime_choice)
 {
