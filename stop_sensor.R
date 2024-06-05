@@ -6,7 +6,6 @@
 #' @param enriched_data enriched data.frame containing all the data for all your sensors
 #' @param date_range Date vector. example: c('2021-01-01','2022-01-01'). Full period if NULL (default).
 #' @param segments Character vector. Selected road segment, all if NULL (default).
-#' @param weekday Character vector. Weekday choosen. Default to the all week.
 #' @param uptime Real. Uptime choosen. Default to 0.5.
 #' @param successive_day Integer. Number of day choosen. Default to 2
 #' 
