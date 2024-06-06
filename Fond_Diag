@@ -185,7 +185,7 @@ calculate_axes<-function(enriched_data,sensor_version=1,direction_choice=NULL)
   {
     if(direction_choice=='lft')
     {
-      enriched_data$veh_h_lft<-enriched_data$car_lft
+      enriched_data$veh_h_lft<-enriched_data$car_lft*4
       enriched_data$km_h_lft<-enriched_data$v85_lft
       enriched_data$veh_km_lft<-0
       for(i in 1:length(enriched_data$car_lft))
@@ -194,7 +194,7 @@ calculate_axes<-function(enriched_data,sensor_version=1,direction_choice=NULL)
     
     else
     {
-      enriched_data$veh_h_rgt<-enriched_data$car_rgt
+      enriched_data$veh_h_rgt<-enriched_data$car_rgt*4
       enriched_data$km_h_rgt<-enriched_data$v85_rgt
       enriched_data$veh_km_rgt<-0
       for(i in 1:length(enriched_data$car_rgt))
