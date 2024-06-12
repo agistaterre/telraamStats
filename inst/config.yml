@@ -1,0 +1,21 @@
+default:
+  url: https://telraam-api.net/v1
+  segments:
+    Burel-01: "9000002156"
+    Leclerc-02: "9000001906"
+    ParisMarche-03: "9000001618"
+    rueVignes-04: "9000003090"
+    ParisArcEnCiel-05: "9000002453"
+    RteVitre-06: "9000001844"
+    RueGdDomaine-07: "9000001877"
+    StDidierNord-08: "9000002666"
+    rueVallee-09: "9000002181"
+    StDidierSud-10: "9000002707"
+    RuePrieure-11: "9000003703"
+    RueCottage-12: "9000003746"
+    RueVeronniere-13: "9000003775"
+    RueDesEcoles-14: "9000003736"
+    RueManoirs-15: "9000004971"
+    RueToursCarree-16: "9000004130"
+    PlaceHotelDeVille-17: "9000004042"
+    BoulevardLiberte-18: "9000004697"

@@ -1073,7 +1073,6 @@ plot(breakpoints_result)
 #Je veux représenter la difference lors du changement de point de vue entre le signal global brut, le signal journalier et le signal horaire pour voir la difference de réprésentation, represente graphiquemenrt
 
 
-
 # Représenter les données brutes
 G1 <- data_imput %>% ggplot(aes(x = ds, y = y)) +
   geom_point() +
@@ -1095,6 +1094,7 @@ G2bis <- data_imput %>% filter(weekday == "Monday") %>% ggplot(aes(x = ds, y = y
   ggtitle("Données des lundis") +
   xlab("Date") +
   ylab("Nombre de véhicules")
+
 
 # Représenter les données par jour et par heure
 G3 <- data_imput %>% filter(weekday == "Monday") %>% ggplot(aes(x = ds, y = y, col = as.character(hour))) +

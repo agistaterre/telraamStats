@@ -1,0 +1,173 @@
+---
+title: "Gathering data"
+output: rmarkdown::html_vignette
+description:
+  Learn how to get traffic data from a Telraam camera.
+vignette: >
+  %\VignetteIndexEntry{Gathering data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+knitr::knit_engines$set(yml = function(options) {
+})
+
+knitr::opts_chunk$set(eval = FALSE)
+
+```
+
+## Introduction
+
+This vignette describes traffic data from Telraam sensors and how to get access to specific data.
+
+Before we go on, we'll attach the packages we use.
+
+```{r setup, eval = TRUE}
+library(telraamStats)
+```
+
+### Telraam
+
+[Telraam](https://telraam.net/en/what-is-telraam) is a Belgian company that develops sensors for monitoring and collecting multi-modal traffic data. These sensors are equipped with cameras to count road users using various mode of transport, including pedestrian, cyclists, cars and heavy vehicles.
+
+A diverse range of stakeholders (individuals, community groups, local authoritieds, researchers...) can purchase and install a Telraam sensor on their buildings. A map of all sensors is available on [Telraam website](https://telraam.net/). Everyone can access the data through the web interface ([example](https://telraam.net/en/location/9000001844)) or the [API](https://telraam-api.net/).
+
+#### Available data
+
+The Telraam API provides information on road segments and sensors locations, or parameters, but most importantly, it offers traffic data. Every hour, each sensor sends information on traffic counts, for each transportation mode and road direction, along with a confidence metric. In addition to traffic counts, estimated car speed and a car speed histogram are also available. Further details on the data will be provided in this vignette.
+
+### Included dataset
+
+If you're only interested on discovering Telraam data and playing with real traffic data, a dataset of two road segments in the city of Châteaubourg (FR) is included in the package.
+
+Châteaubourg is a municipality in Brittany, northwestern France. Its population is around 7,500 inhabitants and its area is less than 30km$^2$. In France, it is the city with the largest number of Telraam sensors in 2023 and by far the highest density of sensors.
+
+The two road segments offer hourly data from January 1, 2022, to December 31, 2022. The data is directly extracted from the API and may contain missing or extreme values.
+
+#### Load included dataset
+
+Included dataset is lazily loaded with the telraamStats package. If you have already called `library(telraamStats)`, the dataset is already attached and you can call it directly :
+
+```{r, eval=FALSE, results='asis'}
+head(traffic)
+```
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(head(traffic))
+```
+
+Otherwise, if you don't want to load the entire package, you can also access this dataset by using `telraamStats::traffic`.
+
+### Retrieve data from a specific road segment or set of segments
+
+#### 1. Obtain a Telraam token
+
+To work with data from one sensor - or more -, you must first create a [Telraam (free) account](https://telraam.net/en/register) to obtain an API token. The API token serves as a unique identifier for accessing the Telraam API service, which is used in this package. You can generate it in your personal dashboard on the Telraam website. For more information about the Telraam API, refer to the [Telraam Q&A website](https://talks.telraam.net/t/telraam-api-even-more-data-statistics/79).
+
+#### 2. Specify your token in configuration
+
+It is strongly recommended not to directly embed your token in the code, especially if the code is shared or versioned using a system like Git.
+
+You have two options to specify your own Telraam token :
+
+1.  Edit your `.Renviron` file. `.Renviron` is useful for defining sensitive information or R environment variables: it contains a list of environment variables to set. An easy way to edit this file and add your Telraam token is by using the `usethis` package. Run the following command (either once or every time you change your API Token) : `.Renviron` file will open in RStudio and you can add a new line in the form `token='YourTelraamAPIToken'`.
+
+```{r}
+if (!require("usethis")) install.packages("usethis") #if you haven't installed 'usethis' already
+usethis::edit_r_environ()
+```
+
+2.  If you are not comfortable with the previous step, you can use an built-in function of the `telraamStats` package. However, keep in mind that you will need to run this function every time you want to retrieve your data:
+
+```{r}
+set_telraam_token(token = 'YourTelraamAPIToken')
+```
+
+If you want to verify that your token is correctly set, you can use the following command :
+
+```{r}
+get_telraam_token()
+```
+
+#### 3. Specify road segment IDs in configuration file
+
+Each road segment has a unique ID, which can be found in the Telraam location URL. For instance, here is the URL for one of Châteaubourg's segments [`https://telraam.net/home/location/9000005665`](https://telraam.net/home/location/9000005665), and its ID is located in the last part of the URL (`9000005665`). Once you have gathered the IDs for all your segments, you can specify them by editing the `inst\config.yml` file.
+
+This file can be created using the `create_config()` function. Once executed, you find a `config.yml` file in the `inst\` folder of your work directory.
+
+```{r, eval=FALSE}
+create_config(create_directory = TRUE)
+```
+
+The file already contains the following template, which you can modify (directly in the yml file) to add your own segments, adhering to the format of the template, that is, segment name (without quotes), followed by a colon, then the segment number within quotes : `segmentName: '9000000000'`.
+
+```         
+default:
+  url: https://telraam-api.net/v1
+  segments:
+    segment-01: '9000000000'
+    segment-02: '9000000000'
+```
+
+You can specify as many segments as you want and personalize the segment's names.
+
+```         
+default:
+  url: https://telraam-api.net/v1
+  segments:
+    MyFirstSegment: '9000000000'
+    My-second-segment: '9000000000'
+    My_3rd_segment: '9000000000'
+```
+
+If you don't want to create a folder in your project directory, another option is to use a temporary folder and specify your segments names and IDs directly through the `create_config()` function, but you will have to re-run this command at each session.
+
+```{r, eval=FALSE, echo=TRUE}
+list_of_segments = list("Burel"= "9000002156", "Vitre" = "9000001844")
+create_config(segments = list_of_segments, create_directory = FALSE)
+```
+
+#### 4. Get data for your road segments
+
+Once you have specified the names and IDs of your road segments, you can use the `retrieve_sensor()` function to gather data from this segment from the Telraam API. This function takes, as arguments, the name of the segment, the first and the last day of the period of interest. You must use the same names as specified in the configuration files and dates must be of the date type.
+
+```{r, eval=FALSE}
+retrieve_sensor(segment_name = "segment-01", 
+                start_date = as.Date('2023-09-01'), 
+                end_date = as.Date('2023-09-30'))
+```
+
+If you want to store the data, you can directly use `write_update_data()`, which performs the same task but also writes or updates the sensor data in a temporary folder or in the `data/` directory in .Rdata format. The arguments are the same as those of the previous function:
+
+```{r, eval=FALSE}
+write_update_data(segment_name = "segment-01",
+                  start_date = as.Date('2023-09-01'),
+                  end_date = as.Date('2023-09-30'),
+                  create_directory = FALSE) #TRUE if you want to save the data in a permanent folder
+```
+
+To retrieve data you have already stored, you can use `import_sensor()`. This function imports data associated with a given list of sensor names from .RData files contained in the `data/` directory. Here, you should also use the same names as specified in the configuration files. All available periods will be imported.
+
+```{r}
+import_sensor(list_sensor = c("segment-01","segment-02"))
+```
+
+### Data details
+
+By importing data from your own road segments (following the previous steps) or using the included dataset, you should obtain Telraam data with the same columns. Among these columns, the most important ones are:
+
+-   *segment_id* : Telraam ID of the road segment ;
+-   *date* : date and UTC time of the reporting interval (beginning of the interval) ;
+-   *interval* : can be "hourly" or "daily" for hourly or daily aggregate data ;
+-   *uptime* : between 0 and 1, represents the portion of the reporting interval that was actively spent counting the traffic. For more information about the uptime parameter, you can refer to [this Telraam article](https://telraam.net/en/blog/precision-accuracy-and-validations-of-the-original-telraam-sensor) ;
+-   *heavy, heavy_lft, heavy_rgt* : number of heavy vehicles, total and in both directions. You have also the same columns for each transportation mode (*car, bike, pedestrian*) ;
+-   *car_speed_hist_0to70plus, car_speed_hist_0to120plus* : the estimated car speed distribution in 10 km/h bins from 0 to 70+ km/h or 120+ km/h (in percentage) ;
+-   *v85* : estimated car speed limit in km/h that 85% of all cars respect.
+
+Complete data description can be found in the data documentation of this package, or you can refer to the [Telraam API website](https://telraam-api.net/) for further details.
