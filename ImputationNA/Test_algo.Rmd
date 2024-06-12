@@ -1,0 +1,438 @@
+---
+title: "Analyse et Prévision de Données de Trafic"
+author: "Paul Vallee"
+date: "2024-06-04"
+output: html_document
+---
+
+# Importations
+
+```{r}
+pacman::p_load(tidyverse, telraamStats, lubridate, forecast, prophet, purrr, zoo, TTR)
+```
+
+## Importation des fonctions
+
+```{r}
+source("Clean_Data.R")
+source("Imputation_function.R")
+source("Utilities_functions.R")
+source("stop_sensor.R")
+```
+
+## Importation et nettoyage des données
+
+```{r}
+load("/Users/paulvallee/Desktop/Stage CREM/Code R/data/segments_2ans.RData")
+data_04$segment_name <- "RueDesEcoles-14"
+segments <- list(data_01, data_02, data_04, data_05, data_06, data_07, data_08, data_10, data_11, data_13, data_14, data_15, data_16, data_18)
+
+# Suppression manuel des périodes d'inactivités des capteurs non repérables 
+data_15 <- delete_segment(data_15, "RueManoirs-15", "2023-10-01", "2024-01-01")
+
+# Nettoyage des segments
+segments_clear <- bind_rows(lapply(segments, function(seg) stop_sensor(seg, uptime_choice = 0.5)))
+
+# Transformation des variables
+segments_clear <- segments_clear %>%
+  mutate(segment_name = as.factor(as.character(segment_name)),
+         weekday = as.factor(as.character(weekday)),
+         vacation = as.character(vacation))
+```
+
+## Préparation des données pour la prévision et l'imputation
+
+### Capteur Test pour prévision
+
+```{r}
+Burel <- segments_clear %>% filter(segment_name == "Burel-01")
+Burel_test <- Burel %>% filter(day >= "2024-01-01", uptime_quality) %>% mutate(y = car + heavy, ds = date)
+Burel_train <- Burel %>% filter(day < "2024-01-01", uptime_quality) %>% mutate(y = car + heavy, ds = date)
+
+holidays <- Burel_train %>% filter(holiday) %>% 
+  mutate(lower_window = -1, upper_window = 1, vacation = as.character(vacation)) %>% 
+  select(vacation, ds, lower_window, upper_window) %>% 
+  rename(holiday = vacation)
+```
+
+### Capteur Test pour l'imputation
+
+```{r}
+BurelV2 <- dataV2 %>% filter(segment_id == 9000002156, uptime_quality)
+data_imput_list <- Create_test_data(BurelV2, prop_missing = 0.2, seed = 1234)
+data_imput <- data_imput_list$test %>% rename(ds = date, y = vehicle)
+date_imput <- data_imput$date[which(is.na(data_imput$vehicle))]
+val_reel <- data_imput_list$temoin %>% filter(date %in% date_imput) %>% select(date, vehicle) %>% rename(ds = date, y = vehicle)
+
+holidays_imput <- data_imput %>% filter(vacation_flag == 1) %>% 
+  mutate(lower_window = -1, upper_window = 1, vacation = as.character(vacation)) %>% 
+  select(vacation, ds, lower_window, upper_window) %>% 
+  rename(holiday = vacation)
+```
+
+# Méthodes d'Imputation
+
+## Imputation Basique Méthode Spline cubique
+
+```{r}
+imputation <- zoo::na.spline(data_imput$vehicle, na.rm = FALSE)
+Spline_res <- data.frame(date = data_imput$date, imputation = imputation, miss = data_imput$vehicle, original = data_imput_list$temoin$vehicle) %>% filter(is.na(miss))
+
+# Calcul des erreurs
+Spline_res %>% summarise(MAE = mean(abs(original - imputation), na.rm = TRUE), 
+                         RMSE = sqrt(mean((original - imputation)^2, na.rm = TRUE)), 
+                         MAPE = mean(abs(original - imputation) / original, na.rm = TRUE) * 100)
+```
+
+
+
+
+# Modèles de Prévision avec Prophet
+
+## Modèle Global avec Prophet
+
+```{r}
+model_GL <- prophet(Burel_train %>% select(ds, y), holidays = holidays, changepoint.prior.scale = 0.05)
+Burel_GL <- predict(model_GL, Burel_test %>% select(ds)) %>% select(ds, yhat)
+
+# Affichage de l'ajustement du modèle
+ajust <- predict(model_GL, Burel_train)
+plot(model_GL, ajust)
+
+# Affichage des valeurs prédites et des valeurs réelles
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_GL, aes(x = ds, y = yhat), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red"))
+
+# Calcul des erreurs
+Burel_GL <- Burel_GL %>% left_join(Burel_test, by = "ds", suffix = c("_predicted", "_original")) %>% mutate(error = y - yhat)
+Burel_GL %>% summarise(MAE = mean(abs(error), na.rm = TRUE), RMSE = sqrt(mean(error^2, na.rm = TRUE)), MAPE = mean(abs(error / y), na.rm = TRUE) * 100)
+```
+
+## Modèle Global avec Prophet et Changepoints PELT
+
+```{r}
+data_filled <- Burel_train %>% mutate(y = na.approx(y, na.rm = FALSE))
+cptvar <- cpt.meanvar(data_filled$y, method = "PELT", minseglen = 2)
+date_changepoints <- data_filled$ds[cptvar@cpts]
+
+model_GL_CP <- prophet(Burel_train %>% select(ds, y), holidays = holidays, changepoint.prior.scale = 0.05, changepoints = date_changepoints)
+Burel_GL_CP <- predict(model_GL_CP, Burel_test %>% select(ds)) %>% select(ds, yhat)
+
+# Affichage de l'ajustement du modèle
+ajust <- predict(model_GL_CP, Burel_train)
+plot(model_GL_CP, ajust)
+
+# Affichage des valeurs prédites et des valeurs réelles
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_GL_CP, aes(x = ds, y = yhat), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red"))
+
+# Calcul des erreurs
+Burel_GL_CP <- Burel_GL_CP %>% left_join(Burel_test, by = "ds", suffix = c("_predicted", "_original")) %>% mutate(error = y - yhat)
+Burel_GL_CP %>% summarise(MAE = mean(abs(error), na.rm = TRUE), RMSE = sqrt(mean(error^2, na.rm = TRUE)), MAPE = mean(abs(error / y), na.rm = TRUE) * 100)
+```
+
+## Imputation Modèle Global avec Prophet et Changepoints PELT
+
+```{r}
+data_imput_filled <- data_imput %>% mutate(y = na.approx(y, na.rm = FALSE))
+cptvar_imput <- cpt.meanvar(data_imput_filled$y, method = "PELT", minseglen = 2)
+date_changepoints_imput <- data_imput_filled$ds[cptvar_imput@cpts]
+
+model_GL_PELT_imput <- prophet(data_imput %>% select(ds, y), holidays = holidays_imput, changepoint.prior.scale = 0.05, changepoints = date_changepoints_imput)
+Imputation_GL_PELT <- predict(model_GL_PELT_imput, data.frame(ds = date_imput))
+
+res_GL_PELT <- data_imput %>% select(ds, y) %>% 
+  mutate(y_imput = ifelse(is.na(y), Imputation_GL_PELT$yhat, y),
+         flag_imput = is.na(y))
+
+# Affichage des valeurs imputées et réelles
+ggplot(res_GL_PELT, aes(x = ds, y = y_imput, col = flag_imput)) + geom_line()
+
+# Calcul des erreurs
+res_GL_PELT <- res_GL_PELT %>% right_join(val_reel, by = "ds", suffix = c("_predicted", "_reel"))
+res_GL_PELT %>% summarise(MAE = mean(abs(y_imput - y_reel), na.rm = TRUE), 
+                          RMSE = sqrt(mean((y_imput - y_reel)^2, na.rm = TRUE)), 
+                          MAPE = mean(abs(y_imput - y_reel) / y_reel, na.rm = TRUE) * 100)
+```
+
+## Imputation Modèle Global avec Prophet
+
+
+```{r}
+model_GL_imput <- prophet(data_imput %>% select(ds, y), holidays = holidays_imput, changepoint.prior.scale = 0.05)
+Imputation_GL <- predict(model_GL_imput, data.frame(ds = date_imput))
+
+res_GL <- data_imput %>% select(ds, y) %>% 
+  mutate(y_imput = ifelse(is.na(y), Imputation_GL$yhat, y),
+         flag_imput = is.na(y))
+
+# Affichage des valeurs imputées et réelles
+ggplot(res_GL, aes(x = ds, y = y_imput, col = flag_imput)) + geom_line()
+
+# Calcul des erreurs
+res_GL <- res_GL %>% right_join(val_reel, by = "ds", suffix = c("_predicted", "_reel"))
+res_GL %>% summarise(MAE = mean(abs(y_imput - y_reel), na.rm = TRUE), 
+                     RMSE = sqrt(mean((y_imput - y_reel)^2, na.rm = TRUE)), 
+                     MAPE = mean(abs(y_imput - y_reel) / y_reel, na.rm = TRUE) * 100)
+```
+
+Voici la continuation du code, structurée de la même manière que précédemment pour le reste des sections :
+
+### Modèle par jour et par heure avec Prophet et Changepoint PELT
+
+```{r}
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(Burel_train$weekday)) {
+  for (h in unique(Burel_train$hour)) {
+    data <- Burel_train %>% filter(weekday == d, hour == h)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+      # Remplacer les NA par une interpolation linéaire
+      data_filled <- data
+      data_filled$y <- na.approx(data$y, na.rm = FALSE)
+      
+      # Vérifier qu'il y a suffisamment de données pour la détection de points de changement
+      if (sum(!is.na(data_filled$y)) >= 2) {
+        
+        # Récupérer les vacances
+        holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
+        
+        # Récupérer les changepoints
+        tryCatch({
+          cptvar <- cpt.meanvar(data_filled$y, method = "PELT", minseglen = 2)
+          cpts_var <- cptvar@cpts
+          date_var <- data$ds[cpts_var]
+          
+          # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays, changepoints = date_var, changepoint.prior.scale = 0.05)
+          models_burel[[paste(d, h, sep = "_")]] <- model
+        }, error = function(e) {
+          warning(paste("Changepoint detection failed for weekday", d, "and hour", h, ":", e$message))
+        })
+        
+      } else {
+        warning(paste("Not enough non-NA data for changepoint detection for weekday", d, "and hour", h))
+      }
+    } else {
+      warning(paste("Not enough data for weekday", d, "and hour", h))
+    }
+  }
+}
+
+# Prédire les valeurs de 2024 
+x <- Burel_test %>% select(ds, weekday, hour)
+Burel_future <- data.frame()
+
+for (d in unique(x$weekday)) {
+  for (h in unique(x$hour)) {
+    model_name <- paste(d, h, sep = "_")
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d, hour == h)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_future <- rbind(Burel_future, pred)
+          }, error = function(e) {
+            warning(paste("Prediction failed for weekday", d, "and hour", h, ":", e$message))
+          })
+        } else {
+          warning(paste("Model for weekday", d, "and hour", h, "is NULL"))
+        }
+      }
+    } else {
+      warning(paste("Model for weekday", d, "and hour", h, "not found in models_burel"))
+    }
+  }
+}
+
+# Vérifier le contenu de Burel_future
+print(Burel_future)
+
+# Comparer burel_future et burel_2024
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_future, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red"))
+
+# Observer Lundi 8h
+plot(models_burel[["monday_8"]], Burel_train %>% filter(weekday == "monday", hour == 8) %>% rename(yhat = y))
+
+Data_comp <- Burel_test %>% left_join(Burel_future, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
+Data_comp
+ggplot() +
+  geom_point(data = Data_comp, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+# MAE
+mean(abs(Data_comp$error), na.rm = TRUE)
+
+# RMSE
+sqrt(mean(Data_comp$error^2, na.rm = TRUE))
+
+# Critère par jour
+Data_comp %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+```
+
+### Modèle par jour et par heure avec Prophet sans Changepoint PELT
+
+```{r}
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(Burel_train$weekday)) {
+  for (h in unique(Burel_train$hour)) {
+    data <- Burel_train %>% filter(weekday == d, hour == h)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+      # Récupérer les vacances
+      holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
+      
+      # Entraîner le modèle Prophet
+      model <- prophet(data, holidays = holidays, changepoint.prior.scale = 0.05)
+      models_burel[[paste(d, h, sep = "_")]] <- model
+    } else {
+      warning(paste("Not enough data for weekday", d, "and hour", h))
+    }
+  }
+}
+
+# Prédire les valeurs de 2024 
+x <- Burel_test %>% select(ds, weekday, hour)
+Burel_future <- data.frame()
+
+for (d in unique(x$weekday)) {
+  for (h in unique(x$hour)) {
+    model_name <- paste(d, h, sep = "_")
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d, hour == h)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_future <- rbind(Burel_future, pred)
+          }, error = function(e) {
+            warning(paste("Prediction failed for weekday", d, "and hour", h, ":", e$message))
+          })
+        } else {
+          warning(paste("Model for weekday", d, "and hour", h, "is NULL"))
+        }
+      }
+    } else {
+      warning(paste("Model for weekday", d, "and hour", h, "not found in models_burel"))
+    }
+  }
+}
+
+# Vérifier le contenu de Burel_future
+print(Burel_future)
+
+# Comparer burel_future et burel_2024
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_future, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red"))
+
+Data_comp <- Burel_test %>% left_join(Burel_future, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
+Data_comp
+ggplot() +
+  geom_point(data = Data_comp, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+# MAE
+mean(abs(Data_comp$error), na.rm = TRUE)
+
+# RMSE
+sqrt(mean(Data_comp$error^2, na.rm = TRUE))
+
+# Critère par jour
+Data_comp  %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+```
+
+### Prédictions pour 2024 avec Prophet
+
+```{r}
+# Importer les données
+All_2024 <- fread("/path/to/all_2024.csv") %>% as.data.frame()
+All_2024$ds <- as.POSIXct(All_2024$ds, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+# Prédire les valeurs de 2024 pour chaque capteur et les stocker dans une liste
+future_predictions <- list()
+for (sensor in names(models)) {
+  future_data <- All_2024 %>% select(ds)
+  future_predictions[[sensor]] <- predict(models[[sensor]], future_data) %>%
+    select(ds, yhat) %>%
+    rename(y = yhat)
+}
+
+# Fusionner les prédictions dans un seul DataFrame
+All_future <- future_predictions[[1]]
+for (i in 2:length(future_predictions)) {
+  All_future <- left_join(All_future, future_predictions[[i]], by = "ds", suffix = c("", paste0("_sensor", i)))
+}
+
+# Vérifier le contenu de All_future
+print(All_future)
+
+# Ajouter le jour de la semaine et l'heure aux données de prédiction
+All_future$weekday <- weekdays(All_future$ds)
+All_future$hour <- hour(All_future$ds)
+
+# Comparer les prédictions de 2024 avec les données réelles de 2023
+ggplot() +
+  geom_line(data = All_2024, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = All_future, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données de tous les capteurs") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red"))
+```
+
+
+

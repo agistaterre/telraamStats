@@ -8,8 +8,8 @@ ds = seq(as.Date("2017-01-01"), as.Date("2019-09-27"), by = "days")
 
 # Définir la fonction y. Vous pouvez changer cette fonction selon vos besoins.
 x = seq(1, length(ds), 1)
-y = x * sin(x^2)
-
+#y = x * sin(x^2)
+y= x^2*sin(x)
 
 # Créer le data frame initial avec les dates et les valeurs de y
 data = data.frame(ds = ds, y = y)
@@ -86,9 +86,16 @@ plot_cross_validation_metric(cv, metric = "coverage")
 
 
 
+#Imputation avec Spline Cubique
 
+data_spline <- na.approx(data, na.rm = FALSE)
 
-
+# Afficher l'imputation en traçant les données réelles et les données imputées
+ggplot(data_spline, aes(x = ds, y = y)) +
+  geom_line() +
+  ggtitle("Imputation de données manquantes avec Spline Cubique") +
+  xlab("Date") +
+  ylab("Valeurs")
 
 
 

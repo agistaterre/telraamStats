@@ -11,7 +11,7 @@
 #                               force = TRUE)
 
 
-pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet,purrr)
+pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet,purrr,zoo)
 
 ```
 
@@ -75,6 +75,26 @@ dataV2 <- dataV2 %>% rename(segment_name = segment_fullname) %>%  filter(segment
 dataV2 <- stop_sensor(dataV2)
 ```
 
+```{r}
+  data_long <- dataV2 %>%
+    filter(!uptime_quality) %>%
+    select(date, segment_name,instance_id) %>%
+    # Extract a numeric value from the segment_name (last two characters)
+    mutate(value = instance_id %% 100,
+           # Convert segment_name to a factor for plotting
+           segment_name = as.factor(as.character(segment_name)))
+
+  # Plot the data using ggplot2
+  # x-axis: date, y-axis: extracted numeric value, color: segment_name
+  data_long %>% ggplot(aes(x = date, y = value, color = segment_name)) +
+    geom_point() +
+    labs(title = "Seasonality of Missing Values for All Sensors",
+         x = "Date",
+         y = "Sensor Value",
+         color = "Segment Name") +
+    theme_minimal()
+
+```
 
 #Enrichissement des données 
 
@@ -1049,4 +1069,56 @@ plot(breakpoints_result)
 
 
 
+```{r}
+#Je veux représenter la difference lors du changement de point de vue entre le signal global brut, le signal journalier et le signal horaire pour voir la difference de réprésentation, represente graphiquemenrt
+
+
+
+# Représenter les données brutes
+G1 <- data_imput %>% ggplot(aes(x = ds, y = y)) +
+  geom_point() +
+  ggtitle("Données brutes") +
+  xlab("Date") +
+  ylab("Nombre de véhicules")
+
+# Représenter les données journalières colorées par jour de la semaine
+G2 <- data_imput %>% ggplot(aes(x = ds, y = y, col = weekday)) +
+  geom_point() +
+  ggtitle("Données différenciées par jour") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  theme(legend.position = "none")
+
+# Représenter les données des lundis
+G2bis <- data_imput %>% filter(weekday == "Monday") %>% ggplot(aes(x = ds, y = y)) +
+  geom_point() +
+  ggtitle("Données des lundis") +
+  xlab("Date") +
+  ylab("Nombre de véhicules")
+
+# Représenter les données par jour et par heure
+G3 <- data_imput %>% filter(weekday == "Monday") %>% ggplot(aes(x = ds, y = y, col = as.character(hour))) +
+  geom_point() +
+  ggtitle("Données par jour et heure") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  theme(legend.position = "none")
+
+# Zoom sur les lundis à 8h
+G3bis <- data_imput %>% filter(weekday == "Monday", hour == 8) %>% ggplot(aes(x = ds, y = y)) +
+  geom_point() +
+  ggtitle("Lundi 8h") +
+  xlab("Date") +
+  ylab("Nombre de véhicules")
+
+# Affichage des graphiques en grille
+grid.arrange(
+  G1, 
+  G2, G2bis, 
+  G3, G3bis, 
+  ncol = 3, 
+  layout_matrix = rbind(c(NA, 2, 4), c(1, 3, 5))
+)
+
+```
 

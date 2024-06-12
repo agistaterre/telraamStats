@@ -1,8 +1,11 @@
+# Importations  
+
 ```{r}
 pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet,purrr,zoo,TTR)
 ```
 
-#Importation des fonctions 
+## Importation des fonctions
+
 ```{r}
 source("Clean_Data.R")
 source("Imputation_function.R")
@@ -10,8 +13,8 @@ source("Utilities_functions.R")
 source("stop_sensor.R")
 ```
 
+## Importation et nettoyage des données
 
-# Importation et nettoyage des données
 ```{r}
 load("/Users/paulvallee/Desktop/Stage CREM/Code R/data/segments_2ans.RData")
 data_04$segment_name <- "RueDesEcoles-14"
@@ -35,7 +38,8 @@ segments_clear$weekday <- as.factor(as.character(segments_clear$weekday))
 segments_clear$vacation <- as.character(segments_clear$vacation)
 ```
 
-# Capteur Test 
+## Capteur Test pour prévision 
+
 ```{r}
 Burel <- segments_clear %>% filter(segment_name == "Burel-01")
 Burel_test <- Burel %>% filter(day >= "2024-01-01",uptime_quality) %>% mutate(y = car + heavy ,ds=date)
@@ -47,38 +51,282 @@ holidays <- Burel_train %>% filter(holiday) %>% mutate(lower_window = -1, upper_
   
 ```
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-# Imputation Basique Méthode Spline
+## Capteur Test pour l'imputation 
 
 ```{r}
-Burel_NA <- Burel %>% filter(uptime_quality) %>% Create_test_data(prop_missing = 0.2)
-imputation <- zoo::na.spline((Burel_NA$test$vehicle), na.rm = FALSE)
+#BurelV2 <- dataV2 %>% filter(segment_id == 9000002156,uptime_quality)
+BurelV2 <- dataV2 %>% filter(segment_id == 9000004019,uptime_quality)
+#BurelV2 <- dataV2 %>% filter(segment_id == 9000004042,uptime_quality)
 
-data_imput <- data.frame(date=Burel_NA$test$date, imputation = imputation, miss = Burel_NA$test$vehicle,original =Burel_NA$temoin$vehicle ) %>% filter(is.na(miss))
-data_imput
+#Construction du data Imputé 
+data_imput_list <- Create_test_data(BurelV2, prop_missing=0.35,seed=1234)
+data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
 
+#Récupéré les dates associés 
+date_imput <- data_imput$ds[which(is.na(data_imput$y))]
+val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle) %>% rename(ds=date,y=vehicle)
+
+#Holidays 
+holidays_imput <- data_imput %>% filter(vacation_flag == 1 ) %>% mutate(lower_window = -1, upper_window = 1, vacation = as.character(vacation)) %>% 
+    select(vacation, ds, lower_window, upper_window) %>% rename(holiday = vacation)
+
+
+#On entraine ici sur BurelV2 et on prédit les valeurs imputés  date_imput
+```
+
+
+------------------------------------------------------------------------
+
+# Méthode d'imputation 
+
+## Imputation Basique Méthode Spline cubique
+
+```{r}
+imputation <- zoo::na.spline((data_imput$y), na.rm = T)
+
+Spline_res <- data.frame(date=data_imput$ds, imputation = imputation, miss =data_imput$y,original =data_imput_list$temoin$vehicle ) %>% filter(is.na(miss))
+
+#si la valeur prédite est < 0 alors remplacé par 0
+Spline_res$imputation <- ifelse(Spline_res$imputation < 0, 0, Spline_res$imputation)
 #Calculer les erreurs
-data_imput %>% summarise(MAE = mean(abs(original-imputation), na.rm = TRUE), RMSE = sqrt(mean((original-imputation)^2, na.rm = TRUE)), MAPE = mean(abs(original-imputation)/original, na.rm = TRUE) * 100)
+Spline_res %>% summarise(MAE = mean(abs(original-imputation), na.rm = TRUE), RMSE = sqrt(mean((original-imputation)^2, na.rm = TRUE)), MAPE = mean(abs(original-imputation)/original, na.rm = TRUE) * 100)
 
+#Représenter la distribution des valeurs manquantes (data temoin) et la distribution des valeurs imputés 
+par(mfrow=c(1,2))
+plot(Spline_res$original, main = "Distribution des valeurs temoins", col = "blue")
+plot(Spline_res$imputation, main = "Distribution des valeurs imputés", col = "red")
+```
+## Méthode Spline linéaire
+```{r}
+imputation <- zoo::na.approx(data_imput$y,x=data_imput$ds,na.rm=F)
+
+Spline_res2 <- data.frame(date=data_imput$ds, imputation = imputation, miss =data_imput$y,original =data_imput_list$temoin$vehicle ) %>% filter(is.na(miss))
+
+#si la valeur prédite est < 0 alors remplacé par 0
+Spline_res2$imputation <- ifelse(Spline_res2$imputation < 0, 0, Spline_res2$imputation)
+#Calculer les erreurs
+Spline_res2 %>% summarise(MAE = mean(abs(original-imputation), na.rm = TRUE), RMSE = sqrt(mean((original-imputation)^2, na.rm = TRUE)), MAPE = mean(abs(original-imputation)/original, na.rm = TRUE) * 100)
+
+#Représenter la distribution des valeurs manquantes (data temoin) et la distribution des valeurs imputés 
+par(mfrow=c(1,2))
+plot(Spline_res2$original, main = "Distribution des valeurs temoins", col = "blue")
+plot(Spline_res2$imputation, main = "Distribution des valeurs imputés", col = "red")
+
+ggplot(data_res_imput, aes(x=imputation, y=vehicle)) + geom_point() + geom_abline(intercept = 0, slope = 1, col = "red") + labs(title = "Valeurs réels vs Valeurs imputés", x = "Valeurs imputés", y = "Valeurs réels") + theme_minimal() +  geom_abline(intercept = 0, slope = 1, color = "red") 
+```
+`
+### Separer le modèle par jour et imputé chaque partie par rapport a cela
+```{r}
+#Séparation par jour
+data_res <- data.frame(date=character(), imputation = double())
+data_imput_spline <- data_imput %>% select(ds,y,weekday,hour,day) %>% mutate(flag = ifelse(is.na(y),1,0))
+
+for(d in unique(data_imput_spline$weekday)){
+  data_day <- data_imput_spline %>% filter(weekday == d)
+
+  imputation <- zoo::na.approx((data_day$y), na.rm = F)
+  
+  #si la valeur prédite est < 0 alors remplacé par 0
+  imputation <- ifelse(imputation < 0, 0, imputation)
+  
+  data_res <- rbind(data_res, data.frame(date=data_day$ds, imputation = imputation,flag =data_day$flag))
+
+  
+  
+  
+}
+data_res_imput <- data_res %>% filter(flag == 1) %>% left_join(data_imput_list$temoin, by = c("date" = "date")) %>% select(date,imputation,vehicle)
+
+
+
+#Calcule des critères
+
+data_res_imput %>% summarise(MAE = mean(abs(vehicle-imputation), na.rm = TRUE), RMSE = sqrt(mean((vehicle-imputation)^2, na.rm = TRUE)), MAPE = mean(abs(vehicle-imputation)/vehicle, na.rm = TRUE) * 100)
+
+
+#Représenter valeur réels vs valeurs imputés  avec droite de reg
+
+ggplot(data_res_imput, aes(x=imputation, y=vehicle)) + geom_point() + geom_abline(intercept = 0, slope = 1, col = "red") + labs(title = "Valeurs réels vs Valeurs imputés", x = "Valeurs imputés", y = "Valeurs réels") + theme_minimal() +  geom_abline(intercept = 0, slope = 1, color = "red") 
+
+```
+
+```{r}
+#Séparation par jour/heure
+data_res <- data.frame(date=character(), imputation = double())
+for(d in unique(data_imput$weekday)){
+  for(h in unique(data_imput$hour)){
+  data_day <- data_imput %>% filter(weekday == d, hour == h)
+
+  imputation <- zoo::na.approx((data_day$y), na.rm = F)
+  
+  #si la valeur prédite est < 0 alors remplacé par 0
+  imputation <- ifelse(imputation < 0, 0, imputation)
+  
+  data_res <- rbind(data_res, data.frame(date=data_day$ds, imputation = imputation))
+  }
+}
+
+#Compter le nombre de valeur non remplie
+data_res %>% filter(is.na(imputation))
+
+
+data_join <- data_imput %>% select(ds,y)
+data_result <- data_res %>% left_join(data_imput_list$temoin, by = c("date" = "date")) %>%  left_join(data_join, by = c("date" = "ds")) %>% select(date,imputation,vehicle,y) %>% filter(is.na(y))
+data_result
+#Calcule des critères
+
+data_result %>% summarise(MAE = mean(abs(vehicle-imputation), na.rm = TRUE), RMSE = sqrt(mean((vehicle-imputation)^2, na.rm = TRUE)), MAPE = mean(abs(vehicle-imputation)/vehicle, na.rm = TRUE) * 100)
+
+
+#Représenter valeur réels vs valeurs imputés  avec droite de reg
+
+ggplot(data_result, aes(x=imputation, y=vehicle)) + geom_point() + geom_abline(intercept = 0, slope = 1, col = "red") + labs(title = "Valeurs réels vs Valeurs imputés", x = "Valeurs imputés", y = "Valeurs réels") + theme_minimal() +  geom_abline(intercept = 0, slope = 1, color = "red") 
 
 
 ```
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Modèle Global avec Prophet
+```{r}
+#Comparer les résultats  de spline lineaire global,jour et jour,heure 
+
+#Merge dans un meme dataframe
+spline_lin_comp <- full_join(data_result,data_res_imput, by = c("date" = "date")) %>% select(date,vehicle.x,imputation.x,imputation.y) %>% rename(vehicle = vehicle.x, imputation_jour_heure = imputation.x, imputation_jour = imputation.y)
+spline_lin_comp <- full_join(spline_lin_comp,Spline_res2, by = c("date" = "date")) %>% select(date,vehicle,imputation_jour_heure,imputation_jour,imputation)
+
+spline_lin_comp <- full_join(spline_lin_comp,Pred_prophet_Spline, by = c("date" = "date")) %>% select(date,vehicle,imputation_jour_heure,imputation_jour,imputation,imputation_prophet)
+
+# Calcul des critères d'évaluation pour les différentes méthodes d'imputation par spline
+spline_crit <- data.frame(
+  Methode = c("Spline linéaire global", "Spline linéaire jour", "Spline linéaire jour/heure","Spline CP + Prophet LP"),
+  MAE = c(
+    mean(abs(spline_lin_comp$vehicle - spline_lin_comp$imputation), na.rm = TRUE),
+    mean(abs(spline_lin_comp$vehicle - spline_lin_comp$imputation_jour), na.rm = TRUE),
+    mean(abs(spline_lin_comp$vehicle - spline_lin_comp$imputation_jour_heure), na.rm = TRUE),
+    mean(abs(spline_lin_comp$vehicle - spline_lin_comp$imputation_prophet), na.rm = TRUE)
+
+  
+  ),
+  RMSE = c(
+    sqrt(mean((spline_lin_comp$vehicle - spline_lin_comp$imputation)^2, na.rm = TRUE)),
+    sqrt(mean((spline_lin_comp$vehicle - spline_lin_comp$imputation_jour)^2, na.rm = TRUE)),
+    sqrt(mean((spline_lin_comp$vehicle - spline_lin_comp$imputation_jour_heure)^2, na.rm = TRUE)),
+    sqrt(mean((spline_lin_comp$vehicle - spline_lin_comp$imputation_prophet)^2, na.rm = TRUE))
+
+  )
+)
+
+spline_crit %>% arrange(MAE)
+
+#Représentation des différentes imputations et des valeurs réelles
+spline_lin_comp_plot <- gather(spline_lin_comp, key = "key", value = "value", -date, )
+ggplot(spline_lin_comp_plot, aes(x = date, y = value, color = key)) +
+  geom_point() +
+  labs(title = "Comparaison des différentes imputations par spline linéaire", x = "Date", y = "Valeurs") +
+  theme_minimal()
+
+#Représenter 3 graphiques a coté pour chaque type d'imputation par rapport a Valeurs réels
+library(gridExtra)
+# Création des différents graphiques
+p1 <- ggplot(spline_lin_comp, aes(x = date)) +
+  geom_line(aes(y = vehicle), color = "black") +
+  geom_point(aes(y = imputation), color = "blue",size=0.2) +
+  labs(title = "Spline linéaire global", x = "Date", y = "Valeurs") +
+  theme_minimal()
+
+p2 <- ggplot(spline_lin_comp, aes(x = date)) +
+  geom_line(aes(y = vehicle), color = "black") +
+  geom_point(aes(y = imputation_jour), color = "blue",size=0.2) +
+  labs(title = "Spline linéaire jour", x = "Date", y = "Valeurs") +
+  theme_minimal()
+
+p3 <- ggplot(spline_lin_comp, aes(x = date)) +
+  geom_line(aes(y = vehicle), color = "black") +
+  geom_point(aes(y = imputation_jour_heure), color = "blue",size=0.2) +
+  labs(title = "Spline linéaire jour/heure", x = "Date", y = "Valeurs") +
+  theme_minimal()
+
+p4 <- ggplot(spline_lin_comp, aes(x = date)) +
+  geom_line(aes(y = vehicle), color = "black") +
+  geom_point(aes(y = imputation_prophet), color = "blue",size=0.2) +
+  labs(title = "Spline CP + Prophet LP", x = "Date", y = "Valeurs") +
+  theme_minimal()
+
+# Affichage des graphiques sur une même fenêtre
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+
+# Interpolation global de lagrange
+```{r}
+#Interpolation de Lagrange
+lagrange_interpolation <- function(x, y, x_new) {
+  n <- length(x)
+  L <- rep(0, length(x_new))
+  for (i in 1:n) {
+    term <- y[i]
+    for (j in 1:n) {
+      if (j != i) {
+        term <- term * (x_new - x[j]) / (x[i] - x[j])
+      }
+    }
+    L <- L + term
+  }
+  return(L)
+}
+
+newton_interpolation <- function(x, y, x_new) {
+  n <- length(x)
+  diff_div <- matrix(0, n, n)
+  diff_div[,1] <- y
+  
+  for (j in 2:n) {
+    for (i in 1:(n-j+1)) {
+      diff_div[i,j] <- (diff_div[i+1,j-1] - diff_div[i,j-1]) / (x[i+j-1] - x[i])
+    }
+  }
+  
+  y_new <- diff_div[1,1]
+  for (k in 2:n) {
+    term <- diff_div[1,k]
+    for (j in 1:(k-1)) {
+      term <- term * (x_new - x[j])
+    }
+    y_new <- y_new + term
+  }
+  return(y_new)
+}
+
+# Exemple de données
+x <- c(1, 2, 4, 5)
+y <- c(2, 3, 5, 4)
+x_new <- 4
+
+# Interpolation de Lagrange pour estimer la valeur manquante à x_new
+
+
+```
+
+
+
+
+
+
+
+------------------------------------------------------------------------
+
+## Modèle Global avec Prophet
+
 ```{r}
 #Création du modèle
-model <- prophet(Burel_train, holidays = holidays,changepoints = date_meanvar)
-
+model_GL <- prophet(Burel_train %>% select(ds, y), holidays = holidays, changepoint.prior.scale = 0.05)
+              
 #Prédiction des valeurs de 2024
-Burel_GL <- predict(model, Burel_test %>% select(ds)) %>% select(ds, yhat)
+Burel_GL <- predict(model_GL, Burel_test %>% select(ds)) %>% select(ds, yhat)
 
 #Affichage de l'ajustement du modèle 
 
-  ajust <- predict(model, Burel_train)
-  plot(model, ajust)
+  ajust <- predict(model_GL, Burel_train)
+  plot(model_GL, ajust)
   
 #Affichage des valeurs prédites et des valeurs réelles
 ggplot() +
@@ -99,9 +347,164 @@ Burel_GL %>% summarise(MAE = mean(abs(error), na.rm = TRUE), RMSE = sqrt(mean(er
 
 ```
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-pas de difference avec mcmc.samples = 300 ni avec seasonality.prior
+- MAE 132 et RMSE 172 pour modele sans modification 
 
-# Modèle par jour et par heure avec Prophet
+## Modèle global avec Prophet et changepoints PELT
+```{r}
+#Identifier les points de ruptures
+data_filled <- Burel_train
+data_filled$y <- na.approx(Burel_train$y, na.rm = FALSE)          
+cptvar <- cpt.meanvar(data_filled$y, method = "PELT", minseglen = 2)
+cpts_var <- cptvar@cpts
+date_changepoints <- data_filled$ds[cpts_var]
+
+
+#Création du modèle
+model_GL_CP <- prophet(Burel_train %>% select(ds, y), holidays = holidays, changepoint.prior.scale = 0.05, changepoints = date_changepoints)
+
+#Prédiction des valeurs de 2024
+Burel_GL_CP <- predict(model_GL_CP, Burel_test %>% select(ds)) %>% select(ds, yhat)
+
+#Affichage de l'ajustement du modèle 
+  ajust <- predict(model_GL_CP, Burel_train)
+  plot(model_GL_CP, ajust)
+  
+#Affichage des valeurs prédites et des valeurs réelles
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_GL_CP, aes(x = ds, y = yhat), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red"))
+
+#Calculer des differents critères
+Burel_GL_CP <- Burel_GL_CP %>% left_join(Burel_test, by = "ds", suffix = c("_predicted", "_original")) %>%  mutate(error = y - yhat)
+
+#Calculer les erreurs
+Burel_GL_CP %>% summarise(MAE = mean(abs(error), na.rm = TRUE), RMSE = sqrt(mean(error^2, na.rm = TRUE)), MAPE = mean(abs(error/y), na.rm = TRUE) * 100)
+
+
+```
+
+### Imputation  Modèle global avec Prophet et changepoints PELT 
+
+
+```{r}
+
+#Detection des points de ruptures
+data_imput_filled <- data_imput
+data_imput_filled$y <- na.approx(data_imput$y, na.rm = FALSE)
+cptvar_imput <- cpt.meanvar(data_imput_filled$y, method = "PELT", minseglen = 2)
+cpts_var_imput <- cptvar_imput@cpts
+date_changepoints_imput <- data_imput_filled$ds[cpts_var_imput]
+
+
+
+#Création du modèle
+model_GL_PELT_imput <- prophet(data_imput %>% select(ds, y), holidays = holidays_imput, changepoint.prior.scale = 0.05, changepoints = date_changepoints_imput)
+              
+#Prédiction des valeurs de 2024
+Burel_GL_PELT_imput <- predict(model_GL_PELT_imput, Burel_test %>% select(ds)) %>% select(ds, yhat)
+
+#Affichage de l'ajustement du modèle 
+
+  ajust <- predict(model_GL_PELT_imput, data_imput)
+  plot(model_GL_imput, ajust)
+  
+#Imputation des valeurs manquantes
+Imputation_GL_PELT <- predict(model_GL_PELT_imput,data.frame(ds = date_imput))
+
+
+#Remplacer les NA par les valeurs prédites et ajouter un flag pour reperer les valeurs imputées
+res_GL_PELT <- data_imput %>% select(ds,y)
+res_GL_PELT$y_imput <- ifelse(is.na(res_GL_PELT$y), Imputation_GL_PELT$yhat, data_imput$y)
+res_GL_PELT$flag_imput <- ifelse(is.na(res_GL_PELT$y), T, F)
+res_GL_PELT
+#Affichage des valeurs prédites et des valeurs réelles
+res_GL_PELT %>% ggplot(aes(x = ds,y = y_imput,col = flag_imput )) + geom_line()
+
+
+
+#Calculer des differents critères
+
+#ajout de val_reel
+res_GL_PELT <- res_GL_PELT %>% right_join(val_reel, by = "ds", suffix = c("_predicted", "_reel")) 
+#Calculer les erreurs
+res_GL_PELT %>% summarise(MAE = mean(abs(y_imput - y_reel), na.rm = TRUE), RMSE = sqrt(mean((y_imput - y_reel)^2, na.rm = TRUE)), MAPE = mean(abs(y_imput - y_reel)/y_reel, na.rm = TRUE) * 100)
+
+
+```
+
+
+
+
+
+
+### Imputation Modèle Global avec Prophet sans changepoints
+
+```{r}
+#Création du modèle
+model_GL_imput <- prophet(data_imput %>% select(ds, y), holidays = holidays_imput, changepoint.prior.scale = 0.05)
+              
+#Prédiction des valeurs de 2024
+Burel_GL_imput <- predict(model_GL_imput, Burel_test %>% select(ds)) %>% select(ds, yhat)
+
+#Affichage de l'ajustement du modèle 
+
+  ajust <- predict(model_GL_imput, data_imput)
+  plot(model_GL_imput, ajust)
+  
+#Imputation des valeurs manquantes
+Imputation_GL <- predict(model_GL_imput,data.frame(ds = date_imput))
+
+
+#Remplacer les NA par les valeurs prédites et ajouter un flag pour reperer les valeurs imputées
+res_GL <- data_imput %>% select(ds,y)
+res_GL$y_imput <- ifelse(is.na(res_GL$y), Imputation_GL$yhat, data_imput$y)
+res_GL$flag_imput <- ifelse(is.na(res_GL$y), T, F)
+res_GL
+#Affichage des valeurs prédites et des valeurs réelles
+res_GL %>% ggplot(aes(x = ds,y = y_imput,col = flag_imput )) + geom_line()
+
+
+
+#Calculer des differents critères
+
+#ajout de val_reel
+res_GL <- res_GL %>% right_join(val_reel, by = "ds", suffix = c("_predicted", "_reel")) 
+#Calculer les erreurs
+res_GL %>% summarise(MAE = mean(abs(y_imput - y_reel), na.rm = TRUE), RMSE = sqrt(mean((y_imput - y_reel)^2, na.rm = TRUE)), MAPE = mean(abs(y_imput - y_reel)/y_reel, na.rm = TRUE) * 100)
+
+
+#Comparer burel_future et burel_2024
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = res_GL, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red")) 
+
+Data_comp <- Burel_test %>% left_join(Burel_future, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
+Data_comp
+ggplot() +
+  geom_point(data = Data_comp, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+
+```
+
+
+------------------------------------------------------------------------
+
+## Modèle par jour et par heure avec Prophet et Changepoint PELT
+
 ```{r}
 # Initialiser une liste vide pour stocker les modèles
 models_burel <- list()
@@ -126,12 +529,12 @@ for (d in unique(Burel_train$weekday)) {
         
         # Récupérer les changepoints
         tryCatch({
-          cptvar <- cpt.var(data_filled$y, method = "PELT", minseglen = 2)
+          cptvar <- cpt.meanvar(data_filled$y, method = "PELT", minseglen = 2)
           cpts_var <- cptvar@cpts
           date_var <- data$ds[cpts_var]
           
           # Entraîner le modèle Prophet
-          model <- prophet(data, holidays = holidays, changepoints = date_meanvar)
+          model <- prophet(data, holidays = holidays, changepoints = date_meanvar,changepoint.prior.scale = 0.05)
           models_burel[[paste(d, h, sep = "_")]] <- model
         }, error = function(e) {
           warning(paste("Changepoint detection failed for weekday", d, "and hour", h, ":", e$message))
@@ -193,20 +596,9 @@ ggplot() +
   ylab("Nombre de véhicules") +
   scale_color_manual(values = c("blue", "red")) 
 
-
-```
-
-
-
-```{r}
 #Observer Lundi 8h
 plot(models_burel[["monday_8"]], Burel_train %>% filter(weekday == "monday", hour == 8) %>% rename(yhat = y))
-```
 
-
-
-
-```{r}
 Data_comp <- Burel_test %>% left_join(Burel_future, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
 Data_comp
 ggplot() +
@@ -228,11 +620,187 @@ sqrt(mean(Data_comp$error^2, na.rm = TRUE))
 #critère par jour
 Data_comp %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
 
+
 ```
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Modèle par jour avec Prophet avec changepoints PELT
+## Modèle par jour et par heure avec Prophet sans Changepoint PELT
+```{r}
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
 
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(Burel_train$weekday)) {
+  for (h in unique(Burel_train$hour)) {
+    data <- Burel_train %>% filter(weekday == d, hour == h)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+        # Récupérer les vacances
+        holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
+        
+        # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays,changepoint.prior.scale = 0.05)
+          models_burel[[paste(d, h, sep = "_")]] <- model
+
+
+    } else {
+      warning(paste("Not enough data for weekday", d, "and hour", h))
+    }
+  }
+}
+
+
+#Prédure les valeurs de 2024 
+x <- Burel_test %>% select(ds, weekday, hour)
+Burel_future <- data.frame()
+
+for (d in unique(x$weekday)) {
+  for (h in unique(x$hour)) {
+    model_name <- paste(d, h, sep = "_")
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d, hour == h)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_future <- rbind(Burel_future, pred)
+          }, error = function(e) {
+            warning(paste("Prediction failed for weekday", d, "and hour", h, ":", e$message))
+          })
+        } else {
+          warning(paste("Model for weekday", d, "and hour", h, "is NULL"))
+        }
+      }
+    } else {
+      warning(paste("Model for weekday", d, "and hour", h, "not found in models_burel"))
+    }
+  }
+}
+
+# Vérifier le contenu de Burel_future
+print(Burel_future)
+
+#Comparer burel_future et burel_2024
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_future, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red"))
+
+Data_comp <- Burel_test %>% left_join(Burel_future, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
+Data_comp
+ggplot() +
+  geom_point(data = Data_comp, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+ 
+#MAE
+mean(abs(Data_comp$error), na.rm = TRUE)
+
+#RMSE
+sqrt(mean(Data_comp$error^2, na.rm = TRUE))
+
+
+#critère par jour
+Data_comp %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+#Observer Lundi 8h
+plot(models_burel[["monday_8"]], Burel_train %>% filter(weekday == "monday", hour == 8) %>% rename(yhat = y))
+
+```
+
+
+## Imputation des valeurs manquantes 
+
+### Modèle par jour et par heure avec Prophet sans Changepoint PELT
+
+```{r}
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(data_imput$weekday)) {
+  for (h in unique(data_imput$hour)) {
+    data <- data_imput %>% filter(weekday == d, hour == h)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+
+        # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays_imput,changepoint.prior.scale = 0.05)
+          models_burel[[paste(d, h, sep = "_")]] <- model
+
+
+    } else {
+      warning(paste("Not enough data for weekday", d, "and hour", h))
+    }
+  }
+}
+
+
+#Prédure les valeurs de 2024 
+x <- data_imput  %>% filter(is.na(y)) %>% select(ds, weekday, hour)
+Burel_pred <- data.frame()
+
+for (d in unique(x$weekday)) {
+  for (h in unique(x$hour)) {
+    model_name <- paste(d, h, sep = "_")
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d, hour == h)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_pred <- rbind(Burel_pred, pred)
+          }, error = function(e) {
+            warning(paste("Prediction failed for weekday", d, "and hour", h, ":", e$message))
+          })
+        } else {
+          warning(paste("Model for weekday", d, "and hour", h, "is NULL"))
+        }
+      }
+    } else {
+      warning(paste("Model for weekday", d, "and hour", h, "not found in models_burel"))
+    }
+  }
+}
+
+#Calcule des critères
+Burel_pred_crit <- Burel_pred %>% left_join(val_reel, by = "ds", suffix = c("_predicted", "_original")) %>%  mutate(error = y_original - y_predicted)
+ 
+Burel_pred_crit %>%  summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+```
+
+
+
+--> Impossible d'avoir un Modèle par jour et par heure avec Prophet et Changepoint PELT du a la quantité de données insuffisante
+
+
+------------------------------------------------------------------------
+
+## Modèle par jour avec Prophet avec changepoints PELT
 ```{r}
 
 
@@ -247,12 +815,12 @@ for (d in unique(Burel_train$weekday)) {
       
       #Recuperer les changepoints
       data_filled <- zoo::na.approx(data$y)
-      cptvar <- cpt.var(data_filled, method = "PELT")
-      cpts_var <- cptvar@cpts
-      date_var <- data$ds[cpts_var]
+      cptmeanvar <- cpt.meanvar(data_filled, method = "PELT")
+      cpts_meanvar <- cptmeanvar@cpts
+      date_meanvar <- data$ds[cpts_meanvar]
       
       
-      model <- prophet(data, holidays = holidays,changepoints = date_meanvar)
+      model <- prophet(data, holidays = holidays,changepoints = date_meanvar,changepoint.prior.scale=0.05)
       models_burel2[[d]] <- model
     } else {
       warning(paste("Not enough data for weekday", d))
@@ -284,58 +852,6 @@ ggplot() +
   scale_color_manual(values = c("blue", "red")) 
 
 
-
-
-```
-# Modèle par jour avec Prophet sans changepoints PELT
-```{r}
-#On va entrainer un modèle sur les données de burel_train
-models_burel2 <- list()
-for (d in unique(Burel_train$weekday)) {
-    data <- Burel_train %>% filter(weekday == d)
-    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
-      
-      #Recuperer les vacances 
-      holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
-      
-
-      model <- prophet(data, holidays = holidays)
-      models_burel2[[d]] <- model
-    } else {
-      warning(paste("Not enough data for weekday", d))
-    }
-  }
-
-
-#Prédure les valeurs de 2024 
-x2 <- Burel_test %>% select(ds, weekday)
-Burel_future2 <- data.frame()
-
-for (d in unique(x2$weekday)) {
-    model <- models_burel2[[d]]
-    data <- x %>% filter(weekday == d)
-    
-    if (nrow(data) > 0) {
-    pred <- predict(model, data %>% select(ds)) %>% select(ds, yhat) %>% rename(y = yhat)
-    Burel_future2 <- rbind(Burel_future2, pred)
-    }
-}
-
-#Comparer burel_future et burel_2024
-ggplot() +
-  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
-  geom_line(data = Burel_future2, aes(x = ds, y = y), color = "red") +
-  ggtitle("Prédiction 2024 des données du capteur Burel") +
-  xlab("Date") +
-  ylab("Nombre de véhicules") +
-  scale_color_manual(values = c("blue", "red")) 
-
-
-```
-
-
-
-```{r}
 Data_comp2 <- Burel_test %>% left_join(Burel_future2, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
 Data_comp2
 
@@ -356,15 +872,948 @@ sqrt(mean(Data_comp2$error^2, na.rm = TRUE))
 
 Data_comp2 %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
 
+
+plot(models_burel2[["wednesday"]], Burel_train %>% filter(weekday == "wednesday") %>% rename(yhat = y))
+
+```
+
+### Modèle par jour avec Prophet sans changepoints PELT
+
+```{r}
+#On va entrainer un modèle sur les données de burel_train
+models_burel2 <- list()
+for (d in unique(Burel_train$weekday)) {
+    data <- Burel_train %>% filter(weekday == d)
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+      #Recuperer les vacances 
+      holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
+      
+
+      model <- prophet(data, holidays = holidays,changepoint.prior.scale = 0.5)
+      models_burel2[[d]] <- model
+    } else {
+      warning(paste("Not enough data for weekday", d))
+    }
+  }
+
+
+#Prédure les valeurs de 2024 
+x2 <- Burel_test %>% select(ds, weekday)
+Burel_future2 <- data.frame()
+
+for (d in unique(x2$weekday)) {
+    model <- models_burel2[[d]]
+    data <- x %>% filter(weekday == d)
+    
+    if (nrow(data) > 0) {
+    pred <- predict(model, data %>% select(ds)) %>% select(ds, yhat) %>% rename(y = yhat)
+    Burel_future2 <- rbind(Burel_future2, pred)
+    }
+}
+
+#Comparer burel_future et burel_2024
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_future2, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red")) 
+
+Data_comp2 <- Burel_test %>% left_join(Burel_future2, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
+Data_comp2
+
+ggplot() +
+  geom_point(data = Data_comp2, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+#Calcul des critères
+#MAE
+mean(abs(Data_comp2$error), na.rm = TRUE)
+
+#RMSE
+sqrt(mean(Data_comp2$error^2, na.rm = TRUE))
+
+Data_comp2 %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+
+plot(models_burel2[["wednesday"]], Burel_train %>% filter(weekday == "wednesday") %>% rename(yhat = y))
+```
+
+
+
+------------------------------------------------------------------------
+
+### Imputation des données Pour le modèle par jour 
+
+```{r}
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(data_imput$weekday)) {
+    data <- data_imput %>% filter(weekday == d)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+        #Recuperer les changepoints
+        data_filled <- zoo::na.approx(data$y)
+        cptvar <- cpt.meanvar(data_filled, method = "PELT")
+        cpts_var <- cptvar@cpts
+         date_meanvar <- data$ds[cpts_var]
+
+        # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays_imput,changepoint.prior.scale = 0.05, changepoints = date_meanvar)
+          models_burel[[d]] <- model
+
+    } 
+    else {warning(paste("Not enough data for weekday", d))}
+}
+
+
+#Prédure les valeurs de 2024 
+x <- data_imput  %>% filter(is.na(y)) %>% select(ds, weekday, hour)
+Burel_pred <- data.frame()
+
+for (d in unique(x$weekday)) {
+    model_name <- d
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_pred <- rbind(Burel_pred, pred)
+          }, error = function(e) {warning(paste("Prediction failed for weekday", d, , ":", e$message))})
+          
+        } else {warning(paste("Model for weekday", d,  "is NULL"))}
+      }
+    } else { warning(paste("Model for weekday", d, "not found in models_burel"))}
+}
+
+#Calcule des critères
+Burel_pred_crit <- Burel_pred %>% left_join(val_reel, by = "ds", suffix = c("_predicted", "_original")) %>%  mutate(error = y_original - y_predicted)
+ 
+Burel_pred_crit %>%  summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+
+#Tracer droite entre valeur reel et valeur prédite et ajoute un intervalle de confiacne a 5% autour de la droite de régréssion 
+
+
+```
+### Modèle par jour avec Prophet sans changepoints PELT
+
+```{r}
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(data_imput$weekday)) {
+    data <- data_imput %>% filter(weekday == d)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+        # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays_imput,changepoint.prior.scale = 10,seasonality.prior.scale =10)
+          models_burel[[d]] <- model
+
+    } 
+    else {warning(paste("Not enough data for weekday", d))}
+}
+
+
+#Prédure les valeurs de 2024 
+x <- data_imput  %>% filter(is.na(y)) %>% select(ds, weekday, hour)
+Burel_pred <- data.frame()
+
+for (d in unique(x$weekday)) {
+    model_name <- d
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_pred <- rbind(Burel_pred, pred)
+          }, error = function(e) {warning(paste("Prediction failed for weekday", d, , ":", e$message))})
+          
+        } else {warning(paste("Model for weekday", d,  "is NULL"))}
+      }
+    } else { warning(paste("Model for weekday", d, "not found in models_burel"))}
+}
+
+#Calcule des critères
+Burel_pred_crit <- Burel_pred %>% left_join(val_reel, by = "ds", suffix = c("_predicted", "_original")) %>%  mutate(error = y_original - y_predicted)
+ 
+Burel_pred_crit %>%  summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+
+#Tracer valeur prédite valeur réeel
+ggplot() +
+  geom_point(data = Burel_pred_crit, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+
+```
+
+
+
+--> Modèle a retenir : Prophet par jour sans changepoints PELT
+                       Méthode Spline par jour ayant sensiblements les memes resultats que le modèle jour et prophet 
+                       
+ --> On se penche plutot sur Spline qui est une méthode plus simple
+
+
+```{r}
+
+data_imput_pro <- data_imput
+data_imput_pro$y  <- na.approx(data_imput$y,x=data_imput$ds,maxgap=5)
+
+
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(data_imput_pro$weekday)) {
+    data <- data_imput_pro %>% filter(weekday == d)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+        # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays_imput,changepoint.prior.scale = 10,seasonality.prior.scale =10)
+          models_burel[[d]] <- model
+
+    } 
+    else {warning(paste("Not enough data for weekday", d))}
+}
+
+
+#Prédure les valeurs de 2024 
+x <- data_imput_pro  %>% filter(is.na(y)) %>% select(ds, weekday, hour)
+Burel_pred <- data.frame()
+
+for (d in unique(x$weekday)) {
+    model_name <- d
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_pred <- rbind(Burel_pred, pred)
+          }, error = function(e) {warning(paste("Prediction failed for weekday", d, , ":", e$message))})
+          
+        } else {warning(paste("Model for weekday", d,  "is NULL"))}
+      }
+    } else { warning(paste("Model for weekday", d, "not found in models_burel"))}
+}
+
+#Calcule des critères
+Burel_pred_crit <- Burel_pred %>% left_join(val_reel, by = "ds", suffix = c("_predicted", "_original")) %>%  mutate(error = y_original - y_predicted)
+ 
+Burel_pred_crit %>%  summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+
+#Tracer valeur prédite valeur réeel
+ggplot() +
+  geom_point(data = Burel_pred_crit, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+
+```
+
+```{r}
+
+data_imput_pro <- data_imput
+data_imput_pro$y  <- na.approx(data_imput$y,x=data_imput$ds,maxgap=5)
+
+
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(data_imput_pro$weekday)) {
+    data <- data_imput_pro %>% filter(weekday == d)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+        # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays_imput,changepoint.prior.scale = 10,seasonality.prior.scale =10)
+          models_burel[[d]] <- model
+
+    } 
+    else {warning(paste("Not enough data for weekday", d))}
+}
+
+
+#Prédure les valeurs de 2024 
+x <- data_imput_pro  %>% filter(is.na(y)) %>% select(ds, weekday, hour)
+Burel_pred <- data.frame()
+
+for (d in unique(x$weekday)) {
+    model_name <- d
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_pred <- rbind(Burel_pred, pred)
+          }, error = function(e) {warning(paste("Prediction failed for weekday", d, , ":", e$message))})
+          
+        } else {warning(paste("Model for weekday", d,  "is NULL"))}
+      }
+    } else { warning(paste("Model for weekday", d, "not found in models_burel"))}
+}
+
+#Calcule des critères
+Burel_pred_crit <- Burel_pred %>% left_join(val_reel, by = "ds", suffix = c("_predicted", "_original")) %>%  mutate(error = y_original - y_predicted)
+ 
+Burel_pred_crit %>%  summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+
+#Tracer valeur prédite valeur réeel
+ggplot() +
+  geom_point(data = Burel_pred_crit, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+
+```
+
+```{r}
+
+data_imput_pro <- data_imput
+
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(data_imput_pro$weekday)) {
+    data <- data_imput_pro %>% filter(weekday == d) 
+  #  data$y  <- na.approx(data$y,x=data$ds,maxgap=2)
+        # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+        # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays_imput, changepoint.prior.scale = 0.1,seasonality.prior.scale =0.1)
+          models_burel[[d]] <- model
+
+    } 
+    else {warning(paste("Not enough data for weekday", d))}
+}
+
+
+#Prédure les valeurs de 2024 
+x <- data_imput_pro  %>% filter(is.na(y)) %>% select(ds, weekday, hour)
+Burel_pred <- data.frame()
+
+for (d in unique(x$weekday)) {
+    model_name <- d
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_pred <- rbind(Burel_pred, pred)
+          }, error = function(e) {warning(paste("Prediction failed for weekday", d, , ":", e$message))})
+          
+        } else {warning(paste("Model for weekday", d,  "is NULL"))}
+      }
+    } else { warning(paste("Model for weekday", d, "not found in models_burel"))}
+}
+
+#Calcule des critères
+Burel_pred$y <- ifelse(Burel_pred$y < 0, 0, Burel_pred$y)
+Pred_prophet_Spline <- Burel_pred  %>% rename(imputation_prophet = y,date=ds)
+Burel_pred_crit <- Burel_pred %>% left_join(val_reel, by = "ds", suffix = c("_predicted", "_original")) %>%  mutate(error = y_original - y_predicted)
+ 
+Burel_pred_crit %>%  summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+
+#Tracer valeur prédite valeur réeel
+ggplot() +
+  geom_point(data = Burel_pred_crit, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+
+```
+--> On arrive a la conclusion que Prophet utilise un algo de type Spline en ajoutant une saisonnalité sur cette période
+
+
+
+#Pour la méthode Spline Jou/heure et Jour je veux tester le seuil maxgap qui maximise le RMSE 
+```{r}
+
+# Fonction pour calculer les métriques
+calculate_metrics <- function(data_result) {
+  data_result %>% summarise(
+    MAE = mean(abs(vehicle - imputation), na.rm = TRUE),
+    RMSE = sqrt(mean((vehicle - imputation)^2, na.rm = TRUE)),
+    NB_val_non_imput = sum(is.na(imputation)) 
+  )
+}
+
+# Initialisation des variables pour stocker les résultats
+results <- data.frame(maxgap = integer(), MAE = double(), RMSE = double(), MAPE = double())
+
+# Test des valeurs de maxgap entre 1 et 72
+for (i in 1:72) {
+  data_spline_maxgap <- data.frame(date = character(), imputation = double())
+  
+  for (d in unique(data_imput$weekday)) {
+    for (h in unique(data_imput$hour)) {
+      data_day <- data_imput %>% filter(weekday == d, hour == h)
+      imputation <- zoo::na.approx(data_day$y, na.rm = FALSE, maxgap = i)
+      imputation <- ifelse(imputation < 0, 0, imputation)
+      data_spline_maxgap <- rbind(data_spline_maxgap, data.frame(date = data_day$ds, imputation = imputation))
+    }
+  }
+  
+  data_join <- data_imput %>% select(ds, y)
+  data_result <- data_spline_maxgap %>%
+    left_join(data_imput_list$temoin, by = c("date" = "date")) %>%
+    left_join(data_join, by = c("date" = "ds")) %>%
+    select(date, imputation, vehicle, y) %>%
+    filter(is.na(y))
+  
+  metrics <- calculate_metrics(data_result)
+  results <- rbind(results, data.frame(maxgap = i, MAE = metrics$MAE, RMSE = metrics$RMSE, NB_val_non_imput = metrics$NB_val_non_imput))
+}
+results %>% arrange(MAE,NB_val_non_imput)
+# Trouver le maxgap qui maximise le RMSE
+best_maxgap <- results[which.max(results$RMSE), "maxgap"]
+
+# Afficher les résultats
+print(paste("Best maxgap:", best_maxgap))
+
+# Recalculer l'imputation avec le meilleur maxgap
+data_spline_best <- data.frame(date = character(), imputation = double())
+for (d in unique(data_imput$weekday)) {
+  for (h in unique(data_imput$hour)) {
+    data_day <- data_imput %>% filter(weekday == d, hour == h)
+    imputation <- zoo::na.approx(data_day$y, na.rm = FALSE, maxgap = best_maxgap)
+    imputation <- ifelse(imputation < 0, 0, imputation)
+    data_spline_best <- rbind(data_spline_best, data.frame(date = data_day$ds, imputation = imputation))
+  }
+}
+
+data_result_best <- data_spline_best %>%
+  left_join(data_imput_list$temoin, by = c("date" = "date")) %>%
+  left_join(data_imput %>% select(ds, y), by = c("date" = "ds")) %>%
+  select(date, imputation, vehicle, y) %>%
+  filter(is.na(y))
+
+# Calculer les métriques pour le meilleur maxgap
+best_metrics <- calculate_metrics(data_result_best)
+print(best_metrics)
+
+# Afficher les valeurs réelles vs valeurs imputées pour le meilleur maxgap
+ggplot(data_result_best, aes(x = imputation, y = vehicle)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, col = "red") +
+  labs(title = "Valeurs réelles vs Valeurs imputées", x = "Valeurs imputées", y = "Valeurs réelles") +
+  theme_minimal() +
+  geom_abline(intercept = 0, slope = 1, color = "red")
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Modele Global
+```{r}
+res_mean <- impute_rolling_mean(data_imput, list(seq(-2,2)))
+res_median <- impute_rolling_median(data_imput, 72)
+
+#nombre imputé
+sum(is.na(data_imput$y)) - sum(is.na(res_mean$y))
+sum(is.na(data_imput$y)) - sum(is.na(res_median$y))
+
+# Comparaison des modèles
+ggplot() +
+  geom_line(data = data_imput, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = res_mean, aes(x = ds, y = y), color = "red") +
+  geom_line(data = res_median, aes(x = ds, y = y), color = "green") +
+  ggtitle("Imputation des valeurs manquantes") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red", "green"))
+
+
+# Calcul des erreurs 
+val_reel %>% left_join(res_mean, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+val_reel %>% left_join(res_median, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+
+#Nombre de NA encore restant 
+res_mean %>% summarise(na = sum(is.na(y)))
+res_mean %>% summarise(na = sum(is.na(y)))
+
+#Distribution des NA encore restant 
+res_mean %>% mutate(flag = ifelse(is.na(y), T, F)) %>% filter(flag) %>% ggplot(aes(x = ds, y = flag)) + geom_point() + ggtitle("Distribution des valeurs manquantes")
+
+
+```
+
+#Modèle journalier 
+```{r}
+data_res_mean <- data.frame(ds=character(), y=numeric())
+data_res_median <-  data.frame(date=character(), y=numeric())
+for(d in unique(data_imput$weekday)){
+  data_day <- data_imput %>% filter(weekday == d)
+
+  res_mean <- impute_rolling_mean(data_day, 72) 
+  res_median <- impute_rolling_median(data_day, 72)
+  
+  data_res_mean <- rbind(data_res_mean, data.frame(ds=data_day$ds, y=res_mean$y))
+  data_res_median <- rbind(data_res_median, data.frame(ds=data_day$ds, y=res_median$y))
+}
+
+# Comparaison des modèles
+ggplot() +
+  geom_line(data = data_imput, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = data_res_mean, aes(x = ds, y = y), color = "red") +
+  geom_line(data = data_res_median, aes(x = ds, y = y), color = "green") +
+  ggtitle("Imputation des valeurs manquantes") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red", "green"))
+
+# Calcul des erreurs
+val_reel %>% left_join(data_res_mean, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+val_reel %>% left_join(data_res_mean, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+#Nombre de NA encore restant 
+data_res_mean %>% summarise(na = sum(is.na(y)))
+data_res_median %>% summarise(na = sum(is.na(y)))
+data_res_median %>% mutate(flag = ifelse(is.na(y), T, F)) %>% filter(flag) %>% ggplot(aes(x = ds, y = flag)) + geom_point() + ggtitle("Distribution des valeurs manquantes")
+
+
+```
+
+```{r}
+data_res_mean <- data.frame(ds=character(), y=numeric())
+data_res_median <-  data.frame(date=character(), y=numeric())
+for(d in unique(data_imput$weekday)){
+  for(h in unique(data_imput$hour)){
+  data_day <- data_imput %>% filter(weekday == d,hour == h)
+
+  res_mean <- impute_rolling_mean(data_day, 10) 
+  res_median <- impute_rolling_median(data_day, 10)
+  
+  data_res_mean <- rbind(data_res_mean, data.frame(ds=data_day$ds, y=res_mean$y))
+  data_res_median <- rbind(data_res_median, data.frame(ds=data_day$ds, y=res_median$y))
+  
+  
+  }
+}
+
+# Comparaison des modèles
+ggplot() +
+  geom_line(data = data_imput, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = data_res_mean, aes(x = ds, y = y), color = "red") +
+  geom_line(data = data_res_median, aes(x = ds, y = y), color = "green") +
+  ggtitle("Imputation des valeurs manquantes") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red", "green"))
+
+# Calcul des erreurs
+val_reel %>% left_join(data_res_mean, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+val_reel %>% left_join(data_res_median, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+#Nombre de NA encore restant 
+data_res_mean %>% summarise(na = sum(is.na(y)))
+data_res_median %>% summarise(na = sum(is.na(y)))
+
+data_res_median %>% mutate(flag = ifelse(is.na(y), T, F)) %>% filter(flag) %>% ggplot(aes(x = ds, y = flag)) + geom_point() + ggtitle("Distribution des valeurs manquantes")
+
 ```
 
 
 
 ```{r}
-plot(models_burel2[["wednesday"]], Burel_train %>% filter(weekday == "wednesday") %>% rename(yhat = y))
+#representer graphiquement l'imputation pour les deux autres types d'algorithme c'est a dire modele par jour et par jour heure pour un jour ou un jour/heure specifique
+data_imput %>% filter(weekday == "Monday") %>% ggplot(aes(x = ds, y = y)) + geom_line() + geom_point() + ggtitle("Imputation des valeurs manquantes pour le lundi") + xlab("Date") + ylab("Nombre de véhicules")
+data_imput %>% filter(weekday == "Monday", hour == 17) %>% ggplot(aes(x = ds, y = y)) + geom_line() + geom_point() + ggtitle("Imputation des valeurs manquantes pour le lundi à 17h") + xlab("Date") + ylab("Nombre de véhicules")
+
+
+data_comp <- data_imput %>% left_join(data_res_mean, by = "ds", suffix = c("", "_mean")) %>% left_join(data_res_median, by = "ds", suffix = c("", "_median")) %>% filter(weekday == "Monday", hour == 17)
+val_reel_trie <- val_reel %>% filter(weekday == "Monday", hour == 17)
+#ajouter a ses graphiques les imputations faites graces au algorithmes de mediane mobile et la valeur réel
+data_comp %>% ggplot(aes(x = ds, y = y)) + geom_line(aes(y = y_mean), color = "red") + geom_line(aes(y = y_median), color = "green") + geom_line(data=val_reel_trie,aes(x = ds, y = y), color = "lightblue") +geom_point() + ggtitle("Imputation des valeurs manquantes pour le lundi à 17h") + xlab("Date") + ylab("Nombre de véhicules") 
+
+
+data_comp <- data_imput %>% left_join(data_res_mean, by = "ds", suffix = c("", "_mean")) %>% left_join(data_res_median, by = "ds", suffix = c("", "_median")) %>% filter(weekday == "Monday")
+#ajouter a ses graphiques les imputations faites graces au algorithmes de mediane mobile 
+data_comp %>% ggplot(aes(x = ds, y = y)) + geom_line(aes(y = y_mean), color = "red") + geom_line(aes(y = y_median), color = "green") + geom_point() + ggtitle("Imputation des valeurs manquantes pour le lundi") + xlab("Date") + ylab("Nombre de véhicules")
+
 ```
 
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+```{r}
+# Evaluation des modèles
+evaluate_global_models <- function(data, val_reel, windows) {
+  results <- data.frame(window = integer(), mae_mean = numeric(), rmse_mean = numeric(), na_mean = integer(), 
+                        mae_median = numeric(), rmse_median = numeric(), na_median = integer())
+  
+  for (window in windows) {
+    res_mean <- impute_rolling_mean(data, window)
+    res_median <- impute_rolling_median(data, window)
+    
+    # Calcul des erreurs
+    errors_mean <- val_reel %>% left_join(res_mean, by = "ds", suffix = c("", "_chap")) %>% 
+      mutate(error = y - y_chap) %>% 
+      summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+    
+    errors_median <- val_reel %>% left_join(res_median, by = "ds", suffix = c("", "_chap")) %>% 
+      mutate(error = y - y_chap) %>% 
+      summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+    
+    # Nombre de NA restants
+    na_mean <- sum(is.na(res_mean$y))
+    na_median <- sum(is.na(res_median$y))
+    
+    # Enregistrer les résultats
+    results <- rbind(results, data.frame(window = window, mae_mean = errors_mean$mae, rmse_mean = errors_mean$rmse, na_mean = na_mean, 
+                                         mae_median = errors_median$mae, rmse_median = errors_median$rmse, na_median = na_median))
+  }
+  
+  return(results)
+}
+
+
+
+# Définir les fenêtres à tester
+windows <- 2:72
+
+# Appel de la fonction d'évaluation
+results <- evaluate_global_models(data_imput, val_reel, windows)
+
+# Afficher les résultats
+print(results)
+
+results <- results %>%
+  mutate(na_mean_scaled = scales::rescale(na_mean, to = range(mae_mean)))
+
+# Création du graphique avec les deux axes y
+ggplot(results, aes(x = window)) +
+  geom_line(aes(y = mae_mean, color = "MAE")) +
+  geom_line(aes(y = na_mean_scaled, color = "NA (scaled)")) +
+  scale_y_continuous(
+    name = "MAE",
+    sec.axis = sec_axis(~ ., name = "Number of NA (scaled)")
+  ) +
+  labs(
+    title = "Evolution of MAE and Number of NA in function of Window Size",
+    x = "Window Size"
+  ) +
+  scale_color_manual(values = c("MAE" = "red", "NA (scaled)" = "blue")) +
+  theme_minimal()
+
+#Pour la technique mean, représenter l'évolution du mae et du na_mean en foncction de window
+results %>% ggplot(aes(x = window)) + geom_line(aes(y = mae_mean,col="red"))  + ggtitle("Evolution du MAE en fonction de la taille de la fenêtre") + xlab("Taille de la fenêtre") + ylab("MAE")
+
+#tracer NA scale par rapport a mae
+results %>% ggplot(aes(y = na_mean_scaled, x=mae_mean)) +geom_line()  + ggtitle("Evolution du MAE en fonction de la taille de la fenêtre") + xlab("Taille de la fenêtre") + ylab("MAE")
+
+```
+
+--> On garde le modèle Hourly avec une taille egal a 13
+
+### 4.3.2. Modèle final
+```{r}
+#imputation hourly pour window 13
+data_res_mean <- data.frame(ds=character(), y=numeric())
+data_res_median <-  data.frame(date=character(), y=numeric())
+for(d in unique(data_imput$weekday)){
+  for(h in unique(data_imput$hour)){
+  data_day <- data_imput %>% filter(weekday == d,hour == h)
+
+  res_mean <- impute_rolling_mean(data_day, 13) 
+  res_median <- impute_rolling_median(data_day, 13)
+  
+  data_res_mean <- rbind(data_res_mean, data.frame(ds=data_day$ds, y=res_mean$y))
+  data_res_median <- rbind(data_res_median, data.frame(ds=data_day$ds, y=res_median$y))
+  
+  
+  }
+}
+
+# Comparaison des modèles
+ggplot() +
+  geom_line(data = data_imput, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = data_res_mean, aes(x = ds, y = y), color = "red") +
+  geom_line(data = data_res_median, aes(x = ds, y = y), color = "green") +
+  ggtitle("Imputation des valeurs manquantes") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red", "green"))
+
+# Calcul des erreurs
+val_reel %>% left_join(data_res_mean, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+val_reel %>% left_join(data_res_median, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+#Nombre de NA encore restant 
+data_res_mean %>% summarise(na = sum(is.na(y)))
+data_res_median %>% summarise(na = sum(is.na(y)))
+
+data_res_median %>% mutate(flag = ifelse(is.na(y), T, F)) %>% filter(flag) %>% ggplot(aes(x = ds, y = flag)) + geom_point() + ggtitle("Distribution des valeurs manquantes")
+
+```
+```{r}
+data_imput2 <- data_imput %>% select(ds,hour,weekday) 
+data_res_median2 <- data_res_median  %>% left_join(data_imput2,by="ds")
+
+results_hourly <- evaluate_hourly_models(data_res_median2, val_reel, windows)
+results_daily <- evaluate_daily_models(data_res_median2, val_reel, windows)
+results_global <- evaluate_global_models(data_res_median2, val_reel, windows)
+
+
+#Représenter les 3 courbes de MAE en fonction de la taille de la fenêtre ainsi que du nombre de NA  pour resuls_global et results_daily
+
+# Ajouter une colonne 'model' pour différencier les modèles
+results_global <- results_global %>% mutate(model = "Global")
+results_daily <- results_daily %>% mutate(model = "Daily")
+results_hourly <- results_hourly %>% mutate(model = "Hourly")
+
+# Combiner les deux jeux de données
+results_combined <- bind_rows(results_global, results_daily,results_hourly)
+
+# Tracer les courbes
+
+p1 <- ggplot(results_combined, aes(x = window, y = mae_mean, color = model)) +
+  geom_line() +
+  labs(
+    title = "Comparaison du MAE en fonction de la taille de la fenêtre",
+    x = "Taille de la fenêtre",
+    y = "MAE"
+  ) +
+  scale_color_manual(values = c("Global" = "blue", "Daily" = "red","Hourly" = "green")) +
+  theme_minimal() 
+
+p2 <- ggplot(results_combined, aes(x = window, y = na_mean, color = model)) +
+  geom_line() +
+  labs(
+    title = "Comparaison du nombre de NA en fonction de la taille de la fenêtre",
+    x = "Taille de la fenêtre",
+    y = "MAE"
+  ) +
+  scale_color_manual(values = c("Global" = "blue", "Daily" = "red","Hourly" = "green")) +
+  theme_minimal() 
+
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+
+ 
+```
+#Après avoir effectué le modèle hourly 13 effectuer un modele global 13 
+
+
+```{r}
+res_final <- impute_rolling_mean(data_res_median2, 13) 
+
+
+#Représenter l'imputation des données vs valeur réeels 
+
+val_reel %>% left_join(res_final, by = "ds", suffix = c("", "_chap")) %>% ggplot() +
+  geom_point(aes(x = ds, y = y), color = "blue") +
+  geom_point(aes(x = ds, y = y_chap), color = "red") +
+  ggtitle("Imputation des valeurs manquantes") +
+  xlab("Date") +
+  ylab("Nombre de véhicules")
+
+
+val_reel %>% left_join(res_final, by = "ds", suffix = c("", "_chap")) %>% ggplot() +
+  geom_point(aes(x = y_chap, y = y)) +
+  geom_abline(intercept = 0, slope = 1, color = "red") 
+
+# Calcul des erreurs
+val_reel %>% left_join(res_final, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+#Nombre de valeur NA
+
+sum(is.na(res_final$y))
+#LEs représenté 
+res_final %>% mutate(flag = ifelse(is.na(y), T, F)) %>% filter(flag) %>% ggplot(aes(x = ds, y = flag)) + geom_point() + ggtitle("Distribution des valeurs manquantes")
+
+
+```
+
+
+--> Pipeline Final
+
+```{r}
+
+
+sensor1 <- dataV2 %>% filter(segment_id == 9000002156,uptime_quality)
+sensor2<- dataV2 %>% filter(segment_id == 9000004019,uptime_quality)
+sensor3 <- dataV2 %>% filter(segment_id == 9000004042,uptime_quality)
+
+#Ajouter le sensors a une liste
+sensors <- list(sensor1,sensor2,sensor3)
+
+sensor <- sensors[[2]]
+
+data_imput_list <- Create_test_data_suite(sensor, prop_missing=0.20,seed=1234)
+data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
+
+impute_rolling_mean <- function(data, window) {
+  imputed_data <- data
+  imputed_data$y <- zoo::rollapply(data$y, width = window, FUN = function(x) mean(x, na.rm = TRUE), fill = NA, align = "center")
+  return(imputed_data)
+}
+
+
+# Imputation avec la moyenne mobile
+data_res_mean <- data.frame(ds=character(), y=numeric())
+for(d in unique(data_imput$weekday)){
+  for(h in unique(data_imput$hour)){
+  data_day <- data_imput %>% filter(weekday == d,hour == h)
+
+  res_mean <- impute_rolling_mean(data_day, 1:72) 
+
+  data_res_mean <- rbind(data_res_mean, data.frame(ds=data_day$ds, y=res_mean$y))
+  }
+}
+
+res_final <- impute_rolling_mean(data_res_median, 1:72) 
+
+
+#Représenter l'imputation des données vs valeur réeels 
+
+val_reel %>% left_join(res_final, by = "ds", suffix = c("", "_chap")) %>% ggplot() +
+  geom_point(aes(x = ds, y = y), color = "blue") +
+  geom_point(aes(x = ds, y = y_chap), color = "red") +
+  ggtitle("Imputation des valeurs manquantes") +
+  xlab("Date") +
+  ylab("Nombre de véhicules")
+
+
+val_reel %>% left_join(res_final, by = "ds", suffix = c("", "_chap")) %>% ggplot() +
+  geom_point(aes(x = y_chap, y = y)) +
+  geom_abline(intercept = 0, slope = 1, color = "red") 
+
+# Calcul des erreurs
+val_reel %>% left_join(res_final, by = "ds", suffix = c("", "_chap")) %>%  mutate(error = y- y_chap) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+#Nombre de valeur NA
+
+sum(is.na(res_final$y))
+
+
+#Les représenté 
+# Ajouter une colonne pour distinguer l'origine des données
+res_final$origin <- "res_final"
+data_imput$origin <- "data_imput"
+
+# Combinez les deux ensembles de données
+combined_data <- rbind(res_final, data_imput %>% select(ds, y, origin)) %>%  mutate(flag = ifelse(is.na(y), TRUE, FALSE)) %>% filter(flag)
+
+# Représenter les valeurs manquantes des deux ensembles de données sur un seul graphique
+combined_data %>% 
+  ggplot(aes(x = ds, y = origin, color = origin)) +
+  geom_point(size = 1) +
+  ggtitle("Distribution des valeurs manquantes")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

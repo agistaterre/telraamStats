@@ -1,0 +1,854 @@
+
+### Introduction
+- Objectif : Étudier différentes méthodes d'imputation des données manquantes et évaluer leur efficacité.
+- Méthodes considérées : Prophet, Spline Cubique, SPline Linéaire.
+
+
+
+### Chargement des Bibliothèques
+```{r}
+source("Clean_Data.R")
+source("Imputation_function.R")
+source("Utilities_functions.R")
+source("stop_sensor.R")
+```
+
+```{r}
+pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet,purrr,zoo)
+
+```
+
+
+### Chargement et Préparation des Données
+```{r}
+dataV2 <- read.csv("/Users/paulvallee/Desktop/Stage CREM/Code R/data/20230518_20240517_v2_sensors_extract.csv")
+dataV2$uptime_quality <- ifelse(dataV2$uptime >=0.5 ,TRUE,FALSE)
+dataV2 <- dataV2 %>% rename(segment_name = segment_fullname) %>%  filter(segment_name != "") %>%  mutate(segment_name = as.factor(as.character(gsub("[0-9-]+", "",segment_name))),uptime = as.numeric(uptime))
+dataV2 <- stop_sensor(dataV2)
+```
+
+
+
+## Capteur Test pour l'imputation 
+
+```{r}
+sensor1 <- dataV2 %>% filter(segment_id == 9000005665,uptime_quality)
+sensor2<- dataV2 %>% filter(segment_id == 9000002156,uptime_quality)
+sensor3 <- dataV2 %>% filter(segment_id == 9000001877,uptime_quality)
+sensor4 <- dataV2 %>% filter(segment_id == 9000004019,uptime_quality)
+sensor5<- dataV2 %>% filter(segment_id == 9000006207,uptime_quality)
+sensor6 <- dataV2 %>% filter(segment_id == 9000006227,uptime_quality)
+sensor7 <- dataV2 %>% filter(segment_id == 9000004042,uptime_quality)
+
+
+sensors <- list(sensor1,sensor2,sensor3,sensor4,sensor5,sensor6,sensor7)
+
+#Holidays 
+holidays_imput <- dataV2%>% rename(ds=date) %>% filter(vacation_flag == 1 ) %>% mutate(lower_window = -1, upper_window = 1, vacation = as.character(vacation)) %>% select(vacation, ds, lower_window, upper_window) %>% rename(holiday = vacation)
+
+
+```
+
+
+- Création de séries temporelles avec une distributions de données manquantes uniforme.
+
+
+```{r}
+#Construction du data Imputé 
+#data_imput_list_unif <- Create_test_data_unif(sensor, prop_missing=0.20,seed=1234)
+data_imput_list_suite <- Create_test_data_suite(sensor, prop_missing=0.20,seed=1234)
+```
+
+
+
+- Création de séries temporelles avec différentes distributions de données manquantes.
+
+
+- Chosir le type de NA a imputé 
+
+```{r}
+#data_imput_list <- data_imput_list_unif
+data_imput_list <- data_imput_list_suite
+
+data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+
+#Récupéré les dates associés 
+date_imput <- data_imput$ds[which(is.na(data_imput$y))]
+val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
+```
+
+
+ 
+### Modélisation avec Prophet
+- Construction de modèles Prophet Global.
+
+```{r}
+#Création du modèle
+model_GL_imput <- prophet(data_imput %>% select(ds, y), holidays = holidays_imput, changepoint.prior.scale = 0.05)
+              
+#Prédiction des valeurs de 2024
+Burel_GL_imput <- predict(model_GL_imput,date_imput) %>% select(ds, yhat)
+
+#Affichage de l'ajustement du modèle 
+
+  ajust <- predict(model_GL_imput, data_imput)
+  plot(model_GL_imput, ajust)
+  
+#Imputation des valeurs manquantes
+Imputation_GL <- predict(model_GL_imput,data.frame(ds = date_imput))
+
+
+#Remplacer les NA par les valeurs prédites et ajouter un flag pour reperer les valeurs imputées
+res_GL <- data_imput %>% select(ds,y)
+res_GL$y_imput <- ifelse(is.na(res_GL$y), Imputation_GL$yhat, data_imput$y)
+res_GL$flag_imput <- ifelse(is.na(res_GL$y), T, F)
+res_GL
+#Affichage des valeurs prédites et des valeurs réelles
+res_GL %>% ggplot(aes(x = ds,y = y_imput,col = flag_imput )) + geom_line()
+
+
+
+#Calculer des differents critères
+
+#ajout de val_reel
+res_GL <- res_GL %>% right_join(val_reel, by = "ds", suffix = c("_predicted", "_reel")) 
+#Calculer les erreurs
+res_GL %>% summarise(MAE = mean(abs(y_imput - y_reel), na.rm = TRUE), RMSE = sqrt(mean((y_imput - y_reel)^2, na.rm = TRUE)), MAPE = mean(abs(y_imput - y_reel)/y_reel, na.rm = TRUE) * 100)
+
+
+
+```
+
+- Construction de modèles Prophet Journalier.
+
+```{r}
+#On va entrainer un modèle sur les données de burel_train
+models_burel2 <- list()
+for (d in unique(Burel_train$weekday)) {
+    data <- Burel_train %>% filter(weekday == d)
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+      #Recuperer les vacances 
+      holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
+      
+
+      model <- prophet(data, holidays = holidays,changepoint.prior.scale = 0.5)
+      models_burel2[[d]] <- model
+    } else {
+      warning(paste("Not enough data for weekday", d))
+    }
+  }
+
+
+#Prédure les valeurs de 2024 
+x2 <- Burel_test %>% select(ds, weekday)
+Burel_future2 <- data.frame()
+
+for (d in unique(x2$weekday)) {
+    model <- models_burel2[[d]]
+    data <- x %>% filter(weekday == d)
+    
+    if (nrow(data) > 0) {
+    pred <- predict(model, data %>% select(ds)) %>% select(ds, yhat) %>% rename(y = yhat)
+    Burel_future2 <- rbind(Burel_future2, pred)
+    }
+}
+
+#Comparer burel_future et burel_2024
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_future2, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red")) 
+
+Data_comp2 <- Burel_test %>% left_join(Burel_future2, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
+Data_comp2
+
+ggplot() +
+  geom_point(data = Data_comp2, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+#Calcul des critères
+#MAE
+mean(abs(Data_comp2$error), na.rm = TRUE)
+
+#RMSE
+sqrt(mean(Data_comp2$error^2, na.rm = TRUE))
+
+Data_comp2 %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+
+plot(models_burel2[["wednesday"]], Burel_train %>% filter(weekday == "wednesday") %>% rename(yhat = y))
+```
+
+
+- Construction de modèles Prophet Jour/heures.
+
+```{r}
+# Initialiser une liste vide pour stocker les modèles
+models_burel <- list()
+
+# Parcourir chaque combinaison unique de jour de la semaine et d'heure
+for (d in unique(Burel_train$weekday)) {
+  for (h in unique(Burel_train$hour)) {
+    data <- Burel_train %>% filter(weekday == d, hour == h)
+    
+    # Vérifier qu'il y a au moins 2 lignes non-NA dans les données filtrées
+    if (nrow(data) >= 2 & sum(!is.na(data$y)) >= 2) {
+      
+        # Récupérer les vacances
+        holidays <- data %>% filter(holiday) %>% select(ds) %>% mutate(holiday = "holiday")
+        
+        # Entraîner le modèle Prophet
+          model <- prophet(data, holidays = holidays,changepoint.prior.scale = 0.05)
+          models_burel[[paste(d, h, sep = "_")]] <- model
+
+
+    } else {
+      warning(paste("Not enough data for weekday", d, "and hour", h))
+    }
+  }
+}
+
+
+#Prédure les valeurs de 2024 
+x <- Burel_test %>% select(ds, weekday, hour)
+Burel_future <- data.frame()
+
+for (d in unique(x$weekday)) {
+  for (h in unique(x$hour)) {
+    model_name <- paste(d, h, sep = "_")
+    
+    # Vérifier si le modèle existe dans la liste
+    if (model_name %in% names(models_burel)) {
+      model <- models_burel[[model_name]]
+      data <- x %>% filter(weekday == d, hour == h)
+      
+      if (nrow(data) > 0) {
+        # Vérifier que le modèle est valide avant de prédire
+        if (!is.null(model)) {
+          tryCatch({
+            pred <- predict(model, data %>% select(ds)) %>% 
+                    select(ds, yhat) %>% 
+                    rename(y = yhat)
+            Burel_future <- rbind(Burel_future, pred)
+          }, error = function(e) {
+            warning(paste("Prediction failed for weekday", d, "and hour", h, ":", e$message))
+          })
+        } else {
+          warning(paste("Model for weekday", d, "and hour", h, "is NULL"))
+        }
+      }
+    } else {
+      warning(paste("Model for weekday", d, "and hour", h, "not found in models_burel"))
+    }
+  }
+}
+
+# Vérifier le contenu de Burel_future
+print(Burel_future)
+
+#Comparer burel_future et burel_2024
+ggplot() +
+  geom_line(data = Burel_test, aes(x = ds, y = y), color = "blue") +
+  geom_line(data = Burel_future, aes(x = ds, y = y), color = "red") +
+  ggtitle("Prédiction 2024 des données du capteur Burel") +
+  xlab("Date") +
+  ylab("Nombre de véhicules") +
+  scale_color_manual(values = c("blue", "red"))
+
+Data_comp <- Burel_test %>% left_join(Burel_future, by = "ds", suffix = c("_original", "_predicted")) %>%  mutate(error = y_original - y_predicted)
+Data_comp
+ggplot() +
+  geom_point(data = Data_comp, aes(x = y_original, y = y_predicted)) +
+  ggtitle("Comparaison des valeurs prédites et des valeurs réelles") +
+  xlab("Valeurs réelles") +
+  ylab("Valeurs prédites") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_minimal()
+
+ 
+#MAE
+mean(abs(Data_comp$error), na.rm = TRUE)
+
+#RMSE
+sqrt(mean(Data_comp$error^2, na.rm = TRUE))
+
+
+#critère par jour
+Data_comp %>% group_by(weekday) %>% summarise(mae = mean(abs(error), na.rm = TRUE),rmse = sqrt(mean(error^2, na.rm = TRUE)))
+
+#Observer Lundi 8h
+plot(models_burel[["monday_8"]], Burel_train %>% filter(weekday == "monday", hour == 8) %>% rename(yhat = y))
+
+```
+
+
+
+- Comparaison des differents modèle de Prophet
+
+```{r}
+
+```
+
+
+- Conclusion sur les modèles Prophet
+
+
+
+### Modélisation avec Spline Cubique
+
+- Construction du modèle global
+```{r}
+spline_cub_glob <- function(data, maxgap) {
+  y <- zoo::na.spline(data$y, maxgap = maxgap)
+  res <- data.frame(ds = data$ds, y_hat = y, maxgap = maxgap)
+  return(res)
+}
+```
+
+
+- Construction du modèle par jour de la semaine
+```{r}
+spline_cub_day <- function(data, maxgap) {
+  res <- data.frame()
+  for (d in unique(data$weekday)) {
+    data_day <- data %>% filter(weekday == d)
+    y_hat <- zoo::na.spline(data_day$y, maxgap = maxgap)
+    res <- rbind(res, data.frame(ds = data_day$ds, y_hat = y_hat))
+  }
+  return(res)
+}
+```
+
+
+- Construction du modèle par heure de la journée et jour de la semaine 
+```{r}
+spline_cub_hour <- function(data, maxgap) {
+  res <- data.frame()
+  for (d in unique(data$weekday)) {
+    for (h in unique(data$hour)) {
+      data_hour <- data %>% filter(weekday == d, hour == h)
+      if (nrow(data_hour) > 1) {
+        y_hat <- zoo::na.spline(data_hour$y, maxgap = maxgap)
+        res <- rbind(res, data.frame(ds = data_hour$ds, y_hat = y_hat))
+      }
+    }
+  }
+  return(res)
+}
+```
+
+
+- Test des differents modèles avec un maxgap differents
+```{r}
+Evaluate_SplineCube <- function(data, val_reel, rangegap) {
+  res_model <- data.frame()
+  for (gap in rangegap) {
+
+    # Imputation des différentes méthodes
+    results_hourly <- spline_cub_hour(data, gap) 
+    results_daily <- spline_cub_day(data, gap)
+    results_global <- spline_cub_glob(data, gap) 
+
+    # Calculer les erreurs MAE et RMSE pour chaque modèle
+    results_hourly <- val_reel %>% left_join(results_hourly, by = "ds") %>% mutate(error = y - y_hat) 
+    results_daily <- val_reel %>% left_join(results_daily, by = "ds") %>% mutate(error = y - y_hat)
+    results_global <- val_reel %>% left_join(results_global, by = "ds") %>% mutate(error = y - y_hat)
+
+    # Calculer les erreurs MAE et RMSE pour chaque modèle
+    crit_hourly <- data.frame(gap = gap, MAE = mean(abs(results_hourly$error), na.rm = TRUE), RMSE = sqrt(mean(results_hourly$error^2, na.rm = TRUE)), num_na = sum(is.na(results_hourly$y_hat)), type = "hourly")
+    crit_daily <- data.frame(gap = gap, MAE = mean(abs(results_daily$error), na.rm = TRUE), RMSE = sqrt(mean(results_daily$error^2, na.rm = TRUE)), num_na = sum(is.na(results_daily$y_hat)), type = "daily")
+    crit_global <- data.frame(gap = gap, MAE = mean(abs(results_global$error), na.rm = TRUE), RMSE = sqrt(mean(results_global$error^2, na.rm = TRUE)), num_na = sum(is.na(results_global$y_hat)), type = "global")
+
+    # Ajouter les erreurs dans un dataframe pour chaque gap
+    res_model <- rbind(res_model, crit_hourly, crit_daily, crit_global)
+  }
+  
+  # Tracer les courbes de MAE en fonction de maxgap
+  p1 <- ggplot(res_model, aes(x = gap, y = MAE, color = type)) + geom_line()+ ggtitle("MAE en fonction de maxgap") + xlab("maxgap") + ylab("MAE")
+  
+  # Tracer le nombre de NA en fonction de maxgap
+  pZ <- ggplot(res_model, aes(x = gap, y = num_na, color = type)) + geom_line()  + ggtitle("Nombre de NA en fonction de maxgap") + xlab("maxgap") + ylab("Nombre de NA")
+  
+  return(list(res = res_model , graph = grid.arrange(p1, pZ, ncol = 2)))
+  
+}
+crit_splin_cub <- data.frame()
+
+for (sensor in sensors) {
+  print(sensor$segment_name[1])
+  
+data_imput_list <- Create_test_data_suite(sensor, prop_missing=0.20,seed=1234)
+data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
+
+  
+# App
+res_cub<- Evaluate_SplineCube(data_imput,val_reel,1:72)
+res_cub$graph
+
+crit_splin_cub <- rbind(crit_splin_cub,res_cub$res)
+
+}
+
+
+p1 <- crit_splin_cub %>% group_by(type,gap) %>% summarise(MAE = mean(MAE)) %>% ggplot(aes(x = as.double(gap), y = MAE, color = type)) + geom_line() + ggtitle("MAE moyen en fonction de maxgap") + xlab("maxgap") + ylab("MAE") + ylim(0,100)
+p2 <- crit_splin_cub %>%  group_by(crit,type,gap) %>% summarise(na = mean(num_na)) %>% ggplot(aes(x = as.double(gap), y = na, color = type)) + geom_line()  + ggtitle("NA moyen en fonction de maxgap") + xlab("maxgap") + ylab("MAE")
+grid.arrange(p1,p2,ncol=2)
+```
+
+
+### Modélisation avec Spline Linéaire
+
+- Construction du modèle global
+```{r}
+spline_lin_glob <- function(data, maxgap) {
+  y <- zoo::na.approx(data$y, maxgap = maxgap,na.rm=F)
+  res <- data.frame(ds = data$ds, y_hat = y, maxgap = maxgap)
+  return(res)
+}
+```
+
+
+- Construction du modèle par jour de la semaine
+```{r}
+spline_lin_day <- function(data, maxgap) {
+  res <- data.frame()
+  for (d in unique(data$weekday)) {
+    data_day <- data %>% filter(weekday == d)
+    y_hat <- zoo::na.approx(data_day$y, maxgap = maxgap,na.rm=F)
+    res <- rbind(res, data.frame(ds = data_day$ds, y_hat = y_hat))
+  }
+  return(res)
+}
+```
+
+
+- Construction du modèle par heure de la journée et jour de la semaine 
+```{r}
+spline_lin_hour <- function(data, maxgap) {
+  res <- data.frame()
+  for (d in unique(data$weekday)) {
+    for (h in unique(data$hour)) {
+      data_hour <- data %>% filter(weekday == d, hour == h)
+      if (nrow(data_hour) > 0) {
+        y_hat <- zoo::na.approx(data_hour$y, maxgap = maxgap,na.rm=F)
+        res <- rbind(res, data.frame(ds = data_hour$ds, y_hat = y_hat))
+      }
+    }
+  }
+  return(res)
+}
+```
+
+
+- Conclusions sur les modèles de Spline Linéaire
+```{r}
+
+Evaluate_SplineLin <- function(data, val_reel, rangegap) {
+  res_model <- data.frame()
+  for (gap in rangegap) {
+
+    # Imputation des différentes méthodes
+    results_hourly <- spline_lin_hour(data, gap) 
+    results_daily <- spline_lin_day(data, gap)
+    results_global <- spline_lin_glob(data, gap) 
+
+    # Calculer les erreurs MAE et RMSE pour chaque modèle
+    results_hourly <- val_reel %>% left_join(results_hourly, by = "ds") %>% mutate(error = y - y_hat) 
+    results_daily <- val_reel %>% left_join(results_daily, by = "ds") %>% mutate(error = y - y_hat)
+    results_global <- val_reel %>% left_join(results_global, by = "ds") %>% mutate(error = y - y_hat)
+
+    # Calculer les erreurs MAE et RMSE pour chaque modèle
+    crit_hourly <- data.frame(gap = gap, MAE = mean(abs(results_hourly$error), na.rm = TRUE), RMSE = sqrt(mean(results_hourly$error^2, na.rm = TRUE)), num_na = sum(is.na(results_hourly$y_hat)), type = "hourly")
+    crit_daily <- data.frame(gap = gap, MAE = mean(abs(results_daily$error), na.rm = TRUE), RMSE = sqrt(mean(results_daily$error^2, na.rm = TRUE)), num_na = sum(is.na(results_daily$y_hat)), type = "daily")
+    crit_global <- data.frame(gap = gap, MAE = mean(abs(results_global$error), na.rm = TRUE), RMSE = sqrt(mean(results_global$error^2, na.rm = TRUE)), num_na = sum(is.na(results_global$y_hat)), type = "global")
+
+    # Ajouter les erreurs dans un dataframe pour chaque gap
+    res_model <- rbind(res_model, crit_hourly, crit_daily, crit_global)
+  }
+  
+  # Tracer les courbes de MAE en fonction de maxgap
+  p1 <- ggplot(res_model, aes(x = gap, y = MAE, color = type)) + geom_line()+ ggtitle("MAE en fonction de maxgap") + xlab("maxgap") + ylab("MAE")
+  
+  # Tracer le nombre de NA en fonction de maxgap
+  pZ <- ggplot(res_model, aes(x = gap, y = num_na, color = type)) + geom_line()  + ggtitle("Nombre de NA en fonction de maxgap") + xlab("maxgap") + ylab("Nombre de NA")
+  
+  return(list(res = res_model , graph = grid.arrange(p1, pZ, ncol = 2)))
+   
+}
+
+crit_splin_lin <- data.frame()
+for (sensor in sensors) {
+print(sensor$segment_name[1])
+  
+data_imput_list <- Create_test_data_suite(sensor, prop_missing=0.20,seed=1234)
+data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
+
+  
+# App
+res_lin<- Evaluate_SplineLin(data_imput,val_reel,1:72)
+crit_splin_lin <- rbind(crit_splin_lin, res_lin$res)
+res_lin$graph
+}
+
+
+p2 <- crit_splin_lin %>% group_by(type,gap) %>% summarise(MAE = mean(MAE)) %>% ggplot(aes(x = as.double(gap), y = MAE, color = type)) + geom_line() + ggtitle("MAE moyen en fonction de maxgap") + xlab("maxgap") + ylab("MAE")
+p3 <- crit_splin_lin %>%  group_by(crit,type,gap) %>% summarise(na = mean(num_na)) %>% ggplot(aes(x = as.double(gap), y = na, color = type)) + geom_line()  + ggtitle("NA moyen en fonction de maxgap") + xlab("maxgap") + ylab("MAE")
+grid.arrange(p2,p3,ncol=2)
+```
+
+
+
+
+
+### Comparaison entre Spline Linéaire et Cubique
+```{r}
+#Comparer les  MAE de spline Linéaire et Cubique pour le meme maxgap grâce au res 
+crit_splin_lin$crit <- "spline_lin"
+crit_splin_cub$crit <- "spline_cube"
+
+crit_splin <- rbind(crit_splin_lin,crit_splin_cub)
+
+#Comparer les  MAE de spline Linéaire et Cubique pour le meme maxgap grâce au res suivant les méthodes d'imputation
+crit_splin %>%  group_by(crit,type,gap) %>% summarise(MAE = mean(MAE)) %>% ggplot(aes(x = as.double(gap), y = MAE, color = crit)) + geom_line() + facet_wrap(~type,scales = "free_y") + ggtitle("MAE moyen en fonction de maxgap") + xlab("maxgap") + ylab("MAE") +ylim(0,100)
+crit_splin %>%  group_by(crit,type,gap) %>% summarise(na = mean(num_na)) %>% ggplot(aes(x = as.double(gap), y = na, color = crit)) + geom_line() + facet_wrap(~type,scales = "free_y") + ggtitle("NA moyen en fonction de maxgap") + xlab("maxgap") + ylab("Nombre de NA restant après imputation")
+
+```
+--> Le modèle linéaire est plus performant que le modèle cubique 
+
+### Modélisation par Rolling Statistics Imputation
+
+- Fonction 
+```{r}
+impute_rolling_median <- function(data, window) {
+  imputed_data <- data
+  imputed_data$y <- zoo::rollapply(data$y, width = window, FUN = function(x) median(x, na.rm = TRUE), fill = NA,partial = TRUE , align = "center")
+  return(imputed_data)
+}
+
+
+impute_rolling_mean <- function(data, window) {
+  imputed_data <- data
+  imputed_data$y <- zoo::rollapply(data$y, width = window, FUN = function(x) mean(x, na.rm = TRUE), fill = NA,partial = TRUE , align = "center")
+  return(imputed_data)
+}
+
+
+```
+
+
+- Construction du modèle global
+
+```{r}
+# Fonction Global
+rolling_global <- function(data, val_reel, windows) {
+  results <- data.frame(window = integer(), mae_mean = numeric(), rmse_mean = numeric(), na_mean = integer(), 
+                        mae_median = numeric(), rmse_median = numeric(), na_median = integer())
+  
+  for (window in windows) {
+    res_mean <- impute_rolling_mean(data, list(seq(-window,window)))
+    res_median <- impute_rolling_median(data, list(seq(-window,window)))
+    
+    # Calcul des erreurs
+    errors_mean <- val_reel %>% left_join(res_mean, by = "ds", suffix = c("", "_chap")) %>% 
+      mutate(error = y - y_chap) %>% 
+      summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+    
+    errors_median <- val_reel %>% left_join(res_median, by = "ds", suffix = c("", "_chap")) %>% 
+      mutate(error = y - y_chap) %>% 
+      summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+    
+    # Nombre de NA restants
+    na_mean <- sum(is.na(res_mean$y))
+    na_median <- sum(is.na(res_median$y))
+    
+    # Enregistrer les résultats
+    results <- rbind(results, data.frame(window = window, mae_mean = errors_mean$mae, rmse_mean = errors_mean$rmse, na_mean = na_mean, 
+                                         mae_median = errors_median$mae, rmse_median = errors_median$rmse, na_median = na_median))
+  }
+  
+  return(results)
+}
+```
+
+- Construction du modèle journalier
+
+```{r}
+# Modèle journalier
+rolling_daily <- function(data, val_reel, windows) {
+  results <- data.frame(window = integer(), mae_mean = numeric(), rmse_mean = numeric(), na_mean = integer(), 
+                        mae_median = numeric(), rmse_median = numeric(), na_median = integer())
+
+    for (window in windows) {
+
+    res_imput <- data.frame(ds = as.Date(character()), y = numeric())
+    for (d in unique(data$weekday)) {
+
+      data_day <- data %>% filter(weekday == d)
+      res_mean <- impute_rolling_mean(data_day, window)
+      res_median <- impute_rolling_median(data_day, window)
+      
+      # Ajout des résultats à la table globale
+      res_imput <- rbind(res_imput, res_mean)
+      
+    }
+      # Calcul des erreurs
+      errors_mean <- val_reel  %>% left_join(res_mean, by = "ds", suffix = c("", "_chap")) %>% 
+        mutate(error = y - y_chap) %>% 
+        summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+      
+      errors_median <- val_reel  %>% left_join(res_median, by = "ds", suffix = c("", "_chap")) %>% 
+        mutate(error = y - y_chap) %>% 
+        summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+      
+      # Nombre de NA restants
+      na_mean <- sum(is.na(res_mean$y))
+      na_median <- sum(is.na(res_median$y))
+      
+      # Enregistrer les résultats
+      results <- rbind(results, data.frame(window = window, mae_mean = errors_mean$mae, rmse_mean = errors_mean$rmse, na_mean = na_mean, 
+                                           mae_median = errors_median$mae, rmse_median = errors_median$rmse, na_median = na_median))
+  }
+  
+  return(results)
+}
+```
+
+- Construction du modele journalier/heures
+```{r}
+# Modèle journalier/heure
+rolling_hourly <- function(data, val_reel, windows) {
+  results <- data.frame(window = integer(), mae_mean = numeric(), rmse_mean = numeric(), na_mean = integer(), 
+                        mae_median = numeric(), rmse_median = numeric(), na_median = integer())
+
+  for (window in windows) {
+    res_imput <- data.frame(ds = as.Date(character()), y = numeric())
+    for (d in unique(data$weekday)) {
+      for (h in unique(data$hour)) {  
+        data_hour <- data %>% filter(weekday == d, hour == h) 
+
+        # Imputation pour chaque jour et heure
+        res_mean <- impute_rolling_mean(data_hour, window)
+        res_median <- impute_rolling_median(data_hour, window)
+
+        # Ajout des résultats à la table globale
+        res_imput <- rbind(res_imput, res_mean)
+      }
+    }
+
+    # Calcul des erreurs pour les données imputées
+    errors_mean <- val_reel  %>% left_join(res_imput, by = "ds", suffix = c("", "_chap")) %>% 
+      mutate(error = y - y_chap) %>% 
+      summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+    
+    errors_median <- val_reel  %>% left_join(res_imput, by = "ds", suffix = c("", "_chap")) %>% 
+      mutate(error = y - y_chap) %>% 
+      summarise(mae = mean(abs(error), na.rm = TRUE), rmse = sqrt(mean(error^2, na.rm = TRUE)))
+    
+    # Nombre de NA restants
+    na_mean <- sum(is.na(res_imput$y))
+    
+    # Enregistrer les résultats
+    results <- rbind(results, data.frame(window = window, mae_mean = errors_mean$mae, rmse_mean = errors_mean$rmse, na_mean = na_mean, 
+                                         mae_median = errors_median$mae, rmse_median = errors_median$rmse, na_median = na_mean))
+  }
+  
+  return(results)
+}
+
+```
+
+
+```{r,fig.width=10, fig.height=5}}
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+# Définir les fenêtres à tester
+windows <- 2:72
+crit_MA_data <- data.frame()
+#Ajouter le sensors a une liste
+for (sensor in sensors) {
+
+  print(sensor$segment_name[1])
+  
+data_imput_list <- Create_test_data_suite(sensor, prop_missing=0.20,seed=1234)
+data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
+
+  
+# Appel de la fonction d'évaluation pour les modèles globaux
+results_global <- rolling_global(data_imput, val_reel, windows)
+
+
+
+# Appel de la fonction d'évaluation pour les modèles journaliers
+results_daily <- rolling_daily(data_imput, val_reel, windows)
+results_daily
+
+
+# Appel de la fonction d'évaluation pour les modèles journalier/heure
+results_hourly <- rolling_hourly(data_imput, val_reel, windows)
+
+
+#Représenter les 3 courbes de MAE en fonction de la taille de la fenêtre ainsi que du nombre de NA  pour resuls_global et results_daily 
+
+# Ajouter une colonne 'model' pour différencier les modèles
+results_global <- results_global %>% mutate(model = "Global")
+results_daily <- results_daily %>% mutate(model = "Daily")
+results_hourly <- results_hourly %>% mutate(model = "Hourly")
+
+# Combiner les deux jeux de données
+results_combined <- bind_rows(results_global, results_daily,results_hourly)
+
+# Tracer les courbes
+
+p1 <- ggplot(results_combined, aes(x = window, y = mae_mean, color = model)) +
+  geom_line() +
+  labs(
+    title = "Comparaison du MAE en fonction de la taille de la fenêtre",
+    x = "Taille de la fenêtre",
+    y = "MAE"
+  ) +
+  scale_color_manual(values = c("Global" = "blue", "Daily" = "red","Hourly" = "green")) +
+  theme_minimal()
+
+p2 <- ggplot(results_combined, aes(x = window, y = na_mean, color = model)) +
+  geom_line() +
+  labs(
+    title = "Comparaison du nombre de NA en fonction de la taille de la fenêtre",
+    x = "Taille de la fenêtre",
+    y = "MAE"
+  ) +
+  scale_color_manual(values = c("Global" = "blue", "Daily" = "red","Hourly" = "green")) +
+  theme_minimal() 
+
+#gridExtra::grid.arrange(p1, p2, ncol = 2)
+
+
+crit_MA_data <- rbind(crit_MA_data,results_combined)
+
+}
+
+p5 <- crit_MA_data %>% group_by(window, model) %>% summarise(mae_mean = mean(mae_mean), rmse_mean = mean(rmse_mean), na_mean = mean(na_mean), mae_median = mean(mae_median), rmse_median = mean(rmse_median), na_median = mean(na_median)) %>% ggplot(aes(x = window, y = mae_mean, color = model)) +
+  geom_line() +
+  labs(
+    title = "Comparaison du MAE en fonction de la taille de la fenêtre",
+    x = "Taille de la fenêtre",
+    y = "MAE"
+  ) +
+  scale_color_manual(values = c("Global" = "blue", "Daily" = "red","Hourly" = "green")) +
+  theme_minimal()
+
+p6 <- crit_MA_data %>% group_by(window, model) %>% summarise(mae_mean = mean(mae_mean), rmse_mean = mean(rmse_mean), na_mean = mean(na_mean), mae_median = mean(mae_median), rmse_median = mean(rmse_median), na_median = mean(na_median)) %>% ggplot(aes(x = window, y = na_mean, color = model)) + 
+  geom_line() +
+  labs(
+    title = "Comparaison du nombre de NA en fonction de la taille de la fenêtre",
+    x = "Taille de la fenêtre",
+    y = "MAE"
+  ) +
+  scale_color_manual(values = c("Global" = "blue", "Daily" = "red","Hourly" = "green")) +
+  theme_minimal()
+
+gridExtra::grid.arrange(p5, p6, ncol = 2)
+
+```
+
+
+#Comparaison Spline Linear et Rolling Window
+```{r}
+# Première partie: Résumé des données de crit_MA_data
+crit_MA_data_summary <- crit_MA_data %>%
+  group_by(window, model) %>%
+  summarise(mae_mean = mean(mae_mean, na.rm = TRUE),na_mean = mean(na_mean)) %>%
+  mutate(parameter = window, source = "crit_MA_data")
+
+# Deuxième partie: Résumé des données de crit_splin_lin
+crit_splin_lin_summary <- crit_splin_lin %>%
+  group_by(gap, type) %>%
+  summarise(mae_mean = mean(MAE, na.rm = TRUE),na_mean = mean(num_na)) %>%
+  mutate(parameter = gap, source = "crit_splin_lin") 
+
+#Harmoniser les niveaus des deux facteur model_type avec les majuscules
+crit_MA_data_summary$model <- toupper(crit_MA_data_summary$model)
+crit_splin_lin_summary$type <- toupper(crit_splin_lin_summary$type)
+
+# Fusionner les deux dataframes
+combined_data <- bind_rows(
+  crit_MA_data_summary %>% rename(model_type = model),
+  crit_splin_lin_summary %>% rename(model_type = type)
+)
+
+# Tracer le graphique combiné avec un facet_wrap sur le type de modèle
+ggplot(combined_data, aes(x = parameter, y = mae_mean, color = model_type)) +
+  geom_line() +
+  facet_wrap(~source) +
+  labs(
+    title = "Comparaison des modèles de prédiction",
+    x = "Paramètre",
+    y = "MAE"
+  ) +
+  theme_minimal()
+
+#Tracer le nombre de valeur manquante en fonction de la taille de la fenêtre
+ggplot(combined_data, aes(x = parameter, y = na_mean, color = model_type)) +
+  geom_line() +
+  facet_wrap(~source) +
+  labs(
+    title = "Comparaison des modèles de prédiction",
+    x = "Paramètre",
+    y = "Nombre de valeurs manquantes"
+  ) +
+  theme_minimal()
+
+```
+
+--> Le modèle d'imputation linéaire est plus performant que le modèle de rolling window
+
+```{r}
+spline_lin_hour <- function(data, maxgap) {
+  res <- data.frame()
+  for (d in unique(data$weekday)) {
+    for (h in unique(data$hour)) {
+      data_hour <- data %>% filter(weekday == d, hour == h) %>% mutate(vehicle = car + heavy)
+      if (nrow(data_hour) > 0) {
+        y_hat <- zoo::na.approx(data_hour$vehicle, maxgap = maxgap,na.rm=F)
+        
+        res <- rbind(res, data.frame(ds = data_hour$ds, y_hat = y_hat))
+      }
+    }
+  }
+  return(res)
+}
+```
+
+
+
+
+
+# Test sur données réelles 
+```{r}
+# Charger les données
+sensor <- stop_sensor(data_13)
+
+sensor <- spline_lin_hour(sensor,6)
+sensor
+```
+
+
+```{r}
+zoo::na.approx(c(1,2,3,4,5,NA,NA,NA,4,3,2,2), maxgap = 1 ,na.rm=F)
+```
+
+
+
+

@@ -1,0 +1,145 @@
+
+```{r}
+
+# Capteur Test pour prévision 
+Burel <- segments_clear %>% filter(segment_name == "Burel-01")
+Burel_test <- Burel %>% filter(day >= "2024-01-01", uptime_quality) %>% mutate(y = car + heavy, ds = date)
+Burel_train <- Burel %>% filter(day < "2024-01-01", uptime_quality) %>% mutate(y = car + heavy, ds = date)
+
+holidays <- Burel_train %>% filter(holiday) %>% mutate(lower_window = -1, upper_window = 1, vacation = as.character(vacation)) %>% 
+    select(vacation, ds, lower_window, upper_window) %>% rename(holiday = vacation)
+
+# Capteur Test pour l'imputation 
+BurelV2 <- dataV2 %>% filter(segment_id == 9000004019, uptime_quality)
+
+# Construction du data Imputé 
+data_imputation_list <- Create_test_data(BurelV2, prop_missing = 0.2, seed = 1234)
+data_imputation <- data_imputation_list$test %>% rename(ds = date, y = vehicle)
+
+# Récupéré les dates associés 
+dates_missing <- data_imputation$ds[which(is.na(data_imputation$y))]
+values_real <- data_imputation_list$temoin %>% filter(date %in% dates_missing) %>% select(date, vehicle) %>% rename(ds = date, y = vehicle)
+
+# Holidays 
+holidays_imputation <- data_imputation %>% filter(vacation_flag == 1) %>% mutate(lower_window = -1, upper_window = 1, vacation = as.character(vacation)) %>% 
+    select(vacation, ds, lower_window, upper_window) %>% rename(holiday = vacation)
+
+# Méthode d'imputation
+
+## Imputation Basique Méthode Spline cubique
+imputation_spline <- zoo::na.spline(data_imputation$y, na.rm = TRUE)
+spline_results <- data.frame(date = data_imputation$ds, imputation = imputation_spline, missing = data_imputation$y, original = data_imputation_list$temoin$vehicle) %>% 
+    filter(is.na(missing))
+
+# Si la valeur prédite est < 0 alors remplacé par 0
+spline_results$imputation <- ifelse(spline_results$imputation < 0, 0, spline_results$imputation)
+
+# Calculer les erreurs
+spline_results %>% summarise(MAE = mean(abs(original - imputation), na.rm = TRUE), RMSE = sqrt(mean((original - imputation)^2, na.rm = TRUE)), MAPE = mean(abs(original - imputation) / original, na.rm = TRUE) * 100)
+
+# Représenter la distribution des valeurs manquantes (data temoin) et la distribution des valeurs imputés 
+par(mfrow = c(1, 2))
+plot(spline_results$original, main = "Distribution des valeurs temoins", col = "blue")
+plot(spline_results$imputation, main = "Distribution des valeurs imputés", col = "red")
+
+## Méthode Spline linéaire
+imputation_linear <- zoo::na.approx(data_imputation$y, x = data_imputation$ds, na.rm = FALSE, maxgap = 72)
+linear_results <- data.frame(date = data_imputation$ds, imputation = imputation_linear, missing = data_imputation$y, original = data_imputation_list$temoin$vehicle) %>% 
+    filter(is.na(missing))
+
+# Si la valeur prédite est < 0 alors remplacé par 0
+linear_results$imputation <- ifelse(linear_results$imputation < 0, 0, linear_results$imputation)
+
+# Calculer les erreurs
+linear_results %>% summarise(MAE = mean(abs(original - imputation), na.rm = TRUE), RMSE = sqrt(mean((original - imputation)^2, na.rm = TRUE)), MAPE = mean(abs(original - imputation) / original, na.rm = TRUE) * 100)
+
+# Représenter la distribution des valeurs manquantes (data temoin) et la distribution des valeurs imputés 
+par(mfrow = c(1, 2))
+plot(linear_results$original, main = "Distribution des valeurs temoins", col = "blue")
+plot(linear_results$imputation, main = "Distribution des valeurs imputés", col = "red")
+
+# Visualisation des valeurs réelles vs valeurs imputées
+ggplot(data = linear_results, aes(x = imputation, y = original)) + 
+    geom_point() + 
+    geom_abline(intercept = 0, slope = 1, col = "red") + 
+    labs(title = "Valeurs réels vs Valeurs imputés", x = "Valeurs imputés", y = "Valeurs réels") + 
+    theme_minimal()
+
+### Séparer le modèle par jour et imputer chaque partie par rapport à cela
+
+# Séparation par jour
+daily_results <- data.frame(date = character(), imputation = double())
+data_imputation_daily <- data_imputation %>% select(ds, y, weekday, hour, day) %>% mutate(flag = ifelse(is.na(y), 1, 0))
+
+for(day in unique(data_imputation_daily$weekday)) {
+  day_data <- data_imputation_daily %>% filter(weekday == day)
+  imputation_daily <- zoo::na.approx(day_data$y, na.rm = FALSE)
+  
+  # Si la valeur prédite est < 0 alors remplacé par 0
+  imputation_daily <- ifelse(imputation_daily < 0, 0, imputation_daily)
+  
+  daily_results <- rbind(daily_results, data.frame(date = day_data$ds, imputation = imputation_daily, flag = day_data$flag))
+}
+
+daily_results_imputed <- daily_results %>% filter(flag == 1) %>% left_join(data_imputation_list$temoin, by = c("date" = "date")) %>% 
+    select(date, imputation, vehicle)
+
+# Calculer les erreurs
+daily_results_imputed %>% summarise(MAE = mean(abs(vehicle - imputation), na.rm = TRUE), RMSE = sqrt(mean((vehicle - imputation)^2, na.rm = TRUE)), MAPE = mean(abs(vehicle - imputation) / vehicle, na.rm = TRUE) * 100)
+
+# Représenter les valeurs réelles vs valeurs imputées avec une droite de régression
+ggplot(data = daily_results_imputed, aes(x = imputation, y = vehicle)) + 
+    geom_point() + 
+    geom_abline(intercept = 0, slope = 1, col = "red") + 
+    labs(title = "Valeurs réels vs Valeurs imputés", x = "Valeurs imputés", y = "Valeurs réels") + 
+    theme_minimal()
+
+# Séparation par jour et heure
+hourly_results <- data.frame(date = character(), imputation = double())
+
+for(day in unique(data_imputation$weekday)) {
+  for(hour in unique(data_imputation$hour)) {
+    hourly_data <- data_imputation %>% filter(weekday == day, hour == hour)
+    imputation_hourly <- zoo::na.approx(hourly_data$y, na.rm = FALSE)
+    
+    # Si la valeur prédite est < 0 alors remplacé par 0
+    imputation_hourly <- ifelse(imputation_hourly < 0, 0, imputation_hourly)
+    
+    hourly_results <- rbind(hourly_results, data.frame(date = hourly_data$ds, imputation = imputation_hourly))
+  }
+}
+
+# Compter le nombre de valeurs non remplies
+hourly_results %>% filter(is.na(imputation))
+
+
+# Joindre les données
+data_join <- data_imputation %>% select(ds, y)
+final_results <- hourly_results %>% left_join(data_imputation_list$temoin, by = c("date" = "date")) %>% 
+    left_join(data_join, by = c("date" = "ds")) %>% 
+    select(date, imputation, vehicle, y) %>% 
+    filter(is.na(y))
+
+# Calculer les erreurs
+final_results %>% summarise(MAE = mean(abs(vehicle - imputation), na.rm = TRUE), RMSE = sqrt(mean((vehicle - imputation)^2, na.rm = TRUE)), MAPE = mean(abs(vehicle - imputation) / vehicle, na.rm = TRUE) * 100)
+
+# Représenter les valeurs réelles vs valeurs imputées avec une droite de régression
+ggplot(data = final_results, aes(x = imputation, y = vehicle)) + 
+    geom_point() + 
+    geom_abline(intercept = 0, slope = 1, col = "red") + 
+    labs(title = "Valeurs réels vs Valeurs imputés", x = "Valeurs imputés", y = "Valeurs réels") + 
+    theme_minimal()
+
+# Comparer les résultats de spline linéaire global, jour et jour/heure 
+
+# Fusionner les résultats dans un même dataframe
+comparison_results <- full_join(final_results, daily_results_imputed, by = c("date" = "date")) %>% 
+    select(date, vehicle.x, imputation.x, imputation.y) %>% 
+    rename(vehicle = vehicle.x, imputation_daily_hourly = imputation.x, imputation_daily = imputation.y)
+
+comparison_results <- full_join(comparison_results, linear_results, by = c("date" = "date")) %>% 
+    select(date, vehicle, imputation_daily_hourly, imputation_daily, imputation)
+
+comparison_results
+```
+
