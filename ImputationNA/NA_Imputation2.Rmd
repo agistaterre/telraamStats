@@ -14,7 +14,7 @@ source("stop_sensor.R")
 ```
 
 ```{r}
-pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet,purrr,zoo)
+pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet,purrr,zoo,gridExtra)
 
 ```
 
@@ -28,11 +28,42 @@ dataV2 <- stop_sensor(dataV2)
 ```
 
 
+```{r}
+quarterly_to_hourly <- function(sensors){
+sensors  %>% mutate(date = as.POSIXct(date),interval="hourly") %>% 
+    select(-car_lft,-car_rgt,-heavy_lft,-heavy_rgt,-bike_lft,-bike_rgt,-pedestrian_lft,-pedestrian_rgt,-uptime,-car,-heavy,-bike,-pedestrian) %>% 
+          filter(minute(date) == 0 ) %>% 
+              left_join(sensors  %>% 
+                    group_by(segment_id,day,hour) %>% 
+                      summarise(uptime = mean(uptime),
+                                vehicle = sum(car + heavy),
+                                car = sum(car),
+                                heavy = sum(heavy),
+                                bike=sum(bike),
+                                pedestrian = sum(pedestrian),
+                                car_lft = sum(car_lft),
+                                car_rgt = sum(car_rgt),
+                                heavy_lft = sum(heavy_lft),
+                                heavy_rgt = sum(heavy_rgt),
+                                bike_lft = sum(bike_lft),
+                                bike_rgt = sum(bike_rgt),
+                                pedestrian_lft = sum(pedestrian_lft),
+                                pedestrian_rgt = sum(pedestrian_rgt)), by =c("segment_id",'day','hour'))
+}
+
+```
+
+
+
+```{r}
+```
+
+
 
 ## Capteur Test pour l'imputation 
 
 ```{r}
-sensor1 <- dataV2 %>% filter(segment_id == 9000005665,uptime_quality)
+sensor1 <- dataV2 %>% filter(segment_id == 9000005665,uptime_quality) 
 sensor2<- dataV2 %>% filter(segment_id == 9000002156,uptime_quality)
 sensor3 <- dataV2 %>% filter(segment_id == 9000001877,uptime_quality)
 sensor4 <- dataV2 %>% filter(segment_id == 9000004019,uptime_quality)
@@ -42,6 +73,7 @@ sensor7 <- dataV2 %>% filter(segment_id == 9000004042,uptime_quality)
 
 
 sensors <- list(sensor1,sensor2,sensor3,sensor4,sensor5,sensor6,sensor7)
+
 
 #Holidays 
 holidays_imput <- dataV2%>% rename(ds=date) %>% filter(vacation_flag == 1 ) %>% mutate(lower_window = -1, upper_window = 1, vacation = as.character(vacation)) %>% select(vacation, ds, lower_window, upper_window) %>% rename(holiday = vacation)
@@ -411,7 +443,7 @@ grid.arrange(p1,p2,ncol=2)
 ```{r}
 spline_lin_glob <- function(data, maxgap) {
   y <- zoo::na.approx(data$y, maxgap = maxgap,na.rm=F)
-  res <- data.frame(ds = data$ds, y_hat = y, maxgap = maxgap)
+  res <- data.frame(weekday = data$weekday,hour = data$hour ,ds = data$ds, y_hat = y, maxgap = maxgap)
   return(res)
 }
 ```
@@ -440,6 +472,21 @@ spline_lin_hour <- function(data, maxgap) {
       data_hour <- data %>% filter(weekday == d, hour == h)
       if (nrow(data_hour) > 0) {
         y_hat <- zoo::na.approx(data_hour$y, maxgap = maxgap,na.rm=F)
+        res <- rbind(res, data.frame(ds = data_hour$ds, y_hat = y_hat))
+      }
+    }
+  }
+  return(res)
+}
+
+spline_lin_hour_glob <- function(data, maxgap_hour,maxgap_glob) {
+  res <- data.frame()
+ data<- spline_lin_glob(data,maxgap_glob) %>% rename(y = y_hat)
+  for (d in unique(data$weekday)) {
+    for (h in unique(data$hour)) {
+      data_hour <- data %>% filter(weekday == d, hour == h)
+      if (nrow(data_hour) > 0) {
+        y_hat <- zoo::na.approx(data_hour$y, maxgap = maxgap_hour,na.rm=F)
         res <- rbind(res, data.frame(ds = data_hour$ds, y_hat = y_hat))
       }
     }
@@ -497,21 +544,26 @@ Evaluate_SplineLin <- function(data, val_reel, rangegap) {
     results_daily <- spline_lin_day(data, gap)
     results_global <- spline_lin_glob(data, gap) 
     results_weekday <- spline_lin_weekday(data, gap)
+    #  result_hourly_global <- spline_lin_hour_glob(data,gap,3)
+
 
     # Calculer les erreurs MAE et RMSE pour chaque modèle
     results_hourly <- val_reel %>% left_join(results_hourly, by = "ds") %>% mutate(error = y - y_hat) 
     results_daily <- val_reel %>% left_join(results_daily, by = "ds") %>% mutate(error = y - y_hat)
     results_global <- val_reel %>% left_join(results_global, by = "ds") %>% mutate(error = y - y_hat)
     results_weekday <- val_reel %>% left_join(results_weekday, by = "ds") %>% mutate(error = y - y_hat)
+  #  result_hourly_global <- val_reel %>% left_join(result_hourly_global, by = "ds") %>% mutate(error = y - y_hat)
 
     # Calculer les erreurs MAE et RMSE pour chaque modèle
     crit_hourly <- data.frame(gap = gap, MAE = mean(abs(results_hourly$error), na.rm = TRUE), RMSE = sqrt(mean(results_hourly$error^2, na.rm = TRUE)), num_na = sum(is.na(results_hourly$y_hat)), type = "hourly")
     crit_daily <- data.frame(gap = gap, MAE = mean(abs(results_daily$error), na.rm = TRUE), RMSE = sqrt(mean(results_daily$error^2, na.rm = TRUE)), num_na = sum(is.na(results_daily$y_hat)), type = "daily")
     crit_global <- data.frame(gap = gap, MAE = mean(abs(results_global$error), na.rm = TRUE), RMSE = sqrt(mean(results_global$error^2, na.rm = TRUE)), num_na = sum(is.na(results_global$y_hat)), type = "global")
     crit_weekday <- data.frame(gap = gap, MAE = mean(abs(results_weekday$error), na.rm = TRUE), RMSE = sqrt(mean(results_weekday$error^2, na.rm = TRUE)), num_na = sum(is.na(results_weekday$y_hat)), type = "weekday")
+    #crit_hourly_global <- data.frame(gap = gap, MAE = mean(abs(result_hourly_global$error), na.rm = TRUE), RMSE = sqrt(mean(result_hourly_global$error^2, na.rm = TRUE)), num_na = sum(is.na(result_hourly_global$y_hat)), type = "hourly_global")
 
     # Ajouter les erreurs dans un dataframe pour chaque gap
     res_model <- rbind(res_model, crit_hourly, crit_daily, crit_global, crit_weekday)
+  #  res_model <- rbind(res_model, crit_hourly, crit_global,crit_hourly_global)
   }
   
   # Tracer les courbes de MAE en fonction de maxgap
@@ -526,28 +578,32 @@ Evaluate_SplineLin <- function(data, val_reel, rangegap) {
 
 crit_splin_lin <- data.frame()
 list_graph_spline <- list()
-
 for (sensor in sensors) {
-print(sensor$segment_name[1])
+  print(sensor$segment_name[1])
+    
+  data_imput_list <- Create_test_data_suite(quarterly_to_hourly(sensor), prop_missing=0.20,seed=1234)
+  data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+  date_imput <- data_imput$ds[which(is.na(data_imput$y))]
+  val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
   
-data_imput_list <- Create_test_data_suite(sensor, prop_missing=0.20,seed=1234)
-data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
-val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
-
-  
-# App
-res_lin<- Evaluate_SplineLin(data_imput,val_reel,1:72)
-crit_splin_lin <- rbind(crit_splin_lin, res_lin$res)
-res_lin$graph
-list_graph_spline[[sensor$segment_name[1]]] <- res_lin$graph
+    
+  # App
+  res_lin<- Evaluate_SplineLin(data_imput,val_reel,1:72)
+  crit_splin_lin <- rbind(crit_splin_lin, res_lin$res)
+  res_lin$graph
+  list_graph_spline[[sensor$segment_name[1]]] <- res_lin$graph
 }
-
+plot(res_lin$graph)
 
 p2 <- crit_splin_lin %>% group_by(type,gap) %>% summarise(MAE = mean(MAE)) %>% ggplot(aes(x = as.double(gap), y = MAE, color = type)) + geom_line() + ggtitle("MAE moyen en fonction de maxgap") + xlab("maxgap") + ylab("MAE")
-p3 <- crit_splin_lin %>%  group_by(type,gap) %>% summarise(na = mean(num_na)) %>% ggplot(aes(x = as.double(gap), y = na, color = type)) + geom_line()  + ggtitle("NA moyen en fonction de maxgap") + xlab("maxgap") + ylab("MAE")
+p3 <- crit_splin_lin %>%  group_by(type,gap) %>% summarise(na = mean(num_na)) %>% ggplot(aes(x = as.double(gap), y = na, color = type)) + geom_line()  + ggtitle("NA moyen en fonction de maxgap") + xlab("maxgap") + ylab("Nombre de NA")
 grid.arrange(p2,p3,ncol=2)
 ```
 
+```{r}
+retrieve_missing_data(data_13)
+
+```
 
 
 
@@ -571,14 +627,14 @@ crit_splin %>%  group_by(crit,type,gap) %>% summarise(na = mean(num_na)) %>% ggp
 
 - Fonction 
 ```{r}
-impute_rolling_median <- function(data, window) {
+imput_rolling_median <- function(data, window) {
   imputed_data <- data
   imputed_data$y <- zoo::rollapply(data$y, width = window, FUN = function(x) median(x, na.rm = TRUE), fill = NA,partial = TRUE , align = "center")
   return(imputed_data)
 }
 
 
-impute_rolling_mean <- function(data, window) {
+imput_rolling_mean <- function(data, window) {
   imputed_data <- data
   imputed_data$y <- zoo::rollapply(data$y, width = window, FUN = function(x) mean(x, na.rm = TRUE), fill = NA,partial = TRUE , align = "center")
   return(imputed_data)
@@ -777,41 +833,45 @@ library(scales)
 windows <- 2:72
 crit_MA_data <- data.frame()
 list_graph_rolling <- list()
+
+star_time_glob <- Sys.time()
 #Ajouter le sensors a une liste
 for (sensor in sensors) {
-
+  start_time <- Sys.time()
   print(sensor$segment_name[1])
   
-data_imput_list <- Create_test_data_suite(sensor, prop_missing=0.20,seed=1234)
+data_imput_list <- Create_test_data_suite(quarterly_to_hourly(sensor), prop_missing=0.20,seed=1234)
 data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+date_imput <-  data_imput$ds[which(is.na(data_imput$y))]
 val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
 
   
 # Appel de la fonction d'évaluation pour les modèles globaux
-results_global <- rolling_global(data_imput, val_reel, windows)
+#results_global <- rolling_global(data_imput, val_reel, windows)
 
 
 
 # Appel de la fonction d'évaluation pour les modèles journaliers
-results_daily <- rolling_daily(data_imput, val_reel, windows)
-results_daily
+#results_daily <- rolling_daily(data_imput, val_reel, windows)
+#results_daily
 
 
 # Appel de la fonction d'évaluation pour les modèles journalier/heure
 results_hourly <- rolling_hourly(data_imput, val_reel, windows)
 
 
-results_weekday <- rolling_weekday(data_imput, val_reel, windows)
+#results_weekday <- rolling_weekday(data_imput, val_reel, windows)
 #Représenter les 3 courbes de MAE en fonction de la taille de la fenêtre ainsi que du nombre de NA  pour resuls_global et results_daily 
 
 # Ajouter une colonne 'model' pour différencier les modèles
-results_global <- results_global %>% mutate(model = "Global")
-results_daily <- results_daily %>% mutate(model = "Daily")
+#results_global <- results_global %>% mutate(model = "Global")
+#results_daily <- results_daily %>% mutate(model = "Daily")
 results_hourly <- results_hourly %>% mutate(model = "Hourly")
-results_weekday <- results_weekday %>% mutate(model = "weekday")
+#results_weekday <- results_weekday %>% mutate(model = "weekday")
 
 # Combiner les deux jeux de données
-results_combined <- bind_rows(results_global, results_daily,results_hourly,results_weekday)
+#results_combined <- bind_rows(results_global, results_daily,results_hourly,results_weekday)
+results_combined <- results_hourly
 
 # Tracer les courbes
 
@@ -838,14 +898,19 @@ p2 <- ggplot(results_combined, aes(x = window, y = na_mean, color = model)) +
  
 list_graph_rolling[[sensor$segment_name[1]]] <- grid.arrange(p1, p2, ncol = 2)
 
+end_time <- Sys.time()
+print(end_time - start_time)
 crit_MA_data <- rbind(crit_MA_data,results_combined)
 
 }
 
+end_time_glob <- Sys.time()
+print(end_time_glob - star_time_glob)
+
 p5 <- crit_MA_data %>% group_by(window, model) %>% summarise(mae_mean = mean(mae_mean), rmse_mean = mean(rmse_mean), na_mean = mean(na_mean), mae_median = mean(mae_median), rmse_median = mean(rmse_median), na_median = mean(na_median)) %>% ggplot(aes(x = window, y = mae_mean, color = model)) +
   geom_line() +
   labs(
-    title = "Comparaison du MAE en fonction de la taille de la fenêtre",
+    title = "Comparaison du MAE",
     x = "Taille de la fenêtre",
     y = "MAE"
   ) +
@@ -915,37 +980,127 @@ ggplot(combined_data, aes(x = parameter, y = na_mean, color = model_type)) +
 
 ```
 
+```{r,fig.width=10, fig.height=5}}
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+# Définir les fenêtres à tester
+windows <- 2:72
+crit_MA_data <- data.frame()
+list_graph_rolling <- list()
+critère_rolling <- data.frame()
+star_time_glob <- Sys.time()
+#Ajouter le sensors a une liste
+for (sensor in sensors) {
+  start_time <- Sys.time()
+  print(sensor$segment_name[1])
+  
+data_imput_list <- Create_test_data_suite(quarterly_to_hourly(sensor), prop_missing=0.20,seed=1234)
+data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+date_imput <-  data_imput$ds[which(is.na(data_imput$y))]
+val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
+
+
+
+# Appel de la fonction d'évaluation pour les modèles journalier/heure
+results_hourly <- rolling_hourly(data_imput, val_reel, windows)
+
+# Tracer les courbes
+p1 <- results_hourly %>% ggplot(aes(x = window, y = mae_mean, color = model)) +
+  geom_line() +
+  labs(
+    title = "Comparaison du MAE en fonction de la taille de la fenêtre",
+    x = "Taille de la fenêtre",
+    y = "MAE"
+  ) +
+  scale_color_manual(values = c("Hourly" = "green")) +
+  theme_minimal()
+
+p2 <- results_hourly %>% ggplot(aes(x = window, y = na_mean)) +
+  geom_line() +
+  labs(
+    title = "Comparaison du nombre de NA en fonction de la taille de la fenêtre",
+    x = "Taille de la fenêtre",
+    y = "MAE"
+  ) +
+  theme_minimal()
+
+
+crit_MA_data <- rbind(crit_MA_data, results_hourly)
+grid.arrange(p1, p2, ncol = 2)
+list_graph_rolling[[sensor$segment_name[1]]] <- grid.arrange(p1, p2, ncol = 2)
+
+end_time <- Sys.time()
+print(end_time - start_time)
+
+}
+
+end_time_glob <- Sys.time()
+print(end_time_glob - star_time_glob)
+
+
+
+```
+
+
+
+
+
+
+
 --> Le modèle d'imputation linéaire est plus performant que le modèle de rolling window
 
 ```{r}
-spline_lin_hour <- function(data, maxgap) {
-  res <- data.frame()  # IInitiate an empty dataframe to store the results
+
+
+# Modèle journalier/heure
+rolling_hourly <- function(data, window) {
   
-  for (d in unique(data$weekday)) {  #  Iterate over each unique day of the week
-    for (h in unique(data$hour)) {  # Iterate over each unique hour of the day
+  # Créer une colonne pour les valeurs imputées
+  data <- data %>%
+    mutate(y = car + heavy)
+  
+  res_imput <- data.frame(date = as.Date(character()), y_hat = numeric(), imputed = character())
+  
+  # Boucle sur les combinaisons uniques de weekday et hour
+  for (d in unique(data$weekday)) {
+    for (h in unique(data$hour)) {
       
-      # Filter the data for the current day of the week and hour
+      # Filtrer les données pour le jour et l'heure actuels
       data_hour <- data %>%
-        filter(weekday == d, hour == h) %>%
-        mutate(vehicle = ifelse(uptime_quality, car_NA + heavy_NA, NA))
+        filter(weekday == d, hour == h)
       
+      # Vérifier s'il y a des données à imputer
       if (nrow(data_hour) > 0) {
-        #  Appply linear interpolation to impute missing values
-        y_hat <- zoo::na.approx(data_hour$vehicle, maxgap = maxgap, na.rm = FALSE)
+        # Appliquer la moyenne mobile avec zoo::rollapply
+        data_hour <- data_hour %>%
+          mutate(y_hat = rollapply(y, width = window, FUN = function(x) mean(x, na.rm = TRUE), fill = NA, align = "center"))
         
-        # Create a flag to indicate imputed, non-imputed and original values
-        imputed <- ifelse(is.na(data_hour$vehicle) & !is.na(y_hat), "imputed",
-                          ifelse(is.na(data_hour$vehicle) & is.na(y_hat), "non imputed", "original"))
+        # Ajouter l'indication d'imputation
+
         
-        # Add results to the dataframe
-        res <- rbind(res, data.frame(date = data_hour$date, y_hat = y_hat, imputed = imputed))
+        # Ajouter les résultats au dataframe des imputations
+        res_imput <- rbind(res_imput, data_hour %>% select(date, y_hat))
       }
     }
   }
-  return(res)
+  
+  # Fusionner les données imputées avec les données d'origine
+  data <- merge(data, res_imput, by = "date", all.x = TRUE) %>%
+    mutate(imputed = as.factor(case_when(
+      is.na(y) & !is.na(y_hat) ~ "imputed",
+      is.na(y) & is.na(y_hat) ~ "not imputed",
+      !is.na(y) ~ "original"
+    ))) %>% 
+    mutate(y_hat = ifelse(imputed == "original", y, y_hat))
+  
+  
+  
+  return(data)
 }
-```
 
+```
 
 
 
@@ -954,13 +1109,33 @@ spline_lin_hour <- function(data, maxgap) {
 ```{r}
 source("/Users/paulvallee/Desktop/Stage CREM/Code R/Telraam Ketsia Version/R/preprocessing.R")
 # Charger les données
-sensor <- retrieve_missing_data(data_13)
+sensor <- retrieve_missing_data(data_04,successive_day=2)
 
-sensor <- spline_lin_hour(sensor,6)
-table(sensor$imputed)
+res <- rolling_hourly(sensor,20)
+table(res$imputed)
 
-#Représenter graphiquement les valeurs imputés, changer la couleur des points; mais n'avoir qu'une unique ligne 
-ggplot(sensor) +
+
+#Représenter graphiquement les valeurs imputés, changer la couleur des points; mais n'avoir qu'une unique ligne et représenter egalement la ou les valeurs ne sont pas imputés les dates correspondantes 
+
+#Afficher serie brut
+ggplot(sensor) + 
+  geom_point(aes(x=date,y=car+heavy))
+
+
+
+ggplot(res) +
+  geom_point( aes(x = date, y = y_hat, color = imputed)) +
+  geom_line( aes(x = date, y = y_hat)) +
+  labs(
+    title = "Imputation des valeurs manquantes",
+    x = "Date",
+    y = "Nombre de véhicules"
+  ) +
+  scale_color_manual(values = c("original" = "blue", "imputed" = "green")) +
+  theme_minimal()
+
+
+res %>% filter(imputed == "imputed") %>% ggplot() +
   geom_point( aes(x = date, y = y_hat, color = imputed)) +
   geom_line( aes(x = date, y = y_hat)) +
   labs(
@@ -971,16 +1146,11 @@ ggplot(sensor) +
   scale_color_manual(values = c("original" = "black", "imputed" = "red", "non imputed" = "blue")) +
   theme_minimal()
 
-sensor %>% filter(imputed == "imputed") %>% ggplot() +
-  geom_point( aes(x = date, y = y_hat, color = imputed)) +
-  geom_line( aes(x = date, y = y_hat)) +
-  labs(
-    title = "Imputation des valeurs manquantes",
-    x = "Date",
-    y = "Nombre de véhicules"
-  ) +
-  scale_color_manual(values = c("original" = "black", "imputed" = "red", "non imputed" = "blue")) +
-  theme_minimal()
+
+
+#Compter le pourcentage de données imputés et non imputés
+res %>% group_by(imputed) %>% summarise(n = n()) %>% mutate(percentage = n / sum(n) * 100)
+#
 
 ```
 
@@ -992,6 +1162,11 @@ lapply(list_graph_spline,plot)
 ```{r}
 lapply(list_graph_rolling,plot)
 ```
+
+
+
+
+
 
 
 

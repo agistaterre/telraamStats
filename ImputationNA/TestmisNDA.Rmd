@@ -1,0 +1,218 @@
+
+
+
+### Chargement des Bibliothèques
+```{r}
+source("Clean_Data.R")
+source("Imputation_function.R")
+source("Utilities_functions.R")
+source("stop_sensor.R")
+```
+
+```{r}
+pacman::p_load(tidyverse,telraamStats,lubridate,forecast,prophet,purrr,zoo,gridExtra,missNDA)
+
+```
+```{r}
+library(missMDA) 
+library(FactoMineR) 
+```
+
+
+### Chargement et Préparation des Données
+```{r}
+dataV2 <- read.csv("/Users/paulvallee/Desktop/Stage CREM/Code R/data/20230518_20240517_v2_sensors_extract.csv")
+dataV2$uptime_quality <- ifelse(dataV2$uptime >=0.5 ,TRUE,FALSE)
+dataV2 <- dataV2 %>% rename(segment_name = segment_fullname) %>%  filter(segment_name != "") %>%  mutate(segment_name = as.factor(as.character(gsub("[0-9-]+", "",segment_name))),uptime = as.numeric(uptime))
+dataV2 <- stop_sensor(dataV2)
+```
+
+
+```{r}
+quarterly_to_hourly <- function(sensor){
+sensor  %>% mutate(date = as.POSIXct(date)) %>% filter(minute(date) == 0 ) %>% left_join(sensor  %>% group_by(day,hour) %>% summarise(vehicle = sum(car + heavy)), by =c('day','hour'))
+}
+
+```
+
+
+
+## Capteur Test pour l'imputation 
+
+```{r}
+sensor1 <- dataV2 %>% filter(segment_id == 9000005665,uptime_quality) 
+sensor2<- dataV2 %>% filter(segment_id == 9000002156,uptime_quality)
+sensor3 <- dataV2 %>% filter(segment_id == 9000001877,uptime_quality)
+sensor4 <- dataV2 %>% filter(segment_id == 9000004019,uptime_quality)
+sensor5<- dataV2 %>% filter(segment_id == 9000006207,uptime_quality)
+sensor6 <- dataV2 %>% filter(segment_id == 9000006227,uptime_quality)
+sensor7 <- dataV2 %>% filter(segment_id == 9000004042,uptime_quality)
+
+
+sensors <- list(sensor1,sensor2,sensor3,sensor4,sensor5,sensor6,sensor7)
+
+
+#Holidays 
+holidays_imput <- dataV2%>% rename(ds=date) %>% filter(vacation_flag == 1 ) %>% mutate(lower_window = -1, upper_window = 1, vacation = as.character(vacation)) %>% select(vacation, ds, lower_window, upper_window) %>% rename(holiday = vacation)
+
+
+```
+
+
+- Création de séries temporelles avec une distributions de données manquantes uniforme.
+
+
+```{r}
+#Construction du data Imputé 
+#data_imput_list_unif <- Create_test_data_unif(sensor, prop_missing=0.20,seed=1234)
+data_imput_list_suite <- Create_test_data_suite(sensor, prop_missing=0.20,seed=1234)
+```
+
+
+
+- Création de séries temporelles avec différentes distributions de données manquantes.
+
+
+- Chosir le type de NA a imputé 
+
+```{r}
+#data_imput_list <- data_imput_list_unif
+data_imput_list <- data_imput_list_suite
+
+data_imput <- data_imput_list$test   %>% rename(ds=date,y=vehicle)
+
+#Récupéré les dates associés 
+date_imput <- data_imput$ds[which(is.na(data_imput$y))]
+val_reel <- data_imput_list$temoin  %>% filter(date %in% date_imput) %>% select(date,vehicle,hour,weekday) %>% rename(ds=date,y=vehicle)
+```
+
+
+#Test d'algorithme d'imputation multivarié 
+
+
+#Methode MICE 
+#Représentation possible des données manquantes
+```{r}
+# Charger les packages nécessaires
+library(mice)
+library(lattice)
+
+# Utiliser stripplot pour visualiser les imputations
+stripplot(mice_model, pch = 20, cex = 1.2)
+
+# Utiliser densityplot pour comparer les distributions avant et après imputation
+densityplot(mice_model)
+
+# Utiliser xyplot pour visualiser les imputations par rapport aux variables explicatives
+xyplot(mice_model, y ~ day + month + hour + period)
+
+```
+
+
+
+
+```{r}
+data_imput <- data_imput %>% select(-car_speed_hist,-car_speed_bucket,-car_speed_hist_agg,-car_speed_bucket_agg,-v85) 
+mice::md.pattern(data_imput,rotate.names= T)
+heatmap(md.pairs(data_imput)$mr)
+```
+```{r}
+cc <- mice::mice(data_imput, m=5, maxit=50, method='pmm', seed=500)
+```
+```{r}
+# Exemple de dataframe
+df <- data_imput %>% select(y,day_of_month,hour,weekday,month,year,vacation,season)
+#md.pattern(df)
+
+for (methode in methods(mice)){
+  #Recuperer la derniere partie du nom de la méthode (après le mice.imput.)
+  methode <- gsub("mice.imput.","",methode)
+  
+    #Si il y a une erreur pour une méthode d'imputation, on passe à la suivante
+  tryCatch({
+    # Définition du modèle de base pour les imputations
+    mice_model <- mice(df, method = , m = 5, maxit = 50)
+    
+    # Vérification des imputations
+  #  summary(mice_model)
+    
+    df_imputed <- complete(mice_model, 1) # Extraction du premier jeu de données imputées
+    
+    #Calcul de la MAE
+    df_imputed <- df_imputed %>% rename(y_imput = y) %>% mutate(ds=data_imput$ds)
+    df_imputed <- df_imputed %>% right_join(val_reel %>% select(ds,y), by = c('ds')) %>% mutate(error = abs(y_imput - y))
+    
+    MAE <- df_imputed %>% summarise(MAE = mean(error))
+    print( paste("MAE :",MAE," pour la méthode",methode))
+    
+  }, error = function(e) {
+    print(e)
+  })
+}
+
+```
+
+```{r}
+# Exemple de dataframe
+df <- data_imput %>% select(y,day_of_month,hour,weekday,month,year,vacation,season)
+#md.pattern(df)
+
+    #Si il y a une erreur pour une méthode d'imputation, on passe à la suivante
+  tryCatch({
+    # Définition du modèle de base pour les imputations
+    mice_model <- mice(df, method = "cart" , m = 5, maxit = 50)
+
+    
+    df_imputed <- complete(mice_model, 1) # Extraction du premier jeu de données imputées
+    
+    #Calcul de la MAE
+    df_imputed <- df_imputed %>% rename(y_imput = y) %>% mutate(ds=data_imput$ds)
+    df_imputed <- df_imputed %>% right_join(val_reel %>% select(ds,y), by = c('ds')) %>% mutate(error = abs(y_imput - y))
+    
+    MAE <- df_imputed %>% summarise(MAE = mean(error))
+    print( paste("MAE :",MAE," pour la méthode",methode))
+    
+  }, error = function(e) {
+    print(e)
+  })
+
+
+```
+
+
+```{r}
+# Définir les méthodes d'imputation pour chaque variable
+imp_methods <- make.method(df)
+
+# Spécifier la méthode 'cart' pour la variable cible Y
+imp_methods["Y"] <- "cart"
+
+# Appliquer l'imputation avec les méthodes spécifiées
+mice_model <- mice(df, method = imp_methods, m = 5, maxit = 50, seed = 500)
+
+# Vérifier les imputations
+summary(mice_model)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+# Test de l'imputation MissNDA
+```{r}
+
+str(data_imput)
+ncomp <- missMDA::estim_ncpPCA(data_imput) 
+res.imp <- imputePCA(geno, ncp = ncomp$ncp) 
+
+```
+

@@ -38,6 +38,9 @@ Create_test_data_unif <- function(data,num_missing=NA,seed = NA,prop_missing=NA)
     stop("You must specify either the number of missing values or the proportion of missing values")
   }
 
+  if(!"vehicle" %in% colnames(data)){
+    data <- data %>% mutate(vehicle = car + heavy)
+  }
 
   if(!is.na(prop_missing)){
     num_missing <- round(nrow(data)*prop_missing)
@@ -79,8 +82,11 @@ Create_test_data_suite <- function(data, num_missing = NA, seed = NA, prop_missi
   }
 
 
-
-  data <- data %>% filter(uptime_quality) %>% mutate(vehicle = car + heavy)
+  #Seulement si la colonne vehicle n'existe pas encore
+  if(!"vehicle" %in% colnames(data)){
+    data <- data %>% mutate(vehicle = car + heavy)
+  }
+  data <- data %>% filter(uptime_quality)
 
    # Vérifier si le nombre total de NA demandés est plus que les lignes de données disponibles
   if (num_missing > nrow(data)) {
@@ -113,3 +119,27 @@ Create_test_data_suite <- function(data, num_missing = NA, seed = NA, prop_missi
 
   list(temoin = temoin, test = test)
 }
+
+
+quarterly_to_hourly <- function(sensors){
+  sensors  %>% mutate(date = as.POSIXct(date),interval="hourly") %>%
+    select(-car_lft,-car_rgt,-heavy_lft,-heavy_rgt,-bike_lft,-bike_rgt,-pedestrian_lft,-pedestrian_rgt,-uptime,-car,-heavy,-bike,-pedestrian) %>%
+    filter(minute(date) == 0 ) %>%
+    left_join(sensors  %>%
+                group_by(segment_id,day,hour) %>%
+                summarise(uptime = mean(uptime),
+                          vehicle = sum(car + heavy),
+                          car = sum(car),
+                          heavy = sum(heavy),
+                          bike=sum(bike),
+                          pedestrian = sum(pedestrian),
+                          car_lft = sum(car_lft),
+                          car_rgt = sum(car_rgt),
+                          heavy_lft = sum(heavy_lft),
+                          heavy_rgt = sum(heavy_rgt),
+                          bike_lft = sum(bike_lft),
+                          bike_rgt = sum(bike_rgt),
+                          pedestrian_lft = sum(pedestrian_lft),
+                          pedestrian_rgt = sum(pedestrian_rgt)), by =c("segment_id",'day','hour'))
+}
+

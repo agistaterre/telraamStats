@@ -58,7 +58,6 @@ segments_clear$vacation <- as.character(segments_clear$vacation)
 
 
 
-
 # Importation des données météo 
 ```{r}
 meteo <- read.csv("/Users/paulvallee/Desktop/Stage CREM/Code R/data/meto_St_jac_05_2023_2024.csv", sep = ";")
@@ -177,7 +176,7 @@ segments_clear %>%
 #Filtrer que sur les données dispo dans les deux data
 
 dataV2 <- stop_sensor(dataV2,uptime_choice = 0.5)
-dataV2 <- Clean_NA_segments(dataV2)
+#dataV2 <- Clean_NA_segments(dataV2)
 dataV2   %>% 
   mutate(segment_name = as.factor(as.character(segment_name)),
          uptime = as.numeric(uptime)) %>% 

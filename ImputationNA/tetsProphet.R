@@ -97,5 +97,12 @@ ggplot(data_spline, aes(x = ds, y = y)) +
   xlab("Date") +
   ylab("Valeurs")
 
+data <- data_imput %>% filter(weekday== "Monday",hour == 8)
+# Construire et ajuster le modèle Prophet
+prop <- prophet(data.frame(ds = data$ds, y = data$y),seasonality.prior.scale=100,n.changepoints = 25)
+#Ajustement
+ajust <- predict(prop, data.frame(ds = data$ds))
 
-
+#Representer l'ajustement sur les données
+fitting_curve <- plot(prop, ajust)
+print(fitting_curve)
