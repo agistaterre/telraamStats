@@ -109,6 +109,10 @@ create_and_train_model <- function(data, target, base_vars) {
   data_rf <- data %>%
     mutate(y = !!sym(target)) %>% select(-!!sym(target))
 
+
+  # Remove rows with uptime < 0.5 for imputation
+  data_rf <- data_rf %>% mutate(y = ifelse(uptime < 0.5,y,NA))
+
   # Split data into training and test sets
   is_train <- !is.na(data_rf$y)
   data_train <- data_rf[is_train, ] %>% mutate(imputed = "original")
