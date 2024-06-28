@@ -25,6 +25,7 @@
 #'
 #' The function uses the uptime column to determine which data points need imputation. Values with uptime below the threshold_uptime are considered missing and are imputed.
 #'
+#'Time interval could be hourly or quarterly. The function will automatically detect the time interval based on the data and add a minute variable if its quarterly.
 #' @export
 #'
 
