@@ -30,10 +30,10 @@
 
 
 # 1. Function to validate and preprocess the input data
-validate_and_preprocess_data <- function(data, transport_type, sensors_name) {
+validate_and_preprocess_data <- function(data, transport_type, sensors_id,threshold_uptime ) {
   # Define constants
   VALID_TRANSPORT_TYPES <- c("car", "vehicle", "heavy", "all")
-  BASE_VARS <- c("day_of_month", "hour", "weekday", "month", "year", "vacation", "season", "week_number", "segment_name", "date")
+  BASE_VARS <- c("day_of_month", "hour", "weekday", "month", "year", "vacation", "week_number", "segment_id", "date")
   VEHICLE_VARS <- c("car", "heavy")
 
   # Validate input parameters
@@ -76,8 +76,8 @@ validate_and_preprocess_data <- function(data, transport_type, sensors_name) {
   }
 
   # Filter data by segment name if specified
-  if (!is.null(sensors_name)) {
-    data <- data[data$segment_name %in% sensors_name, ]
+  if (!is.null(sensors_id)) {
+    data <- data[data$segment_id %in% sensors_id, ]
   }
 
   # Convert data types to the correct format
@@ -89,14 +89,20 @@ validate_and_preprocess_data <- function(data, transport_type, sensors_name) {
       month = as.factor(month),
       year = as.numeric(year),
       vacation = ifelse(is.list(vacation), as.factor(unlist(vacation)), as.factor(vacation)),
-      season = as.factor(season),
       week_number = as.numeric(week_number),
-      segment_name = ifelse(is.list(segment_name), as.factor(as.character(unlist(segment_name))), as.factor(as.character(segment_name)))
+      segment_id = ifelse(is.list(segment_id), as.factor(as.character(unlist(segment_id))), as.factor(as.character(segment_id)))
     )
 
+  #Replace car and heavy by NA if uptime < threshold_uptime
+ # data <- data %>% mutate(car = ifelse(uptime < threshold_uptime,NA,car),
+  #                        heavy = ifelse(uptime < threshold_uptime,NA,heavy))
+
+
+  # Calculate vehicle if not present
   if (!"vehicle" %in% colnames(data)) {
     data <- data %>%
       mutate(vehicle = car + heavy)
+  #    mutate(vehicle = ifelse(uptime < threshold_uptime,NA,car + heavy))
   }
 
   return(data)
@@ -107,30 +113,29 @@ validate_and_preprocess_data <- function(data, transport_type, sensors_name) {
 create_and_train_model <- function(data, target, base_vars) {
   # Prepare data for Random Forest
   data_rf <- data %>%
-    mutate(y = !!sym(target)) %>% select(-!!sym(target))
+    mutate(y = ifelse(uptime < threshold_uptime,NA,!!sym(target))) %>% select(-!!sym(target))
 
-
-  # Remove rows with uptime < 0.5 for imputation
-  data_rf <- data_rf %>% mutate(y = ifelse(uptime < 0.5,y,NA))
-
+  print(data_rf)
   # Split data into training and test sets
   is_train <- !is.na(data_rf$y)
   data_train <- data_rf[is_train, ] %>% mutate(imputed = "original")
-  data_test <- data_rf[!is_train, ] %>% mutate(imputed = "imputed")
+  data_test <- data_rf[!is_train, ] %>%  mutate(imputed = "imputed")
 
   # Remove NA from training data
   data_train_clean <- data_train %>%
-    select(y, all_of(base_vars)) %>%
+    select(y,all_of(base_vars)) %>%
     na.omit()
 
   # Train Random Forest model
   model_rf <- ranger(y ~ . - date, data = data_train_clean, mtry = 8, min.node.size = 1)
+
 
   # Prepare test data, keeping track of removed rows
   data_test_clean <- data_test %>%
     select(all_of(base_vars))
   rows_to_predict <- complete.cases(data_test_clean)
 
+  print(names(data_test_clean))
   # Make predictions only for complete cases
   predictions <- predict(model_rf, data = data_test_clean[rows_to_predict, ])$predictions
 
@@ -147,10 +152,10 @@ create_and_train_model <- function(data, target, base_vars) {
 }
 
 # 3. Main function logic
-impute_missing_data <- function(data, sensors_name = NULL, transport_type = "vehicle") {
+impute_missing_data <- function(data, sensors_name = NULL, transport_type = "vehicle",threshold_uptime=0.5) {
 
   # Validate and preprocess the input data
-  data <- validate_and_preprocess_data(data, transport_type, sensors_name)
+  data <- validate_and_preprocess_data(data, transport_type, sensors_name,threshold_uptime)
 
   # Define constants
   BASE_VARS <- c("day_of_month", "hour", "weekday", "month", "year", "vacation", "season", "week_number", "segment_name", "date")
