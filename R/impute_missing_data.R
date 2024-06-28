@@ -30,7 +30,7 @@
 
 
 # 1. Function to validate and preprocess the input data
-validate_and_preprocess_data <- function(data, transport_type, sensors_id,threshold_uptime ) {
+validate_and_preprocess_data <- function(data, transport_type, sensors_id ) {
   # Define constants
   VALID_TRANSPORT_TYPES <- c("car", "vehicle", "heavy", "all")
   BASE_VARS <- c("day_of_month", "hour", "weekday", "month", "year", "vacation", "week_number", "segment_id", "date")
@@ -110,12 +110,11 @@ validate_and_preprocess_data <- function(data, transport_type, sensors_id,thresh
 
 
 # 2. Function to create and train the model
-create_and_train_model <- function(data, target, base_vars) {
+create_and_train_model <- function(data, target, base_vars,threshold_uptime) {
   # Prepare data for Random Forest
   data_rf <- data %>%
     mutate(y = ifelse(uptime < threshold_uptime,NA,!!sym(target))) %>% select(-!!sym(target))
 
-  print(data_rf)
   # Split data into training and test sets
   is_train <- !is.na(data_rf$y)
   data_train <- data_rf[is_train, ] %>% mutate(imputed = "original")
@@ -135,7 +134,6 @@ create_and_train_model <- function(data, target, base_vars) {
     select(all_of(base_vars))
   rows_to_predict <- complete.cases(data_test_clean)
 
-  print(names(data_test_clean))
   # Make predictions only for complete cases
   predictions <- predict(model_rf, data = data_test_clean[rows_to_predict, ])$predictions
 
@@ -155,32 +153,27 @@ create_and_train_model <- function(data, target, base_vars) {
 impute_missing_data <- function(data, sensors_name = NULL, transport_type = "vehicle",threshold_uptime=0.5) {
 
   # Validate and preprocess the input data
-  data <- validate_and_preprocess_data(data, transport_type, sensors_name,threshold_uptime)
+  data <- validate_and_preprocess_data(data, transport_type, sensors_name)
 
   # Define constants
   BASE_VARS <- c("day_of_month", "hour", "weekday", "month", "year", "vacation", "season", "week_number", "segment_name", "date")
 
   # Impute data based on transport type
-  if (transport_type == "heavy" || transport_type == "all") {
+  if ( transport_type == "all") {
     # Impute 'vehicle' and 'car' separately
-    data_vehicle <- create_and_train_model(data, "vehicle", BASE_VARS)
-    data_car <- create_and_train_model(data, "car", BASE_VARS)
+    data_vehicle <- create_and_train_model(data, "vehicle", BASE_VARS,threshold_uptime)
+    data_car <- create_and_train_model(data, "car", BASE_VARS,threshold_uptime)
+    data_heavy <- create_and_train_model(data, "heavy", BASE_VARS,threshold_uptime)
 
-    # Calculate 'heavy' as max(0, vehicle - car)
+     # Calculate 'heavy' as max(0, vehicle - car)
     data_complete <- data_vehicle %>%
       select(vehicle, segment_name, date ,imputed) %>%
       left_join(data_car %>% select(car, segment_name, date), by = c("segment_name", "date")) %>%
-      mutate(
-        heavy = pmax(0, vehicle - car),
-        imputed = ifelse(imputed == "imputed" | is.na(car), "imputed", "original")
-      )
+      left_join(data_heavy %>% select(heavy, segment_name, date), by = c("segment_name", "date"))
 
-    if (transport_type == "heavy") {
-      data_complete <- data_complete %>% select(-vehicle, -car)
-    }
   } else {
     # For 'car' and 'vehicle', use the original method
-    data_complete <- create_and_train_model(data, transport_type, BASE_VARS)
+    data_complete <- create_and_train_model(data, transport_type, BASE_VARS,threshold_uptime)
   }
 
   # Sort the final dataset
