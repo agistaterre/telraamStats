@@ -4,19 +4,19 @@
 #' It can handle different types of transport (car, vehicle, heavy) and can impute all types simultaneously.
 #'
 #' @param data A data frame containing the traffic data.
-#' @param sensors_name Character vector. Names of the sensors to include in the analysis. Default is NULL (all sensors).
+#' @param sensors_id Character vector. Id of the sensors to include in the analysis. Default is NULL (all sensors).
 #' @param transport_type Character. Type of transport to impute. Options are "car", "vehicle", "heavy", or "all". Default is "vehicle".
+#'
 #'
 #' @return A data frame with imputed values for the specified transport type(s) and a new column indicating whether the values were imputed or original.
 #'
 #' @details
 #' The function requires specific columns to be present in the input data:
-#' day_of_month, hour, weekday, month, year, vacation, season, week_number, segment_name, date, car and heavy.
+#' day_of_month, hour, weekday, month, year, vacation, season, week_number, segment_id, date, car and heavy.
 #'
 #' Vehicle is calculated as the sum of cars and heavy vehicles, providing a good estimate of the total traffic.
 
 #' When transport_type is "all", the function imputes values for car, vehicle, and heavy.
-#' For "heavy", it calculates values based on imputed car and vehicle data.
 #'
 #' @export
 #'
@@ -90,20 +90,20 @@ validate_and_preprocess_data <- function(data, transport_type, sensors_id ) {
       year = as.numeric(year),
       vacation = ifelse(is.list(vacation), as.factor(unlist(vacation)), as.factor(vacation)),
       week_number = as.numeric(week_number),
-      segment_id = ifelse(is.list(segment_id), as.factor(as.character(unlist(segment_id))), as.factor(as.character(segment_id)))
-    )
-
-  #Replace car and heavy by NA if uptime < threshold_uptime
- # data <- data %>% mutate(car = ifelse(uptime < threshold_uptime,NA,car),
-  #                        heavy = ifelse(uptime < threshold_uptime,NA,heavy))
-
+      segment_id = if (is.factor(segment_id)) {
+        factor(as.character(segment_id), levels = levels(segment_id))
+      } else if (is.list(segment_id)) {
+        factor(sapply(segment_id, as.character), levels = unique(sapply(segment_id, as.character)))
+      } else {
+        factor(as.character(segment_id), levels = unique(as.character(segment_id)))
+      }
+        )
 
   # Calculate vehicle if not present
   if (!"vehicle" %in% colnames(data)) {
     data <- data %>%
       mutate(vehicle = car + heavy)
-  #    mutate(vehicle = ifelse(uptime < threshold_uptime,NA,car + heavy))
-  }
+    }
 
   return(data)
 }
@@ -156,7 +156,7 @@ impute_missing_data <- function(data, sensors_name = NULL, transport_type = "veh
   data <- validate_and_preprocess_data(data, transport_type, sensors_name)
 
   # Define constants
-  BASE_VARS <- c("day_of_month", "hour", "weekday", "month", "year", "vacation", "season", "week_number", "segment_name", "date")
+  BASE_VARS <- c("day_of_month", "hour", "weekday", "month", "year", "vacation", "week_number", "segment_id", "date")
 
   # Impute data based on transport type
   if ( transport_type == "all") {
@@ -167,18 +167,19 @@ impute_missing_data <- function(data, sensors_name = NULL, transport_type = "veh
 
      # Calculate 'heavy' as max(0, vehicle - car)
     data_complete <- data_vehicle %>%
-      select(vehicle, segment_name, date ,imputed) %>%
-      left_join(data_car %>% select(car, segment_name, date), by = c("segment_name", "date")) %>%
-      left_join(data_heavy %>% select(heavy, segment_name, date), by = c("segment_name", "date"))
+      select(vehicle, segment_id, date ,imputed) %>%
+      left_join(data_car %>% select(car, segment_id, date), by = c("segment_id", "date")) %>%
+      left_join(data_heavy %>% select(heavy, segment_id, date), by = c("segment_id", "date")) %>%
+      left_join(data %>% select(-car,-vehicle,-heavy), by = c("segment_id", "date"))
 
   } else {
-    # For 'car' and 'vehicle', use the original method
+    # For 'car' and 'vehicle' or 'heavy' , use the original method
     data_complete <- create_and_train_model(data, transport_type, BASE_VARS,threshold_uptime)
   }
 
   # Sort the final dataset
   data_complete <- data_complete %>%
-    arrange(segment_name, date)
+    arrange(segment_id, date)
 
   return(data_complete)
 }
