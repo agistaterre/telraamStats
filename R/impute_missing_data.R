@@ -227,7 +227,8 @@ create_and_train_model <-
 #'Time interval could be hourly or quarterly. The function will automatically detect the time interval based on the data and add a minute variable if its quarterly.
 #'
 #' @examples
-#'  traffic_imputed <- impute_missing_data(traffic,
+#' traffic_clean <- retrieve_missing_data(traffic)
+#'  traffic_imputed <- impute_missing_data(traffic_clean,
 #'    sensors_id = 9000001844,
 #'    transport_type = "vehicle",
 #'    threshold_uptime = 0.5)
