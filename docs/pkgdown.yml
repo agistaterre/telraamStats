@@ -3,8 +3,9 @@ pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   data-details: data-details.html
+  data-preprocessing: data-preprocessing.html
   data-visualization: data-visualization.html
-last_built: 2024-05-27T09:00Z
+last_built: 2024-08-07T08:23Z
 urls:
   reference: https://ketsiaguichard.github.io/telraamStats/reference
   article: https://ketsiaguichard.github.io/telraamStats/articles

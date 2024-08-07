@@ -13,6 +13,9 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/articles/data-details.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/articles/data-preprocessing.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/articles/data-visualization.html</loc>
   </url>
   <url>
@@ -41,6 +44,9 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/convert_string_to_list.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/create_and_train_model.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/create_config.html</loc>
@@ -83,6 +89,9 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/filtering_agg.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/fine_tune_impute_missing_data.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/get_api_state.html</loc>
@@ -142,6 +151,9 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/import_sensor_comp.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/impute_missing_data.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/index.html</loc>
   </url>
   <url>
@@ -181,6 +193,15 @@
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/preprocess_car_speed.html</loc>
   </url>
   <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/replace_inactivity_period.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/retrieve_missing_data.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/retrieve_missing_hours.html</loc>
+  </url>
+  <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/retrieve_sensor.html</loc>
   </url>
   <url>
@@ -197,6 +218,9 @@
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/traffic.html</loc>
+  </url>
+  <url>
+    <loc>https://ketsiaguichard.github.io/telraamStats/reference/validate_and_preprocess_data.html</loc>
   </url>
   <url>
     <loc>https://ketsiaguichard.github.io/telraamStats/reference/which_vacations.html</loc>
